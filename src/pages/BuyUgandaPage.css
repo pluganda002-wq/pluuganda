@@ -1,12 +1,14 @@
 .bubu-banner {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: flex-start;
+  background: linear-gradient(135deg, rgba(232, 185, 35, 0.08) 0%, rgba(28, 29, 36, 0.95) 100%);
+  border-color: rgba(232, 185, 35, 0.2);
 }
 
 .bubu-banner p {
   margin: 0;
   font-size: 0.88rem;
   color: var(--plu-muted);
-  line-height: 1.45;
+  line-height: 1.5;
 }

@@ -28,6 +28,7 @@ import "@/pages/BuyUgandaPage.css";
 import "@/pages/HomePage.css";
 import "@/pages/ProgrammesPage.css";
 import "@/styles/global.css";
+import "@/styles/sections.css";
 
 export default function App() {
   return (

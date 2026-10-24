@@ -3,16 +3,17 @@ import {
   Car,
   GraduationCap,
   Heart,
+  MapPin,
   ShieldAlert,
   ShoppingBag,
   Sparkles,
-  MapPin,
   Tv,
   UserPlus,
   Vote,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ModuleCard } from "@/components/ModuleCard";
+import { SectionHead } from "@/components/SectionHead";
 import { StatGrid } from "@/components/StatGrid";
 import { PLU_STATS, PLU_TAGLINE, PLU_VALUES } from "@/data/plu";
 import { useTelegram } from "@/hooks/useTelegram";
@@ -23,7 +24,8 @@ export function HomePage() {
 
   return (
     <main className="page home-page">
-      <section className="hero">
+      <section className="hero-panel">
+        <div className="hero-panel__shine" aria-hidden />
         <div className="hero__brand">
           <div className="hero__logo" aria-hidden>
             PLU
@@ -34,7 +36,6 @@ export function HomePage() {
             <p className="hero__tagline">{PLU_TAGLINE}</p>
           </div>
         </div>
-
         <div className="hero__stats">
           <StatGrid
             stats={[
@@ -47,25 +48,27 @@ export function HomePage() {
       </section>
 
       <section className="home-section">
-        <h2 className="section-title">Start here</h2>
+        <SectionHead title="Start here" subtitle="Membership, endorsements and help — one tap away." />
         <div className="home-section__actions">
           <Link to="/membership" className="btn btn-primary">
             <UserPlus size={18} />
             Register membership
           </Link>
-          <Link to="/endorse" className="btn btn-secondary">
-            <Vote size={18} />
-            Add endorsement
-          </Link>
-          <Link to="/assistant" className="btn btn-secondary">
-            <Bot size={18} />
-            PLU Assistant
-          </Link>
+          <div className="btn-grid-2">
+            <Link to="/endorse" className="btn btn-secondary">
+              <Vote size={18} />
+              Endorse
+            </Link>
+            <Link to="/assistant" className="btn btn-secondary">
+              <Bot size={18} />
+              Assistant
+            </Link>
+          </div>
         </div>
       </section>
 
       <section className="home-section">
-        <h2 className="section-title">Integrity & programmes</h2>
+        <SectionHead title="Integrity & programmes" />
         <div className="module-list">
           <ModuleCard
             to="/integrity"
@@ -85,19 +88,19 @@ export function HomePage() {
       </section>
 
       <section className="home-section">
-        <h2 className="section-title">Tourism & Buy Uganda</h2>
+        <SectionHead title="Tourism & Buy Uganda" />
         <div className="module-list">
           <ModuleCard
             to="/tourism"
             title="Tourism"
-            subtitle="Pearl of Africa — parks, culture, adventure and PLU travel packages"
+            subtitle="Pearl of Africa — parks, culture, adventure and PLU travel"
             icon={<MapPin size={22} />}
             accent="green"
           />
           <ModuleCard
             to="/buy-uganda"
             title="Buy Uganda, Build Uganda"
-            subtitle="Shop local, list your business, strengthen the national economy"
+            subtitle="Shop local, list your business, grow the economy"
             icon={<ShoppingBag size={22} />}
             accent="gold"
           />
@@ -105,7 +108,7 @@ export function HomePage() {
       </section>
 
       <section className="home-section">
-        <h2 className="section-title">Mobility & media</h2>
+        <SectionHead title="Mobility & media" />
         <div className="module-list">
           <ModuleCard
             to="/mobility"
@@ -139,7 +142,7 @@ export function HomePage() {
       </section>
 
       <section className="home-section home-section--values">
-        <h2 className="section-title">Our mission</h2>
+        <SectionHead title="Our mission" />
         <ul className="values-strip">
           {PLU_VALUES.map((v) => (
             <li key={v.title}>
