@@ -1,0 +1,54 @@
+.hero {
+  padding: 8px 0 20px;
+}
+
+.hero__brand {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.hero__logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--plu-gold), #8b6914);
+  color: var(--plu-black);
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(244, 196, 48, 0.25);
+}
+
+.hero__greeting {
+  margin: 0 0 2px;
+  font-size: 0.85rem;
+  color: var(--plu-muted);
+}
+
+.hero__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero__tagline {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--plu-gold);
+  font-weight: 500;
+}
+
+.hero__stats {
+  margin-bottom: 16px;
+}
+
+.hero__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
