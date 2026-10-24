@@ -25,7 +25,7 @@ const TASKS = [
 
 export function TasksPage() {
   const { completedTasks, completeTask } = useUser();
-  const { haptic } = useTelegram();
+  const { haptic, showAlert } = useTelegram();
 
   return (
     <main className="page">
@@ -49,6 +49,7 @@ export function TasksPage() {
               onClick={() => {
                 completeTask(t.id);
                 haptic("medium");
+                showAlert("Task marked complete. Thank you for serving Uganda.");
               }}
             >
               {done ? "Completed" : "Mark complete"}

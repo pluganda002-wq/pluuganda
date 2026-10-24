@@ -12,7 +12,7 @@ import {
 import { Link } from "react-router-dom";
 import { ModuleCard } from "@/components/ModuleCard";
 import { StatGrid } from "@/components/StatGrid";
-import { PLU_STATS, PLU_TAGLINE } from "@/data/plu";
+import { PLU_STATS, PLU_TAGLINE, PLU_VALUES } from "@/data/plu";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./HomePage.css";
 
@@ -20,7 +20,7 @@ export function HomePage() {
   const { displayName } = useTelegram();
 
   return (
-    <main className="page">
+    <main className="page home-page">
       <section className="hero">
         <div className="hero__brand">
           <div className="hero__logo" aria-hidden>
@@ -42,71 +42,91 @@ export function HomePage() {
             ]}
           />
         </div>
+      </section>
 
-        <div className="hero__actions">
-          <Link to="/assistant" className="btn btn-primary">
-            <Bot size={18} />
-            Ask PLU Assistant
+      <section className="home-section">
+        <h2 className="section-title">Start here</h2>
+        <div className="home-section__actions">
+          <Link to="/membership" className="btn btn-primary">
+            <UserPlus size={18} />
+            Register membership
           </Link>
           <Link to="/endorse" className="btn btn-secondary">
             <Vote size={18} />
-            Add your endorsement
+            Add endorsement
+          </Link>
+          <Link to="/assistant" className="btn btn-secondary">
+            <Bot size={18} />
+            PLU Assistant
           </Link>
         </div>
       </section>
 
-      <h2 className="section-title">Quick access</h2>
-      <div className="module-list">
-        <ModuleCard
-          to="/membership"
-          title="Member registration"
-          subtitle="Register, verify records and stay connected to PLU"
-          icon={<UserPlus size={22} />}
-          accent="gold"
-        />
-        <ModuleCard
-          to="/integrity"
-          title="Fight corruption"
-          subtitle="Secure reporting and public case tracking"
-          icon={<ShieldAlert size={22} />}
-          accent="red"
-        />
-        <ModuleCard
-          to="/programmes"
-          title="Programmes"
-          subtitle="Barazas, youth, service, diaspora and more"
-          icon={<Sparkles size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/mobility"
-          title="Mobility & hubs"
-          subtitle="UGo Ride, Tugende safe boda, transport coordination"
-          icon={<Car size={22} />}
-          accent="blue"
-        />
-        <ModuleCard
-          to="/tv"
-          title="PLU TV"
-          subtitle="Official updates, events and educational streams"
-          icon={<Tv size={22} />}
-          accent="gold"
-        />
-        <ModuleCard
-          to="/education"
-          title="Civic education"
-          subtitle="Learn citizenship, unity and responsible stewardship"
-          icon={<GraduationCap size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/charity"
-          title="Charity & CSR"
-          subtitle="Community projects and corporate social responsibility"
-          icon={<Heart size={22} />}
-          accent="red"
-        />
-      </div>
+      <section className="home-section">
+        <h2 className="section-title">Integrity & programmes</h2>
+        <div className="module-list">
+          <ModuleCard
+            to="/integrity"
+            title="Fight corruption"
+            subtitle="Secure reporting and public case tracking"
+            icon={<ShieldAlert size={22} />}
+            accent="red"
+          />
+          <ModuleCard
+            to="/programmes"
+            title="All programmes"
+            subtitle="Barazas, youth, service, diaspora and accountability"
+            icon={<Sparkles size={22} />}
+            accent="green"
+          />
+        </div>
+      </section>
+
+      <section className="home-section">
+        <h2 className="section-title">Mobility & media</h2>
+        <div className="module-list">
+          <ModuleCard
+            to="/mobility"
+            title="UGo Ride & Tugende"
+            subtitle="Mobility partners and transport hubs"
+            icon={<Car size={22} />}
+            accent="blue"
+          />
+          <ModuleCard
+            to="/tv"
+            title="PLU TV"
+            subtitle="Official updates and educational streams"
+            icon={<Tv size={22} />}
+            accent="gold"
+          />
+          <ModuleCard
+            to="/education"
+            title="Civic education"
+            subtitle="Citizenship, unity and public stewardship"
+            icon={<GraduationCap size={22} />}
+            accent="green"
+          />
+          <ModuleCard
+            to="/charity"
+            title="Charity & CSR"
+            subtitle="Community projects and partnerships"
+            icon={<Heart size={22} />}
+            accent="red"
+          />
+        </div>
+      </section>
+
+      <section className="home-section home-section--values">
+        <h2 className="section-title">Our mission</h2>
+        <ul className="values-strip">
+          {PLU_VALUES.map((v) => (
+            <li key={v.title}>
+              <strong>{v.title}</strong>
+              <span>{v.text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

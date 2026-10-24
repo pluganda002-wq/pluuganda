@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
 import { UserProvider } from "@/context/UserContext";
 import { AssistantPage } from "@/pages/AssistantPage";
@@ -14,9 +14,9 @@ import { MobilityPage } from "@/pages/MobilityPage";
 import { PluTvPage } from "@/pages/PluTvPage";
 import { ProgrammeDetailPage } from "@/pages/ProgrammeDetailPage";
 import { ProgrammesPage } from "@/pages/ProgrammesPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { ReportPage } from "@/pages/ReportPage";
-import { ProfilePage } from "@/pages/ProfilePage";
 import { ServicesPage } from "@/pages/ServicesPage";
 import { SocialPage } from "@/pages/SocialPage";
 import { TasksPage } from "@/pages/TasksPage";
@@ -52,6 +52,11 @@ export default function App() {
             <Route path="/mobility" element={<MobilityPage />} />
             <Route path="/tv" element={<PluTvPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="/hub" element={<Navigate to="/services" replace />} />
+            <Route path="/earn" element={<Navigate to="/" replace />} />
+            <Route path="/boost" element={<Navigate to="/" replace />} />
+            <Route path="/friends" element={<Navigate to="/" replace />} />
+            <Route path="/wallet" element={<Navigate to="/profile" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

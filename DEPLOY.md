@@ -9,7 +9,7 @@ Copy [`.env.example`](./.env.example) to `.env` locally. In **Vercel → Project
 | `MONGODB_URI` | Yes (for persistence) | MongoDB Atlas connection string |
 | `MONGODB_DB_NAME` | No | Default `plu_bot` |
 | `BOT_TOKEN` | For Telegram webhook | From [@BotFather](https://t.me/BotFather) |
-| `WEB_APP_URL` | For Telegram webhook | `https://pluuganda.vercel.app` (no trailing slash) |
+| `WEB_APP_URL` | For Telegram webhook | `https://pluuganda-hifl.vercel.app` (no trailing slash) |
 
 Redeploy after changing env vars.
 
@@ -20,12 +20,12 @@ Redeploy after changing env vars.
 3. Framework: **Vite** (auto). Build: `npm run build`, output: `dist`.
 4. Add env vars above → Deploy.
 
-Check API: [pluuganda.vercel.app/api/health](https://pluuganda.vercel.app/api/health) → `"database":"configured"` after `MONGODB_URI` is set.
+Check API: [pluuganda-hifl.vercel.app/api/health](https://pluuganda-hifl.vercel.app/api/health) → `"database":"configured"` after `MONGODB_URI` is set.
 
 ## 3. BotFather Mini App
 
 1. `/newbot` or use existing bot → copy **token** → `BOT_TOKEN` on Vercel.
-2. **Bot Settings → Menu Button → Configure** → set URL to `https://pluuganda.vercel.app`.
+2. **Bot Settings → Menu Button → Configure** → set URL to `https://pluuganda-hifl.vercel.app`.
 3. Optional: **/setdescription** — *PLU BOT — Connect. Participate. Build Uganda.*
 
 ## 4. Telegram webhook (recommended on Vercel)
@@ -33,7 +33,7 @@ Check API: [pluuganda.vercel.app/api/health](https://pluuganda.vercel.app/api/he
 After deploy, set webhook (replace values):
 
 ```text
-https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://pluuganda.vercel.app/api/webhook
+https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://pluuganda-hifl.vercel.app/api/webhook
 ```
 
 Users send `/start` in Telegram; bot replies with **Open PLU BOT** web app button.

@@ -4,6 +4,16 @@
 
 Unified digital platform for the [Patriotic League of Uganda](https://plu.org.ug/): membership, endorsements, civic programmes, mobility services, PLU TV, corruption reporting, and community engagement — designed as a Telegram Mini App first, with a full website planned next.
 
+## Navigation
+
+| Tab | Purpose |
+|-----|---------|
+| **Home** | Stats, priority actions, organised programme shortcuts |
+| **Programmes** | Seven PLU programme areas |
+| **Services** | Full service directory |
+| **Social** | Updates and engagement |
+| **Profile** | Membership, values, assistant |
+
 ## Features (v0.1)
 
 | Area | Screens |

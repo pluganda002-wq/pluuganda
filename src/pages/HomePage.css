@@ -47,8 +47,45 @@
   margin-bottom: 16px;
 }
 
-.hero__actions {
+.home-section {
+  margin-bottom: 22px;
+}
+
+.home-section__actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.home-section--values {
+  margin-bottom: 8px;
+}
+
+.values-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.values-strip li {
+  background: var(--plu-charcoal);
+  border: 1px solid var(--plu-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.values-strip strong {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+  color: var(--plu-gold);
+}
+
+.values-strip span {
+  font-size: 0.78rem;
+  color: var(--plu-muted);
+  line-height: 1.35;
 }

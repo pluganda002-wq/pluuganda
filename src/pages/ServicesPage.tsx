@@ -19,7 +19,7 @@ export function ServicesPage() {
     <main className="page">
       <PageHeader
         title="Services"
-        subtitle="Membership, mobility, media, leadership, tasks and community programmes in one place."
+        subtitle="Membership, mobility, media, leadership, tasks and community programmes."
       />
       <div className="module-list">
         <ModuleCard
