@@ -4,7 +4,9 @@ import {
   GraduationCap,
   Heart,
   ShieldAlert,
+  ShoppingBag,
   Sparkles,
+  MapPin,
   Tv,
   UserPlus,
   Vote,
@@ -78,6 +80,26 @@ export function HomePage() {
             subtitle="Barazas, youth, service, diaspora and accountability"
             icon={<Sparkles size={22} />}
             accent="green"
+          />
+        </div>
+      </section>
+
+      <section className="home-section">
+        <h2 className="section-title">Tourism & Buy Uganda</h2>
+        <div className="module-list">
+          <ModuleCard
+            to="/tourism"
+            title="Tourism"
+            subtitle="Pearl of Africa — parks, culture, adventure and PLU travel packages"
+            icon={<MapPin size={22} />}
+            accent="green"
+          />
+          <ModuleCard
+            to="/buy-uganda"
+            title="Buy Uganda, Build Uganda"
+            subtitle="Shop local, list your business, strengthen the national economy"
+            icon={<ShoppingBag size={22} />}
+            accent="gold"
           />
         </div>
       </section>

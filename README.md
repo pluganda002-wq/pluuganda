@@ -24,6 +24,8 @@ Unified digital platform for the [Patriotic League of Uganda](https://plu.org.ug
 | Programmes | All seven PLU programme areas from plu.org.ug |
 | Services | Youth, charity, CSR, tasks, leadership, education, projects |
 | Mobility & media | UGo Ride, Tugende, transport hubs, PLU TV (scaffolded) |
+| Tourism | Pearl of Africa themes, PLU travel packages |
+| Buy Uganda Build Uganda | BUBU pillars, local suppliers, business listings |
 | Social | Feed hub for updates and engagement |
 
 ## Quick start

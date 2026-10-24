@@ -24,6 +24,12 @@ function replyFor(question: string): string {
   if (q.includes("ugo") || q.includes("tugende") || q.includes("ride")) {
     return "Mobility partners UGo Ride and Tugende Safe Boda are in onboarding. Request a link from the Mobility page when travelling to PLU events.";
   }
+  if (q.includes("tourism") || q.includes("travel") || q.includes("visit uganda")) {
+    return "Open Tourism from Home or Services for wildlife, culture, adventure and city experiences, plus PLU travel packages. Link trips with Mobility when partners go live.";
+  }
+  if (q.includes("buy uganda") || q.includes("bubu") || q.includes("build uganda") || q.includes("local product")) {
+    return "Buy Uganda, Build Uganda is under Services → Buy Uganda. Browse categories, featured suppliers, and submit your business for the BUBU directory.";
+  }
   return "I'm PLU BOT — your guide to membership, programmes, integrity reporting, endorsements and services. Try a quick prompt below or ask in plain language.";
 }
 

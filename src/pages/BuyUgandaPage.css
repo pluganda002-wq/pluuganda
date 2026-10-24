@@ -1,0 +1,12 @@
+.bubu-banner {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.bubu-banner p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--plu-muted);
+  line-height: 1.45;
+}

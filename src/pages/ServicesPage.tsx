@@ -4,7 +4,9 @@ import {
   ClipboardList,
   GraduationCap,
   Heart,
+  MapPin,
   ShieldAlert,
+  ShoppingBag,
   Trophy,
   Tv,
   UserPlus,
@@ -88,6 +90,20 @@ export function ServicesPage() {
           subtitle="Civic learning modules"
           icon={<GraduationCap size={22} />}
           accent="green"
+        />
+        <ModuleCard
+          to="/tourism"
+          title="Tourism"
+          subtitle="Discover Uganda — organised travel and PLU packages"
+          icon={<MapPin size={22} />}
+          accent="green"
+        />
+        <ModuleCard
+          to="/buy-uganda"
+          title="Buy Uganda, Build Uganda"
+          subtitle="Local suppliers, categories and business listings"
+          icon={<ShoppingBag size={22} />}
+          accent="gold"
         />
         <ModuleCard
           to="/mobility"

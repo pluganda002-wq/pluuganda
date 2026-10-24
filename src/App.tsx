@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
 import { UserProvider } from "@/context/UserContext";
 import { AssistantPage } from "@/pages/AssistantPage";
+import { BuyUgandaPage } from "@/pages/BuyUgandaPage";
 import { CharityPage } from "@/pages/CharityPage";
 import { CsrPage } from "@/pages/CsrPage";
 import { EducationPage } from "@/pages/EducationPage";
@@ -20,8 +21,10 @@ import { ReportPage } from "@/pages/ReportPage";
 import { ServicesPage } from "@/pages/ServicesPage";
 import { SocialPage } from "@/pages/SocialPage";
 import { TasksPage } from "@/pages/TasksPage";
+import { TourismPage } from "@/pages/TourismPage";
 import { YouthPage } from "@/pages/YouthPage";
 import "@/pages/AssistantPage.css";
+import "@/pages/BuyUgandaPage.css";
 import "@/pages/HomePage.css";
 import "@/pages/ProgrammesPage.css";
 import "@/styles/global.css";
@@ -50,6 +53,8 @@ export default function App() {
             <Route path="/leadership" element={<LeadershipPage />} />
             <Route path="/education" element={<EducationPage />} />
             <Route path="/mobility" element={<MobilityPage />} />
+            <Route path="/tourism" element={<TourismPage />} />
+            <Route path="/buy-uganda" element={<BuyUgandaPage />} />
             <Route path="/tv" element={<PluTvPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/hub" element={<Navigate to="/services" replace />} />
