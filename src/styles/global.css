@@ -8,10 +8,11 @@
   --plu-charcoal: #ffffff;
   --plu-surface: #ffffff;
   --plu-surface-hover: #f0f0eb;
-  --plu-gold: #ffc107;
-  --plu-gold-bright: #ffcd00;
+  --plu-gold: #c9a227;
+  --plu-gold-bright: #f5d77e;
   --plu-gold-dim: #d4af37;
-  --plu-gold-dark: #b8860b;
+  --plu-gold-dark: #8b6914;
+  --plu-gold-bronze: #6b4e12;
   --plu-red: #ef3340;
   --plu-red-soft: rgba(239, 51, 64, 0.1);
   --plu-yellow: #ffcd00;
@@ -30,6 +31,9 @@
   --radius-sm: 12px;
   --radius-xs: 8px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --plu-canvas-black: #000000;
+  --plu-on-canvas: #f5f0e6;
+  --plu-on-canvas-muted: rgba(245, 240, 230, 0.72);
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   color: var(--plu-text);
@@ -53,9 +57,45 @@ body,
 
 body {
   overflow-x: hidden;
-  background:
-    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(255, 205, 0, 0.12), transparent 50%),
-    var(--plu-bg);
+}
+
+/* Brushed metallic gold — matches PLU brand strip (ref: plu-metallic-gold-ref.png) */
+html,
+body,
+#root {
+  background-color: var(--plu-gold-bronze);
+}
+
+.app-shell--institutional {
+  background-color: var(--plu-gold-bronze);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.07) 0,
+      rgba(0, 0, 0, 0.07) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(
+      90deg,
+      #4a3810 0%,
+      #8b6914 14%,
+      #c5a059 32%,
+      #f5d77e 48%,
+      #d4af37 56%,
+      #c9a227 68%,
+      #9a7620 84%,
+      #5c4510 100%
+    );
+  background-size: auto, auto, 100% 100%;
+  background-repeat: repeat, repeat, no-repeat;
 }
 
 a {
@@ -85,12 +125,9 @@ select {
   isolation: isolate;
 }
 
-/* Outer gutter — visible space at sides & bottom (Telegram mini app frame) */
 .app-shell--institutional {
-  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px calc(12px + var(--safe-bottom));
-  background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 205, 0, 0.08), transparent 55%),
-    linear-gradient(165deg, #3a3828 0%, #1c1b16 45%, #2a2820 100%);
+  min-height: 100dvh;
+  padding: 0 10px;
 }
 
 .app-frame {
@@ -101,15 +138,10 @@ select {
   max-width: 480px;
   margin: 0 auto;
   min-height: 0;
-  max-height: calc(100dvh - 22px - env(safe-area-inset-top, 0px) - var(--safe-bottom));
-  border-radius: 28px;
-  border: 1.5px solid var(--plu-gold-bright);
+  background: var(--plu-canvas-black);
   box-shadow:
-    0 0 0 1px rgba(212, 175, 55, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 16px 48px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
-  background: var(--plu-bg);
+    0 0 0 1px rgba(245, 215, 126, 0.45),
+    inset 0 0 0 1px rgba(139, 105, 20, 0.35);
 }
 
 .app-frame__main {
@@ -118,6 +150,21 @@ select {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: var(--plu-canvas-black);
+}
+
+/* Copy on the dark canvas (cards/tiles stay light) */
+.app-frame__main .institutional-page__lead,
+.app-frame__main .page-header p,
+.app-frame__main .section-sub,
+.app-frame__main .page-hero__caption,
+.app-frame__main .empty-hint {
+  color: var(--plu-on-canvas-muted);
+}
+
+.app-frame__main .page-header h1,
+.app-frame__main .section-title {
+  color: var(--plu-on-canvas);
 }
 
 .page {
