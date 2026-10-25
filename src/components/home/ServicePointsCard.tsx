@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { PLU_STATS } from "@/data/plu";
 import { rankFromPoints } from "@/data/servicePoints";
-import { usePatriotAvatar } from "@/hooks/usePatriotAvatar";
 import { StatGrid } from "@/components/StatGrid";
 import "./ServicePointsCard.css";
+
+const SERVICE_POINTS_ICON = "/branding/plu-service-points-icon.png";
 
 type Props = {
   total: number;
 };
 
 export function ServicePointsCard({ total }: Props) {
-  const avatarSrc = usePatriotAvatar();
   const { tier, index, nextAt } = rankFromPoints(total);
   const tierLabel = `${tier} · ${index + 1} / ${7}`;
 
@@ -22,7 +22,7 @@ export function ServicePointsCard({ total }: Props) {
       </div>
 
       <div className="sp-card__hero">
-        <img src={avatarSrc} alt="" className="sp-card__badge" width={56} height={56} />
+        <img src={SERVICE_POINTS_ICON} alt="" className="sp-card__badge" width={56} height={56} />
         <div className="sp-card__total-wrap">
           <span className="sp-card__total">{total.toLocaleString()}</span>
           <Link to="/leadership" className="sp-card__rank">
