@@ -1,11 +1,12 @@
 import { ChevronDown } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 
 type Props = {
   title: string;
   subtitle?: string;
   barVariant?: "gold" | "teal";
   defaultOpen?: boolean;
+  sectionId?: string;
   children: ReactNode;
   className?: string;
 };
@@ -15,16 +16,35 @@ export function HomeAccordionSection({
   subtitle,
   barVariant = "gold",
   defaultOpen = false,
+  sectionId,
   children,
   className = "",
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (!sectionId) return;
+    const sync = () => {
+      if (window.location.hash === `#${sectionId}`) {
+        setOpen(true);
+        requestAnimationFrame(() => {
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, [sectionId]);
   const panelId = useId();
   const barClass =
     barVariant === "teal" ? "home-col-bar home-col-bar--alt" : "home-col-bar";
 
   return (
-    <section className={`home-box home-accordion${className ? ` ${className}` : ""}`}>
+    <section
+      id={sectionId}
+      className={`home-box home-accordion${className ? ` ${className}` : ""}`}
+    >
       <button
         type="button"
         className={`home-accordion__trigger ${barClass}${open ? " home-accordion__trigger--open" : ""}`}

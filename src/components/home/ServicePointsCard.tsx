@@ -1,22 +1,17 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import {
-  POINT_CATEGORIES,
-  rankFromPoints,
-  type PointCategoryId,
-} from "@/data/servicePoints";
-import { useTelegram } from "@/hooks/useTelegram";
+import { PLU_STATS } from "@/data/plu";
+import { rankFromPoints } from "@/data/servicePoints";
+import { usePatriotAvatar } from "@/hooks/usePatriotAvatar";
+import { StatGrid } from "@/components/StatGrid";
 import "./ServicePointsCard.css";
-
-const SERVICE_ICON = "/branding/plu-service-points-icon.png";
 
 type Props = {
   total: number;
-  breakdown: Record<PointCategoryId, number>;
 };
 
-export function ServicePointsCard({ total, breakdown }: Props) {
-  const { displayName } = useTelegram();
+export function ServicePointsCard({ total }: Props) {
+  const avatarSrc = usePatriotAvatar();
   const { tier, index, nextAt } = rankFromPoints(total);
   const tierLabel = `${tier} · ${index + 1} / ${7}`;
 
@@ -24,11 +19,10 @@ export function ServicePointsCard({ total, breakdown }: Props) {
     <section className="sp-card" aria-label="Service points">
       <div className="sp-card__head">
         <h2 className="sp-card__title">Service points</h2>
-        <p className="sp-card__user">Karibu, {displayName}</p>
       </div>
 
       <div className="sp-card__hero">
-        <img src={SERVICE_ICON} alt="" className="sp-card__badge" width={56} height={56} />
+        <img src={avatarSrc} alt="" className="sp-card__badge" width={56} height={56} />
         <div className="sp-card__total-wrap">
           <span className="sp-card__total">{total.toLocaleString()}</span>
           <Link to="/leadership" className="sp-card__rank">
@@ -43,18 +37,16 @@ export function ServicePointsCard({ total, breakdown }: Props) {
       </div>
 
       <ul className="sp-card__list">
-        {POINT_CATEGORIES.map((cat) => (
-          <li key={cat.id}>
-            <Link to="/tasks" className={`sp-row sp-row--${cat.tone}`}>
-              <span className="sp-row__shield" aria-hidden />
-              <span className="sp-row__text">
-                <strong>{cat.label}</strong>
-                <span>{cat.subtitle}</span>
-              </span>
-              <span className="sp-row__pts">{breakdown[cat.id].toLocaleString()}</span>
-            </Link>
-          </li>
-        ))}
+        <li className="sp-card__stats-block">
+          <p className="sp-card__stats-title">Endorsement statistics</p>
+          <StatGrid
+            stats={[
+              { value: PLU_STATS.endorsements, label: "Recorded" },
+              { value: PLU_STATS.districts, label: "Districts" },
+              { value: PLU_STATS.members, label: "Members" },
+            ]}
+          />
+        </li>
       </ul>
     </section>
   );

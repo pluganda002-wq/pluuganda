@@ -16,7 +16,7 @@ import { MobilityPage } from "@/pages/MobilityPage";
 import { PluTvPage } from "@/pages/PluTvPage";
 import { ProgrammeDetailPage } from "@/pages/ProgrammeDetailPage";
 import { ProgrammesPage } from "@/pages/ProgrammesPage";
-import { ProfilePage } from "@/pages/ProfilePage";
+import { GuildPage } from "@/pages/GuildPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { ReportPage } from "@/pages/ReportPage";
 import { ServicesPage } from "@/pages/ServicesPage";
@@ -26,7 +26,9 @@ import { TourismPage } from "@/pages/TourismPage";
 import { YouthPage } from "@/pages/YouthPage";
 import "@/pages/AssistantPage.css";
 import "@/pages/BuyUgandaPage.css";
+import "@/pages/GuildPage.css";
 import "@/pages/HomePage.css";
+import "@/components/ProfileEditorSheet.css";
 import "@/pages/ProgrammesPage.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
@@ -45,7 +47,7 @@ export default function App() {
             <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/social" element={<SocialPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile" element={<GuildPage />} />
             <Route path="/membership" element={<MembershipPage />} />
             <Route path="/endorse" element={<EndorsePage />} />
             <Route path="/integrity" element={<IntegrityPage />} />

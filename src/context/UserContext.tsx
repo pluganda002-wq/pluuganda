@@ -16,6 +16,11 @@ export type MemberProfile = {
   registeredAt: string;
 };
 
+export type PatriotProfile = {
+  avatarDataUrl: string | null;
+  interests: string[];
+};
+
 type UserContextValue = {
   member: MemberProfile | null;
   registerMember: (
@@ -27,9 +32,14 @@ type UserContextValue = {
   setEndorsed: (value: boolean) => void;
   completedTasks: string[];
   completeTask: (id: string) => void;
+  patriotProfile: PatriotProfile;
+  updatePatriotProfile: (patch: Partial<PatriotProfile>) => void;
+  inviteCode: string;
 };
 
 const STORAGE_KEY = "plu-bot-member-v1";
+const PATRIOT_PROFILE_KEY = "plu-bot-patriot-profile-v1";
+const INVITE_CODE_KEY = "plu-bot-invite-code";
 
 const UserContext = createContext<UserContextValue | null>(null);
 
@@ -47,6 +57,32 @@ function saveMember(member: MemberProfile | null) {
   else localStorage.removeItem(STORAGE_KEY);
 }
 
+function loadPatriotProfile(): PatriotProfile {
+  try {
+    const raw = localStorage.getItem(PATRIOT_PROFILE_KEY);
+    if (raw) return JSON.parse(raw) as PatriotProfile;
+  } catch {
+    /* ignore */
+  }
+  return { avatarDataUrl: null, interests: [] };
+}
+
+function savePatriotProfile(profile: PatriotProfile) {
+  localStorage.setItem(PATRIOT_PROFILE_KEY, JSON.stringify(profile));
+}
+
+function loadOrCreateInviteCode(): string {
+  try {
+    const existing = localStorage.getItem(INVITE_CODE_KEY);
+    if (existing) return existing;
+  } catch {
+    /* ignore */
+  }
+  const code = `PLU-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  localStorage.setItem(INVITE_CODE_KEY, code);
+  return code;
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [member, setMember] = useState<MemberProfile | null>(() => loadMember());
   const [endorsed, setEndorsedState] = useState(
@@ -59,6 +95,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return [];
     }
   });
+  const [patriotProfile, setPatriotProfile] = useState<PatriotProfile>(() => loadPatriotProfile());
+  const [inviteCode] = useState(() => loadOrCreateInviteCode());
+
+  const updatePatriotProfile = useCallback((patch: Partial<PatriotProfile>) => {
+    setPatriotProfile((prev) => {
+      const next = { ...prev, ...patch };
+      savePatriotProfile(next);
+      return next;
+    });
+  }, []);
 
   const registerMember = useCallback(
     (
@@ -110,8 +156,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setEndorsed,
       completedTasks,
       completeTask,
+      patriotProfile,
+      updatePatriotProfile,
+      inviteCode,
     }),
-    [member, registerMember, verifyMember, endorsed, setEndorsed, completedTasks, completeTask]
+    [
+      member,
+      registerMember,
+      verifyMember,
+      endorsed,
+      setEndorsed,
+      completedTasks,
+      completeTask,
+      patriotProfile,
+      updatePatriotProfile,
+      inviteCode,
+    ]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

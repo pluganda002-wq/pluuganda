@@ -6,16 +6,11 @@ import {
   ShoppingBag,
   Sparkles,
   Tv,
-  UserPlus,
-  Vote,
-  Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { HomeAccordionSection } from "@/components/home/HomeAccordionSection";
 import { HomeSectionPopup } from "@/components/home/HomeSectionPopup";
 import { HomeMiniLink } from "@/components/home/HomeMiniLink";
 import { ServicePointsCard } from "@/components/home/ServicePointsCard";
-import type { PointCategoryId } from "@/data/servicePoints";
 import { PLU_VALUES } from "@/data/plu";
 import { useUser } from "@/context/UserContext";
 import "./HomePage.css";
@@ -24,23 +19,16 @@ const HERO_BANNER = "/branding/plu-hero-banner.png";
 const UGO_RIDE_LOGO = "/branding/ugo-ride.png";
 const TUGENDE_LOGO = "/branding/tugende-safe-boda.png";
 
-function useServicePointsBreakdown(): { total: number; breakdown: Record<PointCategoryId, number> } {
+function useServicePointsTotal(): number {
   const { member, endorsed, completedTasks } = useUser();
-  const patriot = completedTasks.length * 25 + 10;
+  const activity = completedTasks.length * 25 + 10;
   const verified =
     (member ? 40 : 0) + (endorsed ? 35 : 0) + (member?.verified ? 50 : 0);
-  const service = Math.min(completedTasks.length * 15, 120);
-  const breakdown: Record<PointCategoryId, number> = {
-    patriot,
-    verified,
-    service,
-  };
-  const total = patriot + verified + service;
-  return { total, breakdown };
+  return activity + verified;
 }
 
 export function HomePage() {
-  const { total, breakdown } = useServicePointsBreakdown();
+  const total = useServicePointsTotal();
 
   return (
     <main className="institutional-page home-page">
@@ -55,33 +43,10 @@ export function HomePage() {
             decoding="async"
           />
         </div>
-        <ServicePointsCard total={total} breakdown={breakdown} />
+        <ServicePointsCard total={total} />
       </section>
 
       <div className="institutional-page__body home-page__body">
-        <HomeAccordionSection title="Quick access" subtitle="Serve · Contribute · Earn">
-          <div className="home-col-stack home-col-stack--wide">
-            <HomeMiniLink
-              to="/membership"
-              title="Registration"
-              subtitle="Join & verify"
-              icon={<UserPlus size={18} />}
-            />
-            <HomeMiniLink
-              to="/endorse"
-              title="Endorsement"
-              subtitle="Campaign voice"
-              icon={<Vote size={18} />}
-            />
-            <HomeMiniLink
-              to="/youth"
-              title="Youth"
-              subtitle="Leagues & forums"
-              icon={<Users size={18} />}
-            />
-          </div>
-        </HomeAccordionSection>
-
         <section className="home-box home-mobility" aria-labelledby="home-mobility-title">
           <h2 id="home-mobility-title" className="home-static-bar">
             Mobility

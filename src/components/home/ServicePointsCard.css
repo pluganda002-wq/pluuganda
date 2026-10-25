@@ -25,19 +25,6 @@
   letter-spacing: -0.02em;
 }
 
-.sp-card__user {
-  margin: 0;
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--plu-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 48%;
-}
-
 .sp-card__hero {
   display: flex;
   align-items: center;
@@ -129,6 +116,11 @@
   background: linear-gradient(145deg, var(--plu-gold-bright), var(--plu-gold-dark));
 }
 
+.sp-row__chev {
+  flex-shrink: 0;
+  color: var(--plu-muted);
+}
+
 .sp-row__text {
   flex: 1;
   min-width: 0;
@@ -149,9 +141,34 @@
   line-height: 1.3;
 }
 
-.sp-row__pts {
-  font-size: 0.88rem;
+.sp-card__stats-block {
+  padding: 8px 10px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--plu-cream);
+  border: 1px solid var(--plu-border);
+}
+
+.sp-card__stats-title {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
   font-weight: 800;
   color: var(--plu-black);
-  flex-shrink: 0;
+}
+
+.sp-card__stats-block .stat-grid {
+  gap: 6px;
+}
+
+.sp-card__stats-block .stat-pill {
+  padding: 10px 6px;
+}
+
+.sp-card__stats-block .stat-pill strong {
+  font-size: 0.85rem;
+}
+
+.sp-card__stats-block .stat-pill span {
+  font-size: 0.58rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }

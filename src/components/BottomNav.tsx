@@ -1,4 +1,4 @@
-import { Home, Layers, LayoutGrid, MessageCircle, User } from "lucide-react";
+import { Home, Layers, LayoutGrid, MessageCircle, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import "./BottomNav.css";
 
@@ -7,7 +7,7 @@ const items = [
   { to: "/programmes", label: "Programmes", icon: Layers, end: false },
   { to: "/services", label: "Services", icon: LayoutGrid, end: false },
   { to: "/social", label: "Social", icon: MessageCircle, end: false },
-  { to: "/profile", label: "Profile", icon: User, end: false },
+  { to: "/profile", label: "Guild", icon: Users, end: false },
 ];
 
 export function BottomNav() {
