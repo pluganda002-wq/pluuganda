@@ -164,12 +164,14 @@ export const MOBILITY_SERVICES = [
   {
     id: "ugo",
     name: "UGo Ride",
+    logo: "/branding/ugo-ride.png",
     desc: "Car rides for members travelling to PLU events and community service.",
     status: "Partner onboarding",
   },
   {
     id: "tugende",
     name: "Tugende Safe Boda",
+    logo: "/branding/tugende-safe-boda.png",
     desc: "Verified boda transport for safe last-mile access to barazas and clean-ups.",
     status: "Coming soon",
   },

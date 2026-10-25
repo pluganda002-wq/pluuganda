@@ -12,7 +12,23 @@ export function MobilityPage() {
         subtitle="UGo Ride, Tugende safe boda and trucking coordination for PLU mobilisation."
       />
       {MOBILITY_SERVICES.map((s) => (
-        <div key={s.id} className="card">
+        <div key={s.id} id={s.id} className="card">
+          {"logo" in s && s.logo ? (
+            <img
+              src={s.logo}
+              alt=""
+              width={120}
+              height={120}
+              style={{
+                display: "block",
+                width: "100%",
+                maxWidth: 140,
+                height: "auto",
+                marginBottom: 12,
+                borderRadius: 12,
+              }}
+            />
+          ) : null}
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
             <strong>{s.name}</strong>
             <span className="badge badge-blue">{s.status}</span>
