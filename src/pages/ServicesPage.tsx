@@ -1,3 +1,4 @@
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Briefcase,
   Car,
@@ -13,111 +14,81 @@ import {
   Users,
   Vote,
 } from "lucide-react";
-import { ModuleCard } from "@/components/ModuleCard";
-import { PageHeader } from "@/components/PageHeader";
+import { CategoryTabs } from "@/components/CategoryTabs";
+import { PageHero } from "@/components/PageHero";
+import { ServiceTile } from "@/components/ServiceTile";
+import {
+  SERVICE_CATEGORIES,
+  SERVICE_ITEMS,
+  type ServiceCategory,
+  type ServiceItem,
+} from "@/data/services";
+
+const ICONS: Record<string, ReactNode> = {
+  user: <UserPlus size={24} />,
+  vote: <Vote size={24} />,
+  shield: <ShieldAlert size={24} />,
+  users: <Users size={24} />,
+  map: <MapPin size={24} />,
+  shop: <ShoppingBag size={24} />,
+  heart: <Heart size={24} />,
+  briefcase: <Briefcase size={24} />,
+  tv: <Tv size={24} />,
+  car: <Car size={24} />,
+  grad: <GraduationCap size={24} />,
+  clipboard: <ClipboardList size={24} />,
+  tasks: <ClipboardList size={24} />,
+  trophy: <Trophy size={24} />,
+};
+
+function ServiceIcon({ item }: { item: ServiceItem }) {
+  return ICONS[item.iconKey] ?? <ClipboardList size={24} />;
+}
 
 export function ServicesPage() {
+  const [category, setCategory] = useState<ServiceCategory>("all");
+
+  const filtered = useMemo(
+    () =>
+      category === "all" ? SERVICE_ITEMS : SERVICE_ITEMS.filter((s) => s.category === category),
+    [category]
+  );
+
   return (
-    <main className="page">
-      <PageHeader
-        title="Services"
-        subtitle="Membership, mobility, media, leadership, tasks and community programmes."
+    <main className="institutional-page">
+      <PageHero
+        src="/branding/plu-services-hero.png"
+        alt="Patriotism is a Duty — Serve, Contribute, Earn Points"
+        caption="Points for verified positive actions — not political agreement alone."
       />
-      <div className="module-list">
-        <ModuleCard
-          to="/membership"
-          title="Registration & verification"
-          subtitle="Join PLU and verify your member record"
-          icon={<UserPlus size={22} />}
+
+      <div className="institutional-page__body">
+        <p className="institutional-page__lead">
+          Official PLU digital services. Select a category, then open a service below.
+        </p>
+
+        <CategoryTabs
+          tabs={SERVICE_CATEGORIES}
+          active={category}
+          onChange={setCategory}
+          ariaLabel="Service categories"
         />
-        <ModuleCard
-          to="/endorse"
-          title="Presidential endorsement"
-          subtitle="Add your voice to the national campaign"
-          icon={<Vote size={22} />}
-        />
-        <ModuleCard
-          to="/integrity"
-          title="Corruption reporting"
-          subtitle="Secure reports and case tracker"
-          icon={<ShieldAlert size={22} />}
-          accent="red"
-        />
-        <ModuleCard
-          to="/youth"
-          title="Youth leagues"
-          subtitle="Forums, leadership and service opportunities"
-          icon={<Users size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/charity"
-          title="Charity programmes"
-          subtitle="Community care and volunteer drives"
-          icon={<Heart size={22} />}
-          accent="red"
-        />
-        <ModuleCard
-          to="/csr"
-          title="Corporate social responsibility"
-          subtitle="Partner with PLU on national development"
-          icon={<Briefcase size={22} />}
-          accent="blue"
-        />
-        <ModuleCard
-          to="/projects"
-          title="Citizen project reviews"
-          subtitle="Review and feedback on community projects"
-          icon={<ClipboardList size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/tasks"
-          title="Special tasks"
-          subtitle="Patriotic missions and mobilisation tasks"
-          icon={<ClipboardList size={22} />}
-        />
-        <ModuleCard
-          to="/leadership"
-          title="Leadership rankings"
-          subtitle="Endorsements and service-based recognition"
-          icon={<Trophy size={22} />}
-          accent="gold"
-        />
-        <ModuleCard
-          to="/education"
-          title="Educational content"
-          subtitle="Civic learning modules"
-          icon={<GraduationCap size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/tourism"
-          title="Tourism"
-          subtitle="Discover Uganda — organised travel and PLU packages"
-          icon={<MapPin size={22} />}
-          accent="green"
-        />
-        <ModuleCard
-          to="/buy-uganda"
-          title="Buy Uganda, Build Uganda"
-          subtitle="Local suppliers, categories and business listings"
-          icon={<ShoppingBag size={22} />}
-          accent="gold"
-        />
-        <ModuleCard
-          to="/mobility"
-          title="UGo Ride & Tugende"
-          subtitle="Mobility partners and transport hubs"
-          icon={<Car size={22} />}
-          accent="blue"
-        />
-        <ModuleCard
-          to="/tv"
-          title="PLU TV"
-          subtitle="Streams and official broadcasts"
-          icon={<Tv size={22} />}
-        />
+
+        <div className="inst-panel">
+          <h2 className="inst-panel__title">Serve · Contribute · Earn</h2>
+          <div className="service-grid">
+            {filtered.map((item) => (
+              <ServiceTile
+                key={item.id}
+                to={item.to}
+                title={item.title}
+                subtitle={item.subtitle}
+                icon={<ServiceIcon item={item} />}
+                accent={item.accent}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );
