@@ -19,33 +19,41 @@ import { PLU_STATS, PLU_TAGLINE, PLU_VALUES } from "@/data/plu";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./HomePage.css";
 
+const HERO_BANNER = "/branding/plu-hero-banner.png";
+const SERVICE_ICON = "/branding/plu-service-points-icon.png";
+
 export function HomePage() {
   const { displayName } = useTelegram();
 
   return (
     <main className="page home-page">
-      <section className="hero-panel">
-        <div className="hero-panel__shine" aria-hidden />
-        <div className="hero__brand">
-          <div className="hero__logo" aria-hidden>
-            PLU
-          </div>
-          <div>
+      <section className="hero-banner" aria-label="Patriotic League of Uganda">
+        <img
+          src={HERO_BANNER}
+          alt="Patriotism is a Duty — Patriotic League of Uganda"
+          className="hero-banner__img"
+          width={960}
+          height={540}
+        />
+        <div className="hero-banner__overlay">
+          <img src={SERVICE_ICON} alt="" className="hero-banner__icon" width={104} height={104} />
+          <div className="hero-banner__text">
             <p className="hero__greeting">Karibu, {displayName}</p>
             <h1 className="hero__title">PLU BOT</h1>
             <p className="hero__tagline">{PLU_TAGLINE}</p>
           </div>
         </div>
-        <div className="hero__stats">
-          <StatGrid
-            stats={[
-              { label: "Endorsements", value: PLU_STATS.endorsements },
-              { label: "Districts", value: PLU_STATS.districts },
-              { label: "Members", value: PLU_STATS.members },
-            ]}
-          />
-        </div>
       </section>
+
+      <div className="hero__stats card card--flat">
+        <StatGrid
+          stats={[
+            { label: "Endorsements", value: PLU_STATS.endorsements },
+            { label: "Districts", value: PLU_STATS.districts },
+            { label: "Members", value: PLU_STATS.members },
+          ]}
+        />
+      </div>
 
       <section className="home-section">
         <SectionHead title="Start here" subtitle="Membership, endorsements and help — one tap away." />

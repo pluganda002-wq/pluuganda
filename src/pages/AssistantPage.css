@@ -7,19 +7,19 @@
 
 .assistant__chip {
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 10px 14px;
   border-radius: 999px;
-  background: var(--plu-charcoal);
+  background: var(--plu-surface);
   border: 1px solid var(--plu-border-strong);
-  color: var(--plu-muted);
+  color: var(--plu-text);
   text-align: left;
-  transition: border-color 0.12s ease, color 0.12s ease;
+  box-shadow: var(--plu-shadow-sm);
+  transition: border-color 0.12s ease;
 }
 
 .assistant__chip:active {
-  border-color: rgba(232, 185, 35, 0.35);
-  color: var(--plu-text);
+  border-color: var(--plu-border-gold);
 }
 
 .assistant__thread {
@@ -39,15 +39,17 @@
 }
 
 .assistant__bubble--assistant {
-  background: linear-gradient(165deg, rgba(37, 38, 47, 0.95) 0%, rgba(28, 29, 36, 0.98) 100%);
+  background: var(--plu-surface);
   border: 1px solid var(--plu-border);
   align-self: flex-start;
+  color: var(--plu-text);
 }
 
 .assistant__bubble--user {
-  background: rgba(232, 185, 35, 0.12);
-  border: 1px solid rgba(232, 185, 35, 0.28);
+  background: rgba(255, 193, 7, 0.18);
+  border: 1px solid var(--plu-border-gold);
   align-self: flex-end;
+  color: var(--plu-black);
 }
 
 .assistant__form {
@@ -58,13 +60,13 @@
 
 .assistant__form input {
   padding: 14px 16px;
-  background: var(--plu-bg-deep);
+  background: var(--plu-cream);
   border: 1px solid var(--plu-border-strong);
   border-radius: var(--radius-sm);
 }
 
 .assistant__form input:focus {
   outline: none;
-  border-color: rgba(232, 185, 35, 0.45);
-  box-shadow: 0 0 0 3px rgba(232, 185, 35, 0.12);
+  border-color: var(--plu-gold-dim);
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
 }

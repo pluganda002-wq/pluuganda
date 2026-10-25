@@ -3,7 +3,7 @@
   align-items: center;
   gap: 14px;
   padding: 15px 16px;
-  background: linear-gradient(165deg, rgba(37, 38, 47, 0.85) 0%, rgba(28, 29, 36, 0.92) 100%);
+  background: var(--plu-surface);
   border: 1px solid var(--plu-border);
   border-radius: var(--radius);
   box-shadow: var(--plu-shadow-sm);
@@ -12,7 +12,8 @@
 
 .module-card:active {
   transform: scale(0.99);
-  border-color: rgba(232, 185, 35, 0.2);
+  border-color: var(--plu-border-gold);
+  box-shadow: var(--plu-shadow-gold);
 }
 
 .module-card__icon {
@@ -26,27 +27,27 @@
 }
 
 .module-card--gold .module-card__icon {
-  background: rgba(232, 185, 35, 0.12);
-  color: var(--plu-gold-bright);
-  border: 1px solid rgba(232, 185, 35, 0.2);
+  background: rgba(255, 193, 7, 0.15);
+  color: var(--plu-gold-dark);
+  border: 1px solid var(--plu-border-gold);
 }
 
 .module-card--red .module-card__icon {
   background: var(--plu-red-soft);
-  color: #ff8a94;
-  border: 1px solid rgba(230, 57, 70, 0.2);
+  color: var(--plu-red);
+  border: 1px solid rgba(239, 51, 64, 0.2);
 }
 
 .module-card--green .module-card__icon {
   background: var(--plu-green-soft);
   color: var(--plu-green);
-  border: 1px solid rgba(46, 196, 182, 0.2);
+  border: 1px solid rgba(26, 127, 118, 0.2);
 }
 
 .module-card--blue .module-card__icon {
   background: var(--plu-blue-soft);
-  color: #7eb8ff;
-  border: 1px solid rgba(72, 149, 239, 0.2);
+  color: var(--plu-blue);
+  border: 1px solid rgba(37, 99, 235, 0.2);
 }
 
 .module-card__body {
@@ -59,8 +60,9 @@
 
 .module-card__body strong {
   font-size: 0.94rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--plu-black);
 }
 
 .module-card__body span {
@@ -72,5 +74,5 @@
 .module-card__chevron {
   color: var(--plu-muted);
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.6;
 }

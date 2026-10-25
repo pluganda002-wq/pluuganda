@@ -7,8 +7,8 @@ export function useTelegram() {
   useEffect(() => {
     WebApp.ready();
     WebApp.expand();
-    WebApp.setHeaderColor("#0f1014");
-    WebApp.setBackgroundColor("#0f1014");
+    WebApp.setHeaderColor("#f5f5f0");
+    WebApp.setBackgroundColor("#f5f5f0");
   }, []);
 
   const displayName = useMemo(() => {

@@ -12,9 +12,9 @@
   width: 42px;
   height: 42px;
   border-radius: var(--radius-sm);
-  background: var(--plu-charcoal);
+  background: var(--plu-surface);
   border: 1px solid var(--plu-border-strong);
-  color: var(--plu-text);
+  color: var(--plu-black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@
 
 .sub-page-bar__back:active {
   transform: scale(0.96);
-  background: var(--plu-surface);
+  background: var(--plu-surface-hover);
 }
 
 .sub-page-bar__title {
