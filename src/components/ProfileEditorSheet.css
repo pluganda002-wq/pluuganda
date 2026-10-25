@@ -85,6 +85,9 @@
   font-weight: 700;
   color: var(--plu-gold-dark);
   cursor: pointer;
+  border: none;
+  background: none;
+  padding: 4px 0;
 }
 
 .profile-editor__file {

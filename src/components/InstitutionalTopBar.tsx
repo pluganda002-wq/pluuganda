@@ -21,13 +21,17 @@ export function InstitutionalTopBar({ pathname }: Props) {
   return (
     <header className="inst-topbar">
       <div className="inst-topbar__inner">
-        <img
-          src="/branding/plu-service-points-icon.png"
-          alt=""
-          className="inst-topbar__logo"
-          width={36}
-          height={36}
-        />
+        {pathname === "/" ? (
+          <HomeProfileAvatar />
+        ) : (
+          <img
+            src="/branding/plu-service-points-icon.png"
+            alt=""
+            className="inst-topbar__logo"
+            width={36}
+            height={36}
+          />
+        )}
         <div className="inst-topbar__text">
           <span className="inst-topbar__org">Patriotic League of Uganda</span>
           <span className="inst-topbar__page">{title}</span>
@@ -35,7 +39,6 @@ export function InstitutionalTopBar({ pathname }: Props) {
         {pathname === "/" ? (
           <div className="inst-topbar__actions">
             <ThemeToggle />
-            <HomeProfileAvatar />
           </div>
         ) : null}
       </div>

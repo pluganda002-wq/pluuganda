@@ -1,10 +1,11 @@
 import { X } from "lucide-react";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { PATRIOT_INTERESTS } from "@/data/profileInterests";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import { usePatriotAvatar } from "@/hooks/usePatriotAvatar";
+import { useProfilePhotoUpload } from "@/hooks/useProfilePhotoUpload";
 import "./ProfileEditorSheet.css";
 
 type Props = {
@@ -17,6 +18,7 @@ export function ProfileEditorSheet({ open, onClose }: Props) {
   const { displayName } = useTelegram();
   const { patriotProfile, updatePatriotProfile } = useUser();
   const avatarSrc = usePatriotAvatar();
+  const { inputRef, openPicker, onFileChange } = useProfilePhotoUpload();
   const [interests, setInterests] = useState<string[]>(patriotProfile.interests);
 
   useEffect(() => {
@@ -43,26 +45,6 @@ export function ProfileEditorSheet({ open, onClose }: Props) {
     );
   };
 
-  const onPhotoPick = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !file.type.startsWith("image/")) return;
-      if (file.size > 2_500_000) {
-        alert("Please choose an image under 2.5 MB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          updatePatriotProfile({ avatarDataUrl: reader.result });
-        }
-      };
-      reader.readAsDataURL(file);
-      e.target.value = "";
-    },
-    [updatePatriotProfile]
-  );
-
   const save = () => {
     updatePatriotProfile({ interests });
     onClose();
@@ -83,10 +65,18 @@ export function ProfileEditorSheet({ open, onClose }: Props) {
         <div className="profile-editor__body">
           <div className="profile-editor__avatar-wrap">
             <img src={avatarSrc} alt="" className="profile-editor__avatar" width={96} height={96} />
-            <label className="profile-editor__photo-btn">
-              Change photo
-              <input type="file" accept="image/*" className="profile-editor__file" onChange={onPhotoPick} />
-            </label>
+            <button type="button" className="profile-editor__photo-btn" onClick={openPicker}>
+              Upload photo
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="profile-editor__file"
+              tabIndex={-1}
+              aria-hidden
+              onChange={onFileChange}
+            />
           </div>
           <p className="profile-editor__name">{displayName}</p>
           <p className="profile-editor__hint">Choose interests that match how you serve Uganda.</p>
