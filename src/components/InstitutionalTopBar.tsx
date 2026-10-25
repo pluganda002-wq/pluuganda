@@ -1,3 +1,5 @@
+import { ThemeToggle } from "./ThemeToggle";
+
 const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/programmes": "Programmes",
@@ -27,6 +29,7 @@ export function InstitutionalTopBar({ pathname }: Props) {
           <span className="inst-topbar__org">Patriotic League of Uganda</span>
           <span className="inst-topbar__page">{title}</span>
         </div>
+        {pathname === "/" ? <ThemeToggle className="inst-topbar__theme" /> : null}
       </div>
     </header>
   );

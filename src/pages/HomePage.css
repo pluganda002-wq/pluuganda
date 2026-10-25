@@ -35,9 +35,11 @@
   margin-top: 12px;
   padding: 14px 16px;
   background: var(--plu-surface);
-  border: 1px solid var(--plu-border);
+  border: 1.5px solid var(--plu-gold-bright);
   border-radius: var(--radius-sm);
-  box-shadow: var(--plu-shadow-sm);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.25),
+    var(--plu-shadow-sm);
 }
 
 .home-hero__icon {

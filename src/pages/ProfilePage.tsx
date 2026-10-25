@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { PLU_ADDRESS, PLU_TAGLINE, PLU_VALUES } from "@/data/plu";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
@@ -11,6 +12,10 @@ export function ProfilePage() {
     <main className="institutional-page">
       <div className="institutional-page__body" style={{ paddingTop: 8 }}>
         <p className="institutional-page__lead">{PLU_TAGLINE}</p>
+
+        <div className="inst-panel">
+          <ThemeSwitch />
+        </div>
 
         <div className="inst-panel">
           <h2 className="inst-panel__title">Member record</h2>

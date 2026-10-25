@@ -32,6 +32,11 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
+}
+
+.inst-topbar__theme {
+  margin-left: auto;
 }
 
 .inst-topbar__org {

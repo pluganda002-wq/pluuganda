@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { UserProvider } from "@/context/UserContext";
 import { AssistantPage } from "@/pages/AssistantPage";
 import { BuyUgandaPage } from "@/pages/BuyUgandaPage";
@@ -34,7 +35,8 @@ import "@/components/ServiceTile.css";
 
 export default function App() {
   return (
-    <UserProvider>
+    <ThemeProvider>
+      <UserProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
@@ -68,6 +70,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </UserProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
