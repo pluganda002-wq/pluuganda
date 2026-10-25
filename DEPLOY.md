@@ -2,7 +2,22 @@
 
 ## 1. Environment variables
 
-Copy [`.env.example`](./.env.example) to `.env` locally. In **Vercel → Project → Settings → Environment Variables**, add:
+Use [`.env.example`](./.env.example) as the master list.
+
+| File | Purpose |
+|------|---------|
+| `.env` | Server secrets (MongoDB, bot token, admin passwords, webhooks) |
+| `.env.local` | Client `NEXT_PUBLIC_*`, Vercel CLI (`VERCEL_TOKEN`, project IDs) |
+
+**Push to Vercel automatically** (after filling values and `VERCEL_TOKEN` in `.env.local`):
+
+```bash
+npm run env:vercel
+```
+
+This uploads every **non-empty** key from `.env` + `.env.local` to production, preview, and development (except `VERCEL_TOKEN`).
+
+Core PLU vars:
 
 | Variable | Required | Notes |
 |----------|----------|--------|
@@ -10,8 +25,9 @@ Copy [`.env.example`](./.env.example) to `.env` locally. In **Vercel → Project
 | `MONGODB_DB_NAME` | No | Default `plu_bot` |
 | `BOT_TOKEN` | For Telegram webhook | From [@BotFather](https://t.me/BotFather) |
 | `WEB_APP_URL` | For Telegram webhook | `https://pluuganda-hifl.vercel.app` (no trailing slash) |
+| `NEXT_PUBLIC_BOT_USERNAME` | Recommended | Bot username without `@` (invite links) |
 
-Redeploy after changing env vars.
+Redeploy after changing env vars (required for `NEXT_PUBLIC_*` at build time).
 
 ## 2. Push to GitHub & import on Vercel
 
