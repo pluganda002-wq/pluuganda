@@ -7,6 +7,7 @@
   background: var(--plu-surface);
   border-bottom: 3px solid var(--plu-gold);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 0;
 }
 
 .inst-topbar__inner {
@@ -53,11 +54,8 @@
 }
 
 .institutional-page {
-  flex: 1;
-  max-width: 480px;
-  margin: 0 auto;
   width: 100%;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
 }
 
 .institutional-page__body {

@@ -11,10 +11,14 @@ export function AppShell() {
 
   return (
     <div className="app-shell app-shell--institutional">
-      {isMainTab ? <InstitutionalTopBar pathname={pathname} /> : null}
-      {!isMainTab ? <SubPageBar /> : null}
-      <Outlet />
-      <BottomNav />
+      <div className="app-frame">
+        <div className="app-frame__main">
+          {isMainTab ? <InstitutionalTopBar pathname={pathname} /> : null}
+          {!isMainTab ? <SubPageBar /> : null}
+          <Outlet />
+        </div>
+        <BottomNav />
+      </div>
     </div>
   );
 }

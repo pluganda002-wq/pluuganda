@@ -1,20 +1,13 @@
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
   align-items: stretch;
-  padding: 6px 10px calc(10px + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border-top: 1px solid var(--plu-border);
-  z-index: 100;
-  max-width: 480px;
-  margin: 0 auto;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
+  padding: 8px 8px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--plu-surface);
+  border-top: 1px solid var(--plu-border-gold);
+  box-shadow: inset 0 1px 0 rgba(255, 205, 0, 0.12);
 }
 
 .bottom-nav__item {

@@ -82,15 +82,47 @@ select {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding-bottom: calc(76px + var(--safe-bottom));
   isolation: isolate;
+}
+
+/* Outer gutter — visible space at sides & bottom (Telegram mini app frame) */
+.app-shell--institutional {
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px calc(12px + var(--safe-bottom));
+  background:
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 205, 0, 0.08), transparent 55%),
+    linear-gradient(165deg, #3a3828 0%, #1c1b16 45%, #2a2820 100%);
+}
+
+.app-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 0;
+  max-height: calc(100dvh - 22px - env(safe-area-inset-top, 0px) - var(--safe-bottom));
+  border-radius: 28px;
+  border: 1.5px solid var(--plu-gold-bright);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 16px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  background: var(--plu-bg);
+}
+
+.app-frame__main {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .page {
   flex: 1;
   padding: 12px 18px 28px;
-  max-width: 480px;
-  margin: 0 auto;
   width: 100%;
 }
 
