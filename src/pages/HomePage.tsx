@@ -108,9 +108,6 @@ export function HomePage() {
               />
             </Link>
           </div>
-          <Link to="/mobility" className="home-mobility__more">
-            View more — Transport &amp; trucking hubs
-          </Link>
         </section>
 
         <div className="home-dual">

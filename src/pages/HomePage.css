@@ -166,7 +166,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .home-mobility__tile {
@@ -195,20 +195,6 @@
 
 .home-mobility__tile:active {
   background: var(--plu-surface-hover);
-}
-
-.home-mobility__more {
-  display: block;
-  text-align: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--plu-gold-dark);
-  text-decoration: none;
-  padding: 4px 0 2px;
-}
-
-.home-mobility__more:active {
-  opacity: 0.85;
 }
 
 /* Column bars facing each other */
