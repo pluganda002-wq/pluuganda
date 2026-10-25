@@ -1,7 +1,7 @@
+import { useTelegram } from "@/hooks/useTelegram";
 import { ThemeToggle } from "./ThemeToggle";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/": "Home",
   "/programmes": "Programmes",
   "/services": "Services",
   "/social": "Social",
@@ -13,7 +13,9 @@ type Props = {
 };
 
 export function InstitutionalTopBar({ pathname }: Props) {
-  const title = PAGE_TITLES[pathname] ?? "PLU BOT";
+  const { displayName } = useTelegram();
+  const title =
+    pathname === "/" ? displayName : (PAGE_TITLES[pathname] ?? "PLU BOT");
 
   return (
     <header className="inst-topbar">
