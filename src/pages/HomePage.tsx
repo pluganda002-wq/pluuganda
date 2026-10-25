@@ -27,17 +27,20 @@ export function HomePage() {
 
   return (
     <main className="institutional-page home-page">
-      <section className="hero-banner" aria-label="Patriotic League of Uganda">
-        <img
-          src={HERO_BANNER}
-          alt="Patriotism is a Duty — Patriotic League of Uganda"
-          className="hero-banner__img"
-          width={960}
-          height={540}
-        />
-        <div className="hero-banner__overlay">
-          <img src={SERVICE_ICON} alt="" className="hero-banner__icon" width={104} height={104} />
-          <div className="hero-banner__text">
+      <section className="home-hero" aria-label="Patriotic League of Uganda">
+        <div className="home-hero__frame">
+          <img
+            src={HERO_BANNER}
+            alt="Patriotism is a Duty — Patriotic League of Uganda"
+            className="home-hero__img"
+            width={1200}
+            height={630}
+            decoding="async"
+          />
+        </div>
+        <div className="home-hero__welcome">
+          <img src={SERVICE_ICON} alt="" className="home-hero__icon" width={104} height={104} />
+          <div className="home-hero__text">
             <p className="hero__greeting">Karibu, {displayName}</p>
             <h1 className="hero__title">PLU BOT</h1>
             <p className="hero__tagline">{PLU_TAGLINE}</p>

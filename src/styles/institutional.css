@@ -74,17 +74,29 @@
   padding: 0;
 }
 
+.page-hero {
+  padding: 12px 12px 0;
+}
+
 .page-hero__frame {
   margin: 0;
-  padding: 3px;
-  background: linear-gradient(145deg, var(--plu-gold-bright), var(--plu-gold-dim), var(--plu-gold-dark));
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1.5px solid var(--plu-gold-bright);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.25),
+    var(--plu-shadow-sm);
+  background: #ffffff;
+  line-height: 0;
 }
 
 .page-hero__img {
   display: block;
   width: 100%;
   height: auto;
-  background: var(--plu-bg-deep);
+  object-fit: contain;
+  object-position: center top;
+  background: #ffffff;
 }
 
 .page-hero__caption {
