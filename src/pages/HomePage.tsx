@@ -62,7 +62,7 @@ export function HomePage() {
                 loading="lazy"
               />
             </Link>
-            <Link to="/mobility#tugende" className="home-mobility__tile">
+            <Link to="/tugende" className="home-mobility__tile">
               <img
                 src={TUGENDE_LOGO}
                 alt="Tugende Safe Boda"

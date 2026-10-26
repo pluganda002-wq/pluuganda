@@ -1,0 +1,150 @@
+.tugende-page__logo {
+  display: block;
+  margin: 0 auto 0.75rem;
+  border-radius: 1rem;
+}
+
+.tugende-page__rate {
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 1rem;
+}
+
+.tugende-page__form-title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.tugende-page__role-label {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.85rem;
+}
+
+.tugende-role-pick {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tugende-role-pick__btn {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  background: transparent;
+  font: inherit;
+}
+
+.tugende-role-pick__btn--on {
+  border-color: var(--accent, #c9a227);
+  background: color-mix(in srgb, var(--accent, #c9a227) 12%, transparent);
+}
+
+.tugende-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.tugende-header__logo {
+  border-radius: 0.5rem;
+}
+
+.tugende-header__meta,
+.tugende-header__wallet {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.tugende-header__wallet span {
+  font-weight: 600;
+}
+
+.tugende-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.tugende-tabs__btn {
+  flex: 1;
+  padding: 0.55rem;
+  border-radius: 0.65rem;
+  border: none;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.tugende-tabs__btn--on {
+  background: var(--accent, #c9a227);
+  color: #111;
+  font-weight: 600;
+}
+
+.tugende-panel__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.tugende-gps {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.tugende-gps--wait {
+  opacity: 0.7;
+}
+
+.tugende-drop,
+.tugende-est {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.tugende-active p {
+  margin: 0.35rem 0;
+}
+
+.tugende-balance {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.tugende-topups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tugende-withdraw h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.tugende-pending {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+.tugende-pending:first-of-type {
+  border-top: none;
+}
+
+.tugende-empty {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.tugende-back-link {
+  display: block;
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}

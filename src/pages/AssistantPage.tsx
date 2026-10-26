@@ -22,7 +22,7 @@ function replyFor(question: string): string {
     return "Use Presidential endorsement on Home to add your message. Totals reflect national campaign statistics published on plu.org.ug.";
   }
   if (q.includes("ugo") || q.includes("tugende") || q.includes("ride")) {
-    return "Mobility partners UGo Ride and Tugende Safe Boda are in onboarding. Request a link from the Mobility page when travelling to PLU events.";
+    return "Tugende Safe Boda is live in the app: open Mobility or Home → Tugende. Sign in with Telegram, enable GPS, wallet top-up, UGX 1,000/km. UGo Ride is still onboarding.";
   }
   if (q.includes("tourism") || q.includes("travel") || q.includes("visit uganda")) {
     return "Open Tourism from Home or Services for wildlife, culture, adventure and city experiences, plus PLU travel packages. Link trips with Mobility when partners go live.";
