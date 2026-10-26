@@ -170,7 +170,7 @@ export const MOBILITY_SERVICES = [
   },
   {
     id: "tugende",
-    name: "Tugende Safe Boda",
+    name: "Tugende",
     logo: "/branding/tugende-safe-boda.png",
     desc: "Verified boda transport for safe last-mile access to barazas and clean-ups.",
     status: "Live · UGX 1,000/km",

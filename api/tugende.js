@@ -221,7 +221,7 @@ export async function POST(request) {
         ride.status = "pending";
       } else {
         await ensureUser(db, DEMO_DRIVER_ID, {
-          fullName: "Tugende Safe Boda",
+          fullName: "Tugende",
           role: "driver",
         });
         ride.status = "accepted";

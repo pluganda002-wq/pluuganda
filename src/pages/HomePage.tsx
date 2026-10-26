@@ -65,7 +65,7 @@ export function HomePage() {
             <Link to="/tugende" className="home-mobility__tile">
               <img
                 src={TUGENDE_LOGO}
-                alt="Tugende Safe Boda"
+                alt="Tugende"
                 className="home-mobility__logo"
                 width={88}
                 height={88}

@@ -7,7 +7,7 @@ export function MobilityPage() {
     <main className="page">
       <PageHeader
         title="Mobility & transport hubs"
-        subtitle="UGo Ride, Tugende safe boda and trucking coordination for PLU mobilisation."
+        subtitle="UGo Ride, Tugende and trucking coordination for PLU mobilisation."
       />
       {MOBILITY_SERVICES.map((s) => (
         <div key={s.id} id={s.id} className="card">

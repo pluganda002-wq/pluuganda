@@ -250,7 +250,7 @@ export function TugendePage() {
   if (!profile) {
     return (
       <>
-        <SubPageBar title="Tugende Safe Boda" backTo="/mobility" />
+        <SubPageBar title="Tugende" backTo="/mobility" />
         {!canSignIn || !telegramId ? (
           <main className="page tugende-page">
             <p className="tugende-signin__error card">
@@ -267,7 +267,7 @@ export function TugendePage() {
             onError={showAlert}
             onComplete={(user) => {
               setProfile(user);
-              showAlert(`Welcome to Tugende Safe Boda, ${user.fullName}.`);
+              showAlert(`Welcome to Tugende, ${user.fullName}.`);
             }}
           />
         )}
@@ -296,7 +296,7 @@ export function TugendePage() {
 
   return (
     <main className="page tugende-page">
-      <SubPageBar title="Tugende Safe Boda" backTo="/mobility" />
+      <SubPageBar title="Tugende" backTo="/mobility" />
       <header className="tugende-header card card--flat">
         <img src={LOGO} alt="" className="tugende-header__logo" width={56} height={56} />
         <div>
@@ -420,7 +420,7 @@ export function TugendePage() {
                   disabled={loading || !pos || !dropoff}
                   onClick={requestRide}
                 >
-                  Request Safe Boda
+                  Request Tugende
                 </button>
               </>
             ) : (
