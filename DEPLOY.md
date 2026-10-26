@@ -77,5 +77,12 @@ npm run dev
 - `members`
 - `endorsements`
 - `integrity_reports`
+- `tugende_users`, `tugende_rides`, `tugende_transactions`
 
 Atlas: allow network access `0.0.0.0/0` (or Vercel IPs) for serverless.
+
+## Tugende Safe Boda
+
+- **Location:** Use the **Telegram mobile app** (Android/iOS). Telegram Desktop often shows a location prompt without a working **Allow** button — that is a Telegram client limitation, not PLU. In Tugende, tap **Enable live location**, then **Refresh location** after allowing.
+- **Maps:** OpenStreetMap on the Ride tab (pickup + destination).
+- **MoMo (optional):** Set `MOMO_API_USER`, `MOMO_API_KEY`, `MOMO_SUBSCRIPTION_KEY`, `MOMO_TARGET_ENVIRONMENT` on Vercel for real MTN STK top-ups. Without them, wallet top-up stays in demo mode.

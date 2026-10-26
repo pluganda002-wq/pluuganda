@@ -2,12 +2,15 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SubPageBar } from "@/components/SubPageBar";
 import { TUGENDE_RATE_UGX_PER_KM, fareFromKm, haversineKm } from "@/lib/tugende/geo";
+import { TugendeMap } from "@/components/tugende/TugendeMap";
+import { useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
   tugendeCancelRide,
   tugendeCompleteRide,
   tugendeFetchActiveRide,
   tugendeFetchProfile,
+  tugendeFetchWalletConfig,
   tugendeLogin,
   tugendePendingRides,
   tugendeRequestRide,
@@ -34,8 +37,8 @@ export function TugendePage() {
   const [profile, setProfile] = useState<TugendeUser | null>(null);
   const [tab, setTab] = useState<Tab>("ride");
   const [ride, setRide] = useState<TugendeRide | null>(null);
-  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [dropoff, setDropoff] = useState<{ lat: number; lng: number; label: string } | null>(null);
+  const [momoEnabled, setMomoEnabled] = useState(false);
   const [pending, setPending] = useState<TugendeRide[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -58,26 +61,22 @@ export function TugendePage() {
     setRide(r);
   }, [telegramId]);
 
+  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(
+    Boolean(profile)
+  );
+  const pos = position ? { lat: position.lat, lng: position.lng } : null;
+
   useEffect(() => {
     if (!telegramId) return;
     refreshProfile();
     refreshRide();
+    tugendeFetchWalletConfig().then((c) => setMomoEnabled(c.momoEnabled)).catch(() => setMomoEnabled(false));
   }, [telegramId, refreshProfile, refreshRide]);
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    const watchId = navigator.geolocation.watchPosition(
-      (p) => {
-        const lat = p.coords.latitude;
-        const lng = p.coords.longitude;
-        setPos({ lat, lng });
-        if (telegramId) tugendeUpdateLocation(telegramId, lat, lng).catch(() => {});
-      },
-      () => showAlert("Enable location for live Tugende rides."),
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [telegramId, showAlert]);
+    if (!telegramId || !pos) return;
+    tugendeUpdateLocation(telegramId, pos.lat, pos.lng).catch(() => {});
+  }, [telegramId, pos?.lat, pos?.lng]);
 
   useEffect(() => {
     if (!ride || !["pending", "accepted"].includes(ride.status)) return;
@@ -187,9 +186,15 @@ export function TugendePage() {
     if (!telegramId) return;
     setLoading(true);
     try {
-      const bal = await tugendeTopUp(telegramId, amount);
-      setProfile((p) => (p ? { ...p, walletBalanceUgx: bal } : p));
-      showAlert(`Wallet topped up UGX ${amount.toLocaleString()}.`);
+      const res = await tugendeTopUp(telegramId, amount, profile?.phone);
+      setProfile((p) => (p ? { ...p, walletBalanceUgx: res.walletBalanceUgx } : p));
+      const via =
+        res.payment?.mode === "momo"
+          ? "MTN MoMo payment received."
+          : momoEnabled
+            ? "Wallet credited."
+            : "Demo top-up (connect MoMo on server for real STK push).";
+      showAlert(`${via} UGX ${amount.toLocaleString()} added.`);
     } catch (err) {
       showAlert(err instanceof Error ? err.message : "Top-up failed");
     } finally {
@@ -233,6 +238,7 @@ export function TugendePage() {
         <SubPageBar title="Tugende Safe Boda" backTo="/mobility" />
         <img src={LOGO} alt="" className="tugende-page__logo" width={120} height={120} />
         <p className="tugende-page__rate">UGX {TUGENDE_RATE_UGX_PER_KM.toLocaleString()} per km · live GPS meter</p>
+        <p className="tugende-page__rate">After sign-in, tap <strong>Enable live location</strong> (use the Telegram app on your phone for GPS).</p>
         <form className="card" onSubmit={onLogin}>
           <h2 className="tugende-page__form-title">Sign in</h2>
           <label className="field">
@@ -314,13 +320,32 @@ export function TugendePage() {
 
       {tab === "ride" ? (
         <section className="card tugende-panel">
-          <h2 className="tugende-panel__title">Live location</h2>
-          {pos ? (
+          <h2 className="tugende-panel__title">Live location & map</h2>
+          <TugendeMap you={pos} destination={dropoff} />
+          {locStatus === "active" && pos ? (
             <p className="tugende-gps">
               {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+              {position?.accuracyM ? ` · ±${Math.round(position.accuracyM)} m` : ""}
             </p>
           ) : (
-            <p className="tugende-gps tugende-gps--wait">Acquiring GPS…</p>
+            <div className="tugende-loc-banner">
+              <p className="tugende-gps tugende-gps--wait">
+                {locStatus === "starting"
+                  ? "Connecting to GPS…"
+                  : "Location is off — enable it for live metered rides."}
+              </p>
+              {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
+              <div className="tugende-loc-actions">
+                <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                  Enable live location
+                </button>
+                {locStatus === "denied" ? (
+                  <button type="button" className="btn btn-secondary" onClick={retryAfterSettings}>
+                    Refresh location
+                  </button>
+                ) : null}
+              </div>
+            </div>
           )}
 
           {!ride ? (
@@ -377,6 +402,11 @@ export function TugendePage() {
       {tab === "wallet" ? (
         <section className="card tugende-panel">
           <h2 className="tugende-panel__title">Wallet</h2>
+          <p className="tugende-momo-note">
+            {momoEnabled
+              ? "Top-ups use MTN MoMo STK push to your registered number."
+              : "Demo wallet — set MOMO_* env on Vercel for real mobile money."}
+          </p>
           <p className="tugende-balance">UGX {profile.walletBalanceUgx.toLocaleString()}</p>
           <div className="tugende-topups">
             {[5000, 10000, 20000, 50000].map((amt) => (

@@ -150,13 +150,29 @@ export async function tugendeCancelRide(telegramId: number, rideId: string) {
   }
 }
 
-export async function tugendeTopUp(telegramId: number, amountUgx: number) {
+export type TugendeTopUpResult = {
+  walletBalanceUgx: number;
+  payment?: { mode: string; status: string; reference?: string };
+};
+
+export async function tugendeFetchWalletConfig(): Promise<{ momoEnabled: boolean }> {
+  try {
+    return await get<{ momoEnabled: boolean }>({ action: "walletConfig", telegramId: "0" });
+  } catch (e) {
+    if (isApiUnavailableError(e)) return { momoEnabled: false };
+    throw e;
+  }
+}
+
+export async function tugendeTopUp(telegramId: number, amountUgx: number, phone?: string): Promise<TugendeTopUpResult> {
   const id = String(telegramId);
   try {
-    const res = await post<{ walletBalanceUgx: number }>({ action: "topUp", telegramId: id, amountUgx });
-    return res.walletBalanceUgx;
+    const res = await post<TugendeTopUpResult>({ action: "topUp", telegramId: id, amountUgx, phone });
+    return res;
   } catch (e) {
-    if (isApiUnavailableError(e)) return tugendeLocal.topUp(id, amountUgx);
+    if (isApiUnavailableError(e)) {
+      return { walletBalanceUgx: tugendeLocal.topUp(id, amountUgx), payment: { mode: "demo", status: "completed" } };
+    }
     throw e;
   }
 }

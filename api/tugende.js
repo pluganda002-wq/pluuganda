@@ -1,4 +1,5 @@
 import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { isMomoConfigured, requestToPay } from "./lib/momo.js";
 import { fareFromKm, haversineKm, pathDistanceKm, TUGENDE_RATE_UGX_PER_KM } from "./lib/tugendeMath.js";
 
 const DEMO_DRIVER_ID = 900001;
@@ -68,6 +69,11 @@ export async function GET(request) {
   const url = new URL(request.url);
   const action = url.searchParams.get("action");
   const telegramId = url.searchParams.get("telegramId");
+
+  if (action === "walletConfig") {
+    return Response.json({ momoEnabled: isMomoConfigured() });
+  }
+
   if (!telegramId) {
     return Response.json({ error: "telegramId required" }, { status: 400 });
   }
@@ -315,7 +321,29 @@ export async function POST(request) {
       if (!amountUgx || amountUgx < 1000) {
         return Response.json({ error: "Minimum top-up UGX 1,000" }, { status: 400 });
       }
-      await ensureUser(db, tid);
+      const user = await ensureUser(db, tid);
+      const externalId = `TG-TU-${tid}-${Date.now()}`;
+      let payment = { mode: "demo", status: "completed", reference: externalId };
+
+      if (isMomoConfigured()) {
+        const phone = body.phone?.trim() || user.phone;
+        if (!phone) {
+          return Response.json({ error: "Add your mobile money number on your profile first." }, { status: 400 });
+        }
+        payment = await requestToPay({
+          amountUgx,
+          phone,
+          externalId,
+          payerMessage: "Tugende wallet top-up",
+        });
+        if (payment.status !== "completed") {
+          return Response.json(
+            { error: "Approve the MTN MoMo prompt on your phone, then try again.", payment },
+            { status: 402 }
+          );
+        }
+      }
+
       await db.collection("tugende_users").updateOne(
         { telegramId: tid },
         { $inc: { walletBalanceUgx: amountUgx }, $set: { updatedAt: new Date() } }
@@ -324,10 +352,11 @@ export async function POST(request) {
         type: "topup",
         telegramId: tid,
         amountUgx,
+        payment,
         createdAt: new Date(),
       });
-      const user = await getUser(db, tid);
-      return Response.json({ walletBalanceUgx: user.walletBalanceUgx });
+      const updated = await getUser(db, tid);
+      return Response.json({ walletBalanceUgx: updated.walletBalanceUgx, payment });
     }
 
     case "withdraw": {
