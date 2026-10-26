@@ -311,12 +311,15 @@ export function TugendeSignIn({
           <TugendeMap you={pos} />
           {locStatus === "active" && pos ? (
             <p className="tugende-gps tugende-signin__ok">
-              Location active · {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+              Your location · {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+              {position?.accuracyM ? ` (±${Math.round(position.accuracyM)} m)` : ""}
             </p>
           ) : (
             <>
               <p className="tugende-gps tugende-gps--wait">
-                {locStatus === "starting" ? "Connecting…" : "Location not active yet."}
+                {locStatus === "starting"
+                  ? "Connecting to GPS… allow if your phone asks."
+                  : "Waiting for GPS — tap Allow location access below."}
               </p>
               {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
               <div className="tugende-loc-actions">

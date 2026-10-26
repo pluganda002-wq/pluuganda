@@ -19,6 +19,12 @@ export type LiveLocationStatus = "idle" | "starting" | "active" | "denied" | "un
 const GRANTED_KEY = "plu-tugende-loc-granted";
 const LAST_POS_KEY = "plu-tugende-last-pos";
 
+const GEO_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  maximumAge: 3000,
+  timeout: 25000,
+};
+
 function readCachedPosition(): LivePosition | null {
   try {
     const raw = sessionStorage.getItem(LAST_POS_KEY);
@@ -54,19 +60,22 @@ function fromGeo(p: GeolocationPosition): LivePosition {
 }
 
 export function useLiveLocation(active: boolean) {
-  const [status, setStatus] = useState<LiveLocationStatus>("idle");
+  const [status, setStatus] = useState<LiveLocationStatus>(() =>
+    readCachedPosition() ? "active" : "idle"
+  );
   const [position, setPosition] = useState<LivePosition | null>(() => readCachedPosition());
   const [platformHint, setPlatformHint] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const grantedRef = useRef(sessionStorage.getItem(GRANTED_KEY) === "1");
+  const tgPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const grantWaitRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStartedRef = useRef(false);
 
   const applyPosition = useCallback((pos: LivePosition) => {
     setPosition(pos);
     cachePosition(pos);
     setStatus("active");
+    setPlatformHint(null);
     sessionStorage.setItem(GRANTED_KEY, "1");
-    grantedRef.current = true;
   }, []);
 
   const clearBrowserWatch = useCallback(() => {
@@ -76,162 +85,172 @@ export function useLiveLocation(active: boolean) {
     }
   }, []);
 
-  const clearPoll = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
+  const clearTgPoll = useCallback(() => {
+    if (tgPollRef.current) {
+      clearInterval(tgPollRef.current);
+      tgPollRef.current = null;
     }
   }, []);
 
-  const startBrowserWatch = useCallback(() => {
-    if (!navigator.geolocation) {
-      setStatus("unavailable");
-      setPlatformHint("This browser has no GPS. Open Tugende on your phone in Telegram.");
-      return;
+  const clearGrantWait = useCallback(() => {
+    if (grantWaitRef.current) {
+      clearInterval(grantWaitRef.current);
+      grantWaitRef.current = null;
     }
+  }, []);
+
+  const readBrowserOnce = useCallback(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => applyPosition(fromGeo(p)),
+      () => {},
+      { ...GEO_OPTIONS, maximumAge: 0 }
+    );
+  }, [applyPosition]);
+
+  const startBrowserWatch = useCallback(() => {
+    if (!navigator.geolocation) return false;
     clearBrowserWatch();
     watchIdRef.current = navigator.geolocation.watchPosition(
       (p) => applyPosition(fromGeo(p)),
       (err) => {
         if (err.code === err.PERMISSION_DENIED) {
-          setStatus("denied");
-          setPlatformHint("Location blocked. Allow location for this site in browser or Telegram settings.");
-        } else {
-          setStatus("unavailable");
-          setPlatformHint("Could not read GPS. Move outdoors or try again.");
+          setStatus((s) => (s === "active" ? s : "denied"));
+          setPlatformHint("Tap Allow location access, or enable location for PluPatriot in phone settings.");
         }
       },
-      { enableHighAccuracy: true, maximumAge: 4000, timeout: 20000 }
+      GEO_OPTIONS
     );
+    return true;
   }, [applyPosition, clearBrowserWatch]);
 
-  const refreshTelegramOnce = useCallback(async () => {
-    const lm = await initTelegramLocationManager();
-    if (!lm) return false;
-    if (!lm.isLocationAvailable) {
-      setStatus("unavailable");
-      setPlatformHint(
-        "Telegram on this device has no GPS (common on desktop). Use the Telegram app on your phone for live rides."
-      );
-      return false;
-    }
-    if (!lm.isAccessGranted) {
-      setStatus("denied");
-      return false;
-    }
-    const loc = await readTelegramLocation(lm);
-    if (!loc) {
-      setStatus("denied");
-      return false;
-    }
-    applyPosition(fromTg(loc));
-    return true;
-  }, [applyPosition]);
+  const readTelegram = useCallback(
+    async (opts?: { soft?: boolean }) => {
+      const lm = await initTelegramLocationManager();
+      if (!lm?.isLocationAvailable) return false;
+      if (!lm.isAccessGranted) {
+        if (!opts?.soft) {
+          setStatus((s) => (s === "active" ? s : "starting"));
+        }
+        return false;
+      }
+      const loc = await readTelegramLocation(lm);
+      if (!loc) return false;
+      applyPosition(fromTg(loc));
+      return true;
+    },
+    [applyPosition]
+  );
 
   const startTelegramPolling = useCallback(async () => {
-    const ok = await refreshTelegramOnce();
+    const ok = await readTelegram();
     if (!ok) return;
-    clearPoll();
-    pollRef.current = setInterval(() => {
-      void refreshTelegramOnce();
+    clearTgPoll();
+    tgPollRef.current = setInterval(() => {
+      void readTelegram({ soft: true });
     }, 8000);
-  }, [clearPoll, refreshTelegramOnce]);
+  }, [clearTgPoll, readTelegram]);
 
-  const resumeTracking = useCallback(async () => {
-    setStatus("starting");
-    setPlatformHint(null);
-    const lm = getTelegramLocationManager();
-    if (lm) {
-      await initTelegramLocationManager();
-      const manager = getTelegramLocationManager();
-      if (manager?.isAccessGranted) {
-        await startTelegramPolling();
-        return true;
-      }
-    }
-    if (grantedRef.current && navigator.geolocation) {
-      startBrowserWatch();
-      return true;
-    }
-    setStatus("idle");
-    return false;
-  }, [startBrowserWatch, startTelegramPolling]);
-
-  const enableLocation = useCallback(() => {
-    void (async () => {
-      setStatus("starting");
-      setPlatformHint(null);
-      if (await resumeTracking()) return;
-
+  const startGrantWaitPoll = useCallback(() => {
+    clearGrantWait();
+    let attempts = 0;
+    grantWaitRef.current = setInterval(() => {
+      attempts += 1;
       const lm = getTelegramLocationManager();
-      if (lm) {
-        await initTelegramLocationManager();
-        const manager = getTelegramLocationManager();
-        if (!manager?.isLocationAvailable) {
-          setStatus("unavailable");
-          setPlatformHint(
-            "No GPS on this Telegram client. Open PluPatriot → Tugende on your Android or iPhone."
-          );
-          return;
-        }
-        manager.openSettings();
-        setPlatformHint("Tap Allow in Telegram’s location dialog, then tap Refresh location.");
-        setStatus("denied");
+      if (lm?.isAccessGranted) {
+        clearGrantWait();
+        void startTelegramPolling();
+        readBrowserOnce();
         return;
       }
-      startBrowserWatch();
-    })();
-  }, [resumeTracking, startBrowserWatch]);
+      if (attempts >= 60) {
+        clearGrantWait();
+        setPlatformHint("If you tapped Allow, press Refresh location.");
+      }
+    }, 1500);
+  }, [clearGrantWait, readBrowserOnce, startTelegramPolling]);
 
-  const retryAfterSettings = useCallback(() => {
-    void (async () => {
+  const connectAll = useCallback(
+    async (opts?: { openTelegramSettings?: boolean }) => {
+      setStatus("starting");
+      setPlatformHint(null);
+
+      startBrowserWatch();
+      readBrowserOnce();
+
       const lm = await initTelegramLocationManager();
       if (lm?.isAccessGranted) {
         await startTelegramPolling();
         return;
       }
-      if (lm) {
-        lm.openSettings();
-        setStatus("denied");
-        setPlatformHint("After you tap Allow, press Refresh location.");
+
+      if (lm?.isLocationAvailable) {
+        if (opts?.openTelegramSettings) {
+          lm.openSettings();
+          setPlatformHint("Tap Allow in Telegram, then wait a moment — your map should update.");
+          startGrantWaitPoll();
+        }
         return;
       }
+
+      if (!navigator.geolocation) {
+        setStatus("unavailable");
+        setPlatformHint("Open Tugende in the Telegram app on your phone for GPS.");
+      }
+    },
+    [readBrowserOnce, startBrowserWatch, startGrantWaitPoll, startTelegramPolling]
+  );
+
+  const enableLocation = useCallback(() => {
+    void connectAll({ openTelegramSettings: true });
+  }, [connectAll]);
+
+  const retryAfterSettings = useCallback(() => {
+    void (async () => {
+      setStatus("starting");
+      const ok = await readTelegram();
+      if (ok) {
+        await startTelegramPolling();
+        return;
+      }
+      readBrowserOnce();
       startBrowserWatch();
+      const lm = getTelegramLocationManager();
+      if (lm && !lm.isAccessGranted) {
+        lm.openSettings();
+        startGrantWaitPoll();
+      }
     })();
-  }, [startBrowserWatch, startTelegramPolling]);
+  }, [readBrowserOnce, readTelegram, startBrowserWatch, startGrantWaitPoll, startTelegramPolling]);
 
   useEffect(() => {
     if (!active) {
+      autoStartedRef.current = false;
       clearBrowserWatch();
-      clearPoll();
+      clearTgPoll();
+      clearGrantWait();
       return;
     }
-    if (grantedRef.current) {
-      void resumeTracking();
-    }
+    if (autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    void connectAll({ openTelegramSettings: false });
     return () => {
       clearBrowserWatch();
-      clearPoll();
+      clearTgPoll();
+      clearGrantWait();
     };
-  }, [active, clearBrowserWatch, clearPoll, resumeTracking]);
+  }, [active, clearBrowserWatch, clearGrantWait, clearTgPoll, connectAll]);
 
   useEffect(() => {
     if (!active || status !== "active") return;
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
-      const lm = getTelegramLocationManager();
-      if (lm?.isAccessGranted) void refreshTelegramOnce();
-      else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (p) => applyPosition(fromGeo(p)),
-          () => {},
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
-        );
-      }
+      readBrowserOnce();
+      void readTelegram({ soft: true });
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [active, applyPosition, refreshTelegramOnce, status]);
+  }, [active, readBrowserOnce, readTelegram, status]);
 
   return {
     position,

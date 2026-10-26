@@ -53,10 +53,19 @@ export async function submitReportApi(payload: {
 }
 
 export function isApiUnavailableError(err: unknown): boolean {
+  if (err instanceof TypeError) return true;
   if (!(err instanceof Error)) return false;
+  const m = err.message.toLowerCase();
   return (
-    err.message.includes("Database not configured") ||
-    err.message.includes("503") ||
-    err.message.includes("Failed to fetch")
+    m.includes("database not configured") ||
+    m.includes("503") ||
+    m.includes("failed to fetch") ||
+    m.includes("load failed") ||
+    m.includes("networkerror") ||
+    m.includes("network request failed") ||
+    m.includes("internal server error") ||
+    m.includes("bad gateway") ||
+    m.includes("econnrefused") ||
+    m.includes("api unavailable")
   );
 }

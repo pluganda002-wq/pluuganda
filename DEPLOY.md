@@ -66,10 +66,26 @@ cp .env.example .env    # add MONGODB_URI
 npm run dev:api
 ```
 
-Terminal 2 — Vite (proxies `/api` to port 3000):
+**One command (API + UI):**
 
 ```bash
+npm run dev:full
+```
+
+Or two terminals — API first (port **3000**), then Vite (proxies `/api`):
+
+```bash
+npm run dev:api
 npm run dev
+```
+
+If you only run `npm run dev`, Tugende uses **browser local storage** when the API is down (Vite will log proxy errors — that is expected).
+
+Optional: point the UI at production APIs without local `vercel dev`:
+
+```bash
+# .env.local
+VITE_API_BASE=https://pluuganda-hifl.vercel.app
 ```
 
 ## MongoDB collections (auto-created)

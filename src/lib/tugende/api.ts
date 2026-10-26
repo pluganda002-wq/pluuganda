@@ -5,16 +5,30 @@ import type { TugendeLoginPayload, TugendeRide, TugendeUser } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
 
+async function tugendeRequest(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw new Error("Failed to fetch");
+  }
+}
+
+function throwIfApiDown(res: Response, msg: string) {
+  if (res.status === 503 || res.status >= 500) {
+    throw new Error(`503 ${msg || "API unavailable"}`);
+  }
+}
+
 async function post<T>(body: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${API_BASE}/api/tugende`, {
+  const res = await tugendeRequest(`${API_BASE}/api/tugende`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err.error || res.statusText;
-    if (res.status === 503) throw new Error(`503 ${msg}`);
+    const msg = (err as { error?: string }).error || res.statusText;
+    throwIfApiDown(res, msg);
     throw new Error(msg);
   }
   return res.json() as Promise<T>;
@@ -22,11 +36,11 @@ async function post<T>(body: Record<string, unknown>): Promise<T> {
 
 async function get<T>(params: Record<string, string>): Promise<T> {
   const q = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_BASE}/api/tugende?${q}`);
+  const res = await tugendeRequest(`${API_BASE}/api/tugende?${q}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err.error || res.statusText;
-    if (res.status === 503) throw new Error(`503 ${msg}`);
+    const msg = (err as { error?: string }).error || res.statusText;
+    throwIfApiDown(res, msg);
     throw new Error(msg);
   }
   return res.json() as Promise<T>;
