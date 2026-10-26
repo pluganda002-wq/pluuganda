@@ -2,13 +2,26 @@ import type { LatLng } from "./geo";
 
 export type TugendeRole = "rider" | "driver";
 
+export type TugendeLoginMethod = "phone" | "google" | "email" | "plu";
+
 export type TugendeUser = {
   telegramId: string;
   fullName: string;
   phone: string;
   role: TugendeRole;
+  loginMethod?: TugendeLoginMethod;
+  loginId?: string;
   walletBalanceUgx: number;
   location?: { lat: number; lng: number; updatedAt?: string } | null;
+};
+
+export type TugendeLoginPayload = {
+  telegramId: number;
+  fullName: string;
+  phone: string;
+  role: TugendeRole;
+  loginMethod: TugendeLoginMethod;
+  loginId: string;
 };
 
 export type RideStatus = "pending" | "accepted" | "in_progress" | "completed" | "cancelled";

@@ -1,3 +1,113 @@
+.tugende-signin__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+}
+
+.tugende-signin__step {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.55;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.tugende-signin__step span {
+  display: inline-flex;
+  width: 1.1rem;
+  height: 1.1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.tugende-signin__step--on {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.tugende-signin__step--on span {
+  background: var(--accent, #c9a227);
+  color: #111;
+}
+
+.tugende-signin__step--done {
+  opacity: 0.85;
+}
+
+.tugende-signin__methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.tugende-signin__method {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+.tugende-signin__method strong {
+  font-size: 0.92rem;
+}
+
+.tugende-signin__method span {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.tugende-signin__panel {
+  margin-top: 0.25rem;
+}
+
+.tugende-signin__nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tugende-signin__nav .btn {
+  flex: 1;
+}
+
+.tugende-signin__error {
+  color: #b42318;
+  background: color-mix(in srgb, #b42318 8%, transparent);
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  font-size: 0.88rem;
+  margin-bottom: 0.75rem;
+}
+
+.tugende-signin__hint,
+.tugende-signin__ok {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0.5rem 0 0;
+}
+
+.tugende-signin__ok {
+  color: var(--accent, #8a6914);
+  font-weight: 600;
+}
+
 .tugende-page__logo {
   display: block;
   margin: 0 auto 0.75rem;
@@ -24,7 +134,16 @@
 .tugende-role-pick {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.tugende-role-pick--triple {
+  flex-wrap: wrap;
+}
+
+.tugende-role-pick--triple .tugende-role-pick__btn {
+  min-width: calc(50% - 0.25rem);
+  flex: 1 1 calc(50% - 0.25rem);
 }
 
 .tugende-role-pick__btn {

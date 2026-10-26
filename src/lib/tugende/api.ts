@@ -1,7 +1,7 @@
 import { isApiUnavailableError } from "@/lib/api";
 import { tugendeLocal } from "./localStore";
 import type { LatLng } from "./geo";
-import type { TugendeRide, TugendeRole, TugendeUser } from "./types";
+import type { TugendeLoginPayload, TugendeRide, TugendeUser } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
 
@@ -32,24 +32,37 @@ async function get<T>(params: Record<string, string>): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function tugendeLogin(
-  telegramId: number,
-  fullName: string,
-  phone: string,
-  role: TugendeRole
-): Promise<TugendeUser> {
-  const id = String(telegramId);
+export async function tugendeLogin(payload: TugendeLoginPayload): Promise<TugendeUser> {
+  const id = String(payload.telegramId);
   try {
     const res = await post<{ user: TugendeUser }>({
       action: "login",
       telegramId: id,
-      fullName,
-      phone,
-      role,
+      fullName: payload.fullName,
+      phone: payload.phone,
+      role: payload.role,
+      loginMethod: payload.loginMethod,
+      loginId: payload.loginId,
     });
     return res.user;
   } catch (e) {
-    if (isApiUnavailableError(e)) return tugendeLocal.login(id, fullName, phone, role);
+    if (isApiUnavailableError(e)) {
+      return tugendeLocal.login(id, payload.fullName, payload.phone, payload.role, payload.loginMethod, payload.loginId);
+    }
+    throw e;
+  }
+}
+
+export async function tugendeVerifyPluNumber(memberId: string): Promise<{ fullName: string; memberId: string } | null> {
+  try {
+    const res = await get<{ member: { fullName: string; memberId: string } | null }>({
+      action: "verifyPlu",
+      telegramId: "0",
+      memberId: memberId.trim().toUpperCase(),
+    });
+    return res.member;
+  } catch (e) {
+    if (isApiUnavailableError(e)) return null;
     throw e;
   }
 }

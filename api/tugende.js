@@ -23,6 +23,8 @@ async function ensureUser(db, telegramId, patch = {}) {
     fullName: patch.fullName ?? "Patriot",
     phone: patch.phone ?? "",
     role: patch.role ?? "rider",
+    loginMethod: patch.loginMethod ?? "phone",
+    loginId: patch.loginId ?? "",
     walletBalanceUgx: 0,
     location: null,
     createdAt: new Date(),
@@ -39,6 +41,8 @@ function serializeUser(u) {
     fullName: u.fullName,
     phone: u.phone,
     role: u.role,
+    loginMethod: u.loginMethod ?? null,
+    loginId: u.loginId ?? null,
     walletBalanceUgx: u.walletBalanceUgx ?? 0,
     location: u.location,
   };
@@ -72,6 +76,18 @@ export async function GET(request) {
 
   if (action === "walletConfig") {
     return Response.json({ momoEnabled: isMomoConfigured() });
+  }
+
+  if (action === "verifyPlu") {
+    const memberId = url.searchParams.get("memberId")?.trim().toUpperCase();
+    if (!memberId || !/^PLU-\d{6}$/.test(memberId)) {
+      return Response.json({ error: "Valid memberId required" }, { status: 400 });
+    }
+    const db = await getDb();
+    const member = await db.collection("members").findOne({ memberId });
+    return Response.json({
+      member: member ? { memberId: member.memberId, fullName: member.fullName } : null,
+    });
   }
 
   if (!telegramId) {
@@ -128,10 +144,15 @@ export async function POST(request) {
 
   switch (action) {
     case "login": {
+      const loginMethod = ["phone", "google", "email", "plu"].includes(body.loginMethod)
+        ? body.loginMethod
+        : "phone";
       const user = await ensureUser(db, tid, {
         fullName: body.fullName?.trim() || "Patriot",
-        phone: body.phone?.trim() || "",
+        phone: body.phone?.trim() || (loginMethod === "phone" ? body.loginId?.trim() : "") || "",
         role: body.role === "driver" ? "driver" : "rider",
+        loginMethod,
+        loginId: body.loginId?.trim() || "",
       });
       return Response.json({ user: serializeUser(user), rateUgxPerKm: TUGENDE_RATE_UGX_PER_KM });
     }

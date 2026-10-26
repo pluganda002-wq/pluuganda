@@ -1,7 +1,8 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { SubPageBar } from "@/components/SubPageBar";
-import { TUGENDE_RATE_UGX_PER_KM, fareFromKm, haversineKm } from "@/lib/tugende/geo";
+import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
+import { fareFromKm, haversineKm } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
 import { useLiveLocation } from "@/hooks/useLiveLocation";
 import {
@@ -11,7 +12,6 @@ import {
   tugendeFetchActiveRide,
   tugendeFetchProfile,
   tugendeFetchWalletConfig,
-  tugendeLogin,
   tugendePendingRides,
   tugendeRequestRide,
   tugendeStartRide,
@@ -19,7 +19,8 @@ import {
   tugendeUpdateLocation,
   tugendeWithdraw,
 } from "@/lib/tugende/api";
-import type { TugendeRide, TugendeRole, TugendeUser } from "@/lib/tugende/types";
+import type { TugendeRide, TugendeUser } from "@/lib/tugende/types";
+import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./TugendePage.css";
 
@@ -30,9 +31,15 @@ type Tab = "ride" | "wallet" | "drive";
 const DEV_TELEGRAM_ID = 800_001;
 
 export function TugendePage() {
-  const { user: tgUser, displayName, haptic, showAlert } = useTelegram();
-  const telegramId = tgUser?.id ?? (import.meta.env.DEV ? DEV_TELEGRAM_ID : 0);
+  const { user: tgUser, displayName, haptic, showAlert, webApp } = useTelegram();
+  const { member } = useUser();
+  const telegramId = useMemo(() => {
+    if (tgUser?.id) return tgUser.id;
+    if (import.meta.env.DEV) return DEV_TELEGRAM_ID;
+    return 0;
+  }, [tgUser?.id]);
   const telegramKey = String(telegramId);
+  const canSignIn = telegramId > 0 || (webApp.initData?.length ?? 0) > 0;
 
   const [profile, setProfile] = useState<TugendeUser | null>(null);
   const [tab, setTab] = useState<Tab>("ride");
@@ -41,10 +48,6 @@ export function TugendePage() {
   const [momoEnabled, setMomoEnabled] = useState(false);
   const [pending, setPending] = useState<TugendeRide[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const [loginName, setLoginName] = useState(displayName);
-  const [loginPhone, setLoginPhone] = useState("");
-  const [loginRole, setLoginRole] = useState<TugendeRole>("rider");
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("10000");
@@ -91,29 +94,6 @@ export function TugendePage() {
     const t = setInterval(load, 4000);
     return () => clearInterval(t);
   }, [profile?.role, tab]);
-
-  async function onLogin(e: FormEvent) {
-    e.preventDefault();
-    if (!telegramId) {
-      showAlert("Open from Telegram to sign in securely.");
-      return;
-    }
-    if (!loginPhone.trim()) {
-      showAlert("Enter your mobile money number.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const p = await tugendeLogin(telegramId, loginName.trim(), loginPhone.trim(), loginRole);
-      setProfile(p);
-      haptic("medium");
-      showAlert(`Welcome to Tugende Safe Boda, ${p.fullName}.`);
-    } catch (err) {
-      showAlert(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function setDemoDestination() {
     if (!pos) {
@@ -234,48 +214,29 @@ export function TugendePage() {
 
   if (!profile) {
     return (
-      <main className="page tugende-page">
+      <>
         <SubPageBar title="Tugende Safe Boda" backTo="/mobility" />
-        <img src={LOGO} alt="" className="tugende-page__logo" width={120} height={120} />
-        <p className="tugende-page__rate">UGX {TUGENDE_RATE_UGX_PER_KM.toLocaleString()} per km · live GPS meter</p>
-        <p className="tugende-page__rate">After sign-in, tap <strong>Enable live location</strong> (use the Telegram app on your phone for GPS).</p>
-        <form className="card" onSubmit={onLogin}>
-          <h2 className="tugende-page__form-title">Sign in</h2>
-          <label className="field">
-            Full name
-            <input value={loginName} onChange={(e) => setLoginName(e.target.value)} required />
-          </label>
-          <label className="field">
-            Mobile money number
-            <input
-              value={loginPhone}
-              onChange={(e) => setLoginPhone(e.target.value)}
-              placeholder="07xx xxx xxx"
-              required
-            />
-          </label>
-          <p className="tugende-page__role-label">I am a</p>
-          <div className="tugende-role-pick">
-            <button
-              type="button"
-              className={`tugende-role-pick__btn${loginRole === "rider" ? " tugende-role-pick__btn--on" : ""}`}
-              onClick={() => setLoginRole("rider")}
-            >
-              Rider
-            </button>
-            <button
-              type="button"
-              className={`tugende-role-pick__btn${loginRole === "driver" ? " tugende-role-pick__btn--on" : ""}`}
-              onClick={() => setLoginRole("driver")}
-            >
-              Boda driver
-            </button>
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            Continue
-          </button>
-        </form>
-      </main>
+        {!canSignIn || !telegramId ? (
+          <main className="page tugende-page">
+            <p className="tugende-signin__error card">
+              Open <strong>PluPatriot</strong> from the Telegram bot (Menu → Open app), then return to Tugende to sign in.
+            </p>
+          </main>
+        ) : (
+          <TugendeSignIn
+            telegramId={telegramId}
+            defaultName={displayName}
+            suggestedPlu={member?.memberId}
+            suggestedPhone={member?.phone}
+            haptic={haptic}
+            onError={showAlert}
+            onComplete={(user) => {
+              setProfile(user);
+              showAlert(`Welcome to Tugende Safe Boda, ${user.fullName}.`);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -297,7 +258,9 @@ export function TugendePage() {
         <div>
           <strong>{profile.fullName}</strong>
           <p className="tugende-header__meta">
-            {profile.role === "driver" ? "Driver" : "Rider"} · {profile.phone}
+            {profile.role === "driver" ? "Rider" : "Passenger"}
+            {profile.loginMethod ? ` · ${profile.loginMethod}` : ""}
+            {profile.phone ? ` · ${profile.phone}` : profile.loginId ? ` · ${profile.loginId}` : ""}
           </p>
           <p className="tugende-header__wallet">
             Wallet: <span>UGX {profile.walletBalanceUgx.toLocaleString()}</span>
@@ -369,7 +332,7 @@ export function TugendePage() {
               </>
             ) : (
               <p className="tugende-empty">
-                You are online as a driver. Open the Drive tab to accept incoming requests.
+                You are online as a Rider. Open the Drive tab to accept incoming requests.
               </p>
             )
           ) : (
@@ -386,7 +349,7 @@ export function TugendePage() {
               ) : null}
               {canEndRide ? (
                 <button type="button" className="btn btn-primary" disabled={loading} onClick={endRideFlow}>
-                  {profile.role === "driver" ? "End ride (charge rider)" : "End ride & pay"}
+                  {profile.role === "driver" ? "End ride (charge passenger)" : "End ride & pay"}
                 </button>
               ) : null}
               {ride.status === "pending" && isRiderOnRide ? (
@@ -454,7 +417,7 @@ export function TugendePage() {
       ) : null}
 
       {tab === "drive" && profile.role !== "driver" ? (
-        <p className="institutional-page__lead">Switch to boda driver at sign-in to accept rides.</p>
+        <p className="institutional-page__lead">Switch to Rider at sign-in to accept trips.</p>
       ) : null}
 
       <Link to="/mobility" className="tugende-back-link">

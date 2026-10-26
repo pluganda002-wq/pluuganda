@@ -1,5 +1,5 @@
 import { fareFromKm, haversineKm, pathDistanceKm } from "./geo";
-import type { TugendeRide, TugendeUser } from "./types";
+import type { TugendeLoginMethod, TugendeRide, TugendeUser } from "./types";
 
 const KEY = "plu-tugende-local-v1";
 
@@ -27,13 +27,22 @@ export const tugendeLocal = {
     return s.user;
   },
 
-  login(telegramId: string, fullName: string, phone: string, role: TugendeUser["role"]): TugendeUser {
+  login(
+    telegramId: string,
+    fullName: string,
+    phone: string,
+    role: TugendeUser["role"],
+    loginMethod?: TugendeLoginMethod,
+    loginId?: string
+  ): TugendeUser {
     const s = load();
     s.user = {
       telegramId,
       fullName,
       phone,
       role,
+      loginMethod,
+      loginId,
       walletBalanceUgx: s.user?.walletBalanceUgx ?? 10000,
       location: s.user?.location ?? null,
     };

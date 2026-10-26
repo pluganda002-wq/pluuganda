@@ -24,6 +24,12 @@ export function useTelegram() {
     haptic: (type: "light" | "medium" | "heavy" = "light") => {
       if (WebApp.HapticFeedback) WebApp.HapticFeedback.impactOccurred(type);
     },
-    showAlert: (message: string) => WebApp.showAlert(message),
+    showAlert: (message: string) => {
+      try {
+        WebApp.showAlert(message);
+      } catch {
+        window.alert(message);
+      }
+    },
   };
 }
