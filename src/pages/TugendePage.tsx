@@ -2,7 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { SubPageBar } from "@/components/SubPageBar";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
-import { fareFromKm, haversineKm } from "@/lib/tugende/geo";
+import { fareFromKm, haversineKm, pathDistanceKm, reverseGeocodeLabel } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
 import { useLiveLocation } from "@/hooks/useLiveLocation";
 import {
@@ -48,6 +48,8 @@ export function TugendePage() {
   const [momoEnabled, setMomoEnabled] = useState(false);
   const [pending, setPending] = useState<TugendeRide[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pickingDestination, setPickingDestination] = useState(false);
+  const [geocodingDest, setGeocodingDest] = useState(false);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("10000");
@@ -61,7 +63,14 @@ export function TugendePage() {
   const refreshRide = useCallback(async () => {
     if (!telegramId) return;
     const r = await tugendeFetchActiveRide(telegramId);
-    setRide(r);
+    setRide((prev) => {
+      if (!r) return null;
+      if (!prev || prev.rideId !== r.rideId) return r;
+      if (prev.status === "in_progress" && (prev.path?.length ?? 0) > (r.path?.length ?? 0)) {
+        return { ...r, path: prev.path, distanceKm: prev.distanceKm, fareUgx: prev.fareUgx };
+      }
+      return r;
+    });
   }, [telegramId]);
 
   const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(
@@ -82,10 +91,27 @@ export function TugendePage() {
   }, [telegramId, pos?.lat, pos?.lng]);
 
   useEffect(() => {
-    if (!ride || !["pending", "accepted"].includes(ride.status)) return;
-    const t = setInterval(refreshRide, 3000);
+    if (!ride) return;
+    const ms = ride.status === "in_progress" ? 2500 : ["pending", "accepted"].includes(ride.status) ? 3000 : 0;
+    if (!ms) return;
+    const t = setInterval(refreshRide, ms);
     return () => clearInterval(t);
   }, [ride, refreshRide]);
+
+  useEffect(() => {
+    if (!ride || ride.status !== "in_progress" || !pos) return;
+    setRide((prev) => {
+      if (!prev || prev.status !== "in_progress") return prev;
+      const path = [...(prev.path ?? [])];
+      const last = path[path.length - 1];
+      if (last && Math.abs(last.lat - pos.lat) < 1e-6 && Math.abs(last.lng - pos.lng) < 1e-6) {
+        return prev;
+      }
+      path.push({ lat: pos.lat, lng: pos.lng });
+      const distanceKm = pathDistanceKm(path);
+      return { ...prev, path, distanceKm, fareUgx: fareFromKm(distanceKm) };
+    });
+  }, [pos?.lat, pos?.lng, ride?.rideId, ride?.status]);
 
   useEffect(() => {
     if (profile?.role !== "driver" || tab !== "drive") return;
@@ -95,15 +121,28 @@ export function TugendePage() {
     return () => clearInterval(t);
   }, [profile?.role, tab]);
 
-  function setDemoDestination() {
+  async function handlePickDestination(point: { lat: number; lng: number }) {
+    if (!pos) return;
+    setGeocodingDest(true);
+    haptic("light");
+    try {
+      const label = await reverseGeocodeLabel(point.lat, point.lng);
+      const km = haversineKm(pos.lat, pos.lng, point.lat, point.lng);
+      setDropoff({ lat: point.lat, lng: point.lng, label });
+      setPickingDestination(false);
+      showAlert(`Destination set · ${km.toFixed(1)} km · UGX ${fareFromKm(km).toLocaleString()}`);
+    } finally {
+      setGeocodingDest(false);
+    }
+  }
+
+  function startPickDestination() {
     if (!pos) {
       showAlert("Waiting for GPS…");
       return;
     }
-    const lat = pos.lat + 0.018;
-    const lng = pos.lng + 0.012;
-    const km = haversineKm(pos.lat, pos.lng, lat, lng);
-    setDropoff({ lat, lng, label: `Destination (~${km.toFixed(1)} km)` });
+    setPickingDestination(true);
+    haptic("light");
   }
 
   async function requestRide() {
@@ -240,8 +279,17 @@ export function TugendePage() {
     );
   }
 
-  const estFare =
-    pos && dropoff ? fareFromKm(haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng)) : null;
+  const plannedKm =
+    pos && dropoff ? haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng) : null;
+  const plannedFare = plannedKm != null ? fareFromKm(plannedKm) : null;
+
+  const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
+  const mapSize =
+    ride?.status === "in_progress" || pickingDestination || dropoff ? "fullscreen" : "large";
+  const livePath =
+    ride && (ride.path?.length ?? 0) >= 2
+      ? ride.path!.map((p) => ({ lat: p.lat, lng: p.lng }))
+      : undefined;
 
   const isDriverOnRide = Boolean(ride && ride.driverId === telegramKey);
   const isRiderOnRide = Boolean(ride && ride.riderId === telegramKey);
@@ -282,9 +330,22 @@ export function TugendePage() {
       </nav>
 
       {tab === "ride" ? (
-        <section className="card tugende-panel">
-          <h2 className="tugende-panel__title">Live location & map</h2>
-          <TugendeMap you={pos} destination={dropoff} />
+        <section className="card tugende-panel tugende-panel--map">
+          <h2 className="tugende-panel__title">
+            {ride?.status === "in_progress" ? "Live trip" : "Map & destination"}
+          </h2>
+          {pickingDestination ? (
+            <p className="tugende-map-hint">Tap on the map where you want to go.</p>
+          ) : null}
+          <TugendeMap
+            you={pos}
+            destination={mapDestination}
+            path={ride?.status === "in_progress" ? livePath : undefined}
+            size={mapSize}
+            pickMode={pickingDestination}
+            followYou={ride?.status === "in_progress"}
+            onPickDestination={pickingDestination ? handlePickDestination : undefined}
+          />
           {locStatus === "active" && pos ? (
             <p className="tugende-gps">
               {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
@@ -314,13 +375,41 @@ export function TugendePage() {
           {!ride ? (
             profile.role === "rider" ? (
               <>
-                <button type="button" className="btn btn-secondary" onClick={setDemoDestination}>
-                  Set destination (~2 km)
-                </button>
-                {dropoff ? <p className="tugende-drop">{dropoff.label}</p> : null}
-                {estFare != null ? (
-                  <p className="tugende-est">Estimated fare: UGX {estFare.toLocaleString()}</p>
+                {plannedKm != null && plannedFare != null && dropoff ? (
+                  <div className="tugende-fare-card">
+                    <p className="tugende-fare-card__dest">{dropoff.label}</p>
+                    <div className="tugende-fare-card__row">
+                      <span>Distance</span>
+                      <strong>{plannedKm.toFixed(2)} km</strong>
+                    </div>
+                    <div className="tugende-fare-card__row">
+                      <span>You pay</span>
+                      <strong className="tugende-fare-card__price">UGX {plannedFare.toLocaleString()}</strong>
+                    </div>
+                  </div>
                 ) : null}
+                <div className="tugende-dest-actions">
+                  <button
+                    type="button"
+                    className={`btn ${pickingDestination ? "btn-primary" : "btn-secondary"}`}
+                    disabled={!pos || geocodingDest}
+                    onClick={startPickDestination}
+                  >
+                    {geocodingDest ? "Setting destination…" : pickingDestination ? "Tap map to set…" : "Choose destination on map"}
+                  </button>
+                  {dropoff ? (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => {
+                        setDropoff(null);
+                        setPickingDestination(false);
+                      }}
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
                 <button
                   type="button"
                   className="btn btn-primary"
@@ -337,11 +426,19 @@ export function TugendePage() {
             )
           ) : (
             <div className="tugende-active">
-              <p>
-                Status: <strong>{ride.status.replace("_", " ")}</strong>
-              </p>
-              <p>Distance: {ride.distanceKm.toFixed(2)} km</p>
-              <p>Fare: UGX {ride.fareUgx.toLocaleString()}</p>
+              <div className="tugende-fare-card">
+                <p>
+                  Status: <strong>{ride.status.replace("_", " ")}</strong>
+                </p>
+                <div className="tugende-fare-card__row">
+                  <span>{ride.status === "in_progress" ? "Trip distance" : "Est. distance"}</span>
+                  <strong>{ride.distanceKm.toFixed(2)} km</strong>
+                </div>
+                <div className="tugende-fare-card__row">
+                  <span>{ride.status === "in_progress" ? "Meter running" : "Est. fare"}</span>
+                  <strong className="tugende-fare-card__price">UGX {ride.fareUgx.toLocaleString()}</strong>
+                </div>
+              </div>
               {canStartRide ? (
                 <button type="button" className="btn btn-primary" disabled={loading} onClick={startRideFlow}>
                   Start ride

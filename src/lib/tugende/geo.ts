@@ -28,3 +28,25 @@ export function fareFromKm(km: number): number {
 }
 
 export type LatLng = { lat: number; lng: number; label?: string };
+
+export async function reverseGeocodeLabel(lat: number, lng: number): Promise<string> {
+  try {
+    const q = new URLSearchParams({
+      lat: String(lat),
+      lon: String(lng),
+      format: "json",
+    });
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${q}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("geocode failed");
+    const data = (await res.json()) as { display_name?: string };
+    if (data.display_name) {
+      const parts = data.display_name.split(",").map((s) => s.trim());
+      return parts.slice(0, 3).join(", ");
+    }
+  } catch {
+    /* fallback below */
+  }
+  return `Destination (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+}

@@ -5,6 +5,38 @@
   overflow: hidden;
   margin-bottom: 0.75rem;
   border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  z-index: 0;
+}
+
+.tugende-map--large {
+  height: min(48vh, 380px);
+}
+
+.tugende-map--fullscreen {
+  height: min(58vh, 460px);
+}
+
+@media (min-width: 420px) {
+  .tugende-map--large {
+    height: min(52vh, 420px);
+  }
+  .tugende-map--fullscreen {
+    height: min(62vh, 520px);
+  }
+}
+
+@media (min-width: 768px) {
+  .tugende-map--large {
+    height: 440px;
+  }
+  .tugende-map--fullscreen {
+    height: 520px;
+  }
+}
+
+.tugende-map--pick {
+  cursor: crosshair;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #c9a227) 55%, transparent);
 }
 
 .tugende-map-marker {
@@ -14,8 +46,8 @@
 
 .tugende-map-marker span {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
