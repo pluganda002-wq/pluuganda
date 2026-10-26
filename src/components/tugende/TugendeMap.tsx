@@ -90,7 +90,7 @@ export function TugendeMap({
     if (you) {
       if (!youMarkerRef.current) {
         youMarkerRef.current = L.marker([you.lat, you.lng], { icon: makeIcon("#c9a227") }).addTo(map);
-        youMarkerRef.current.bindTooltip("You", { permanent: true, direction: "top", offset: [0, -10] });
+        youMarkerRef.current.bindTooltip("Pickup · You", { permanent: true, direction: "top", offset: [0, -10] });
       } else {
         youMarkerRef.current.setLatLng([you.lat, you.lng]);
       }

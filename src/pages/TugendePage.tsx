@@ -74,7 +74,7 @@ export function TugendePage() {
   }, [telegramId]);
 
   const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(
-    Boolean(profile)
+    Boolean(profile && tab === "ride")
   );
   const pos = position ? { lat: position.lat, lng: position.lng } : null;
 
@@ -136,14 +136,10 @@ export function TugendePage() {
     }
   }
 
-  function startPickDestination() {
-    if (!pos) {
-      showAlert("Waiting for GPS…");
-      return;
-    }
-    setPickingDestination(true);
-    haptic("light");
-  }
+  useEffect(() => {
+    if (tab !== "ride" || ride || profile?.role !== "rider") return;
+    if (pos && !dropoff) setPickingDestination(true);
+  }, [tab, ride, profile?.role, pos, dropoff]);
 
   async function requestRide() {
     if (!telegramId || !pos || !dropoff) return;
@@ -151,7 +147,7 @@ export function TugendePage() {
     try {
       const r = await tugendeRequestRide(
         telegramId,
-        { lat: pos.lat, lng: pos.lng, label: "Pickup (live GPS)" },
+        { lat: pos.lat, lng: pos.lng, label: "Pickup · your live location" },
         { lat: dropoff.lat, lng: dropoff.lng, label: dropoff.label }
       );
       setRide(r);
@@ -334,7 +330,11 @@ export function TugendePage() {
           <h2 className="tugende-panel__title">
             {ride?.status === "in_progress" ? "Live trip" : "Map & destination"}
           </h2>
-          {pickingDestination ? (
+          {!ride && profile.role === "rider" && locStatus === "active" && pos ? (
+            <p className="tugende-map-hint tugende-map-hint--pickup">
+              Pickup is your live location (gold pin). Tap the map to choose where you are going.
+            </p>
+          ) : pickingDestination ? (
             <p className="tugende-map-hint">Tap on the map where you want to go.</p>
           ) : null}
           <TugendeMap
@@ -342,13 +342,15 @@ export function TugendePage() {
             destination={mapDestination}
             path={ride?.status === "in_progress" ? livePath : undefined}
             size={mapSize}
-            pickMode={pickingDestination}
-            followYou={ride?.status === "in_progress"}
-            onPickDestination={pickingDestination ? handlePickDestination : undefined}
+            pickMode={!ride && profile.role === "rider" && Boolean(pos) && !geocodingDest}
+            followYou={ride?.status === "in_progress" || (!ride && !dropoff && Boolean(pos))}
+            onPickDestination={
+              !ride && profile.role === "rider" && pos && !geocodingDest ? handlePickDestination : undefined
+            }
           />
           {locStatus === "active" && pos ? (
-            <p className="tugende-gps">
-              {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+            <p className="tugende-pickup-auto">
+              <strong>Pickup (automatic):</strong> {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
               {position?.accuracyM ? ` · ±${Math.round(position.accuracyM)} m` : ""}
             </p>
           ) : (
@@ -388,28 +390,30 @@ export function TugendePage() {
                     </div>
                   </div>
                 ) : null}
-                <div className="tugende-dest-actions">
-                  <button
-                    type="button"
-                    className={`btn ${pickingDestination ? "btn-primary" : "btn-secondary"}`}
-                    disabled={!pos || geocodingDest}
-                    onClick={startPickDestination}
-                  >
-                    {geocodingDest ? "Setting destination…" : pickingDestination ? "Tap map to set…" : "Choose destination on map"}
-                  </button>
-                  {dropoff ? (
+                {dropoff ? (
+                  <div className="tugende-dest-actions">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={!pos || geocodingDest}
+                      onClick={() => setPickingDestination(true)}
+                    >
+                      Change destination (tap map)
+                    </button>
                     <button
                       type="button"
                       className="btn btn-ghost"
                       onClick={() => {
                         setDropoff(null);
-                        setPickingDestination(false);
+                        setPickingDestination(true);
                       }}
                     >
-                      Clear
+                      Clear destination
                     </button>
-                  ) : null}
-                </div>
+                  </div>
+                ) : geocodingDest ? (
+                  <p className="tugende-gps tugende-gps--wait">Setting destination…</p>
+                ) : null}
                 <button
                   type="button"
                   className="btn btn-primary"
