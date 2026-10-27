@@ -94,8 +94,9 @@ export function TugendeMap({
       } else {
         youMarkerRef.current.setLatLng([you.lat, you.lng]);
       }
-      if (followYou && !pickMode) {
-        map.setView([you.lat, you.lng], Math.max(map.getZoom(), 16), { animate: true });
+      if (followYou || pickMode) {
+        const zoom = pickMode ? 15 : 16;
+        map.setView([you.lat, you.lng], Math.max(map.getZoom(), zoom), { animate: true });
       }
     }
 
@@ -148,8 +149,8 @@ export function TugendeMap({
       pathRef.current = null;
     }
 
-    if (you && !destination && !path?.length && !pickMode) {
-      map.setView([you.lat, you.lng], 16, { animate: true });
+    if (you && !destination && !path?.length) {
+      map.setView([you.lat, you.lng], pickMode ? 15 : 16, { animate: true });
     }
   }, [you, destination, path, pickMode, followYou]);
 

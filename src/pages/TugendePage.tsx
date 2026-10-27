@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
 import { fareFromKm, haversineKm, pathDistanceKm, reverseGeocodeLabel } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
-import { useLiveLocation } from "@/hooks/useLiveLocation";
+import { clearLiveLocationCache, useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
   tugendeCancelRide,
@@ -265,6 +265,7 @@ export function TugendePage() {
     const ok = window.confirm("Log out of Tugende on this device?");
     if (!ok) return;
     await tugendeLogout(telegramId);
+    clearLiveLocationCache();
     setProfile(null);
     setRide(null);
     setDropoff(null);
@@ -397,7 +398,10 @@ export function TugendePage() {
             path={ride?.status === "in_progress" ? livePath : undefined}
             size={mapSize}
             pickMode={!ride && profile.role === "rider" && Boolean(pos) && !geocodingDest}
-            followYou={ride?.status === "in_progress" || (!ride && !dropoff && Boolean(pos))}
+            followYou={
+              ride?.status === "in_progress" ||
+              (!ride && Boolean(pos) && (profile.role === "driver" || !dropoff || pickingDestination))
+            }
             onPickDestination={
               !ride && profile.role === "rider" && pos && !geocodingDest ? handlePickDestination : undefined
             }
@@ -406,6 +410,7 @@ export function TugendePage() {
             <p className="tugende-pickup-auto">
               <strong>Pickup (automatic):</strong> {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
               {position?.accuracyM ? ` · ±${Math.round(position.accuracyM)} m` : ""}
+              {position?.source === "telegram" ? " · Telegram GPS" : position?.source === "browser" ? " · browser GPS" : ""}
             </p>
           ) : (
             <div className="tugende-loc-banner">

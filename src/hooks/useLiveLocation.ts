@@ -59,6 +59,24 @@ function fromGeo(p: GeolocationPosition): LivePosition {
   };
 }
 
+function telegramLocationAvailable(): boolean {
+  return Boolean(getTelegramLocationManager()?.isLocationAvailable);
+}
+
+/** Prefer phone GPS from Telegram over coarse browser/IP geolocation in the mini app. */
+function shouldApplyPosition(incoming: LivePosition, current: LivePosition | null): boolean {
+  if (!current) return true;
+  if (incoming.source === "telegram" && current.source === "browser") return true;
+  if (incoming.source === "browser" && current.source === "telegram") {
+    const telegramAgeMs = Date.now() - current.updatedAt;
+    if (telegramAgeMs < 120_000) return false;
+    const inAcc = incoming.accuracyM ?? 9999;
+    const curAcc = current.accuracyM ?? 9999;
+    if (inAcc > curAcc * 1.5) return false;
+  }
+  return incoming.updatedAt >= current.updatedAt - 500;
+}
+
 export function useLiveLocation(active: boolean) {
   const [status, setStatus] = useState<LiveLocationStatus>(() =>
     readCachedPosition() ? "active" : "idle"
@@ -71,8 +89,11 @@ export function useLiveLocation(active: boolean) {
   const autoStartedRef = useRef(false);
 
   const applyPosition = useCallback((pos: LivePosition) => {
-    setPosition(pos);
-    cachePosition(pos);
+    setPosition((current) => {
+      if (!shouldApplyPosition(pos, current)) return current;
+      cachePosition(pos);
+      return pos;
+    });
     setStatus("active");
     setPlatformHint(null);
     sessionStorage.setItem(GRANTED_KEY, "1");
@@ -160,7 +181,6 @@ export function useLiveLocation(active: boolean) {
       if (lm?.isAccessGranted) {
         clearGrantWait();
         void startTelegramPolling();
-        readBrowserOnce();
         return;
       }
       if (attempts >= 60) {
@@ -170,13 +190,15 @@ export function useLiveLocation(active: boolean) {
     }, 1500);
   }, [clearGrantWait, readBrowserOnce, startTelegramPolling]);
 
+  const startBrowserFallback = useCallback(() => {
+    startBrowserWatch();
+    readBrowserOnce();
+  }, [readBrowserOnce, startBrowserWatch]);
+
   const connectAll = useCallback(
     async (opts?: { openTelegramSettings?: boolean }) => {
       setStatus("starting");
       setPlatformHint(null);
-
-      startBrowserWatch();
-      readBrowserOnce();
 
       const lm = await initTelegramLocationManager();
       if (lm?.isAccessGranted) {
@@ -189,16 +211,21 @@ export function useLiveLocation(active: boolean) {
           lm.openSettings();
           setPlatformHint("Tap Allow in Telegram, then wait a moment — your map should update.");
           startGrantWaitPoll();
+        } else {
+          startBrowserFallback();
         }
         return;
       }
 
-      if (!navigator.geolocation) {
-        setStatus("unavailable");
-        setPlatformHint("Open Tugende in the Telegram app on your phone for GPS.");
+      if (navigator.geolocation) {
+        startBrowserFallback();
+        return;
       }
+
+      setStatus("unavailable");
+      setPlatformHint("Open Tugende in the Telegram app on your phone for GPS.");
     },
-    [readBrowserOnce, startBrowserWatch, startGrantWaitPoll, startTelegramPolling]
+    [startBrowserFallback, startGrantWaitPoll, startTelegramPolling]
   );
 
   const enableLocation = useCallback(() => {
@@ -259,5 +286,11 @@ export function useLiveLocation(active: boolean) {
     enableLocation,
     retryAfterSettings,
     isTracking: status === "active" || status === "starting",
+    telegramPreferred: telegramLocationAvailable(),
   };
+}
+
+export function clearLiveLocationCache() {
+  sessionStorage.removeItem(LAST_POS_KEY);
+  sessionStorage.removeItem(GRANTED_KEY);
 }
