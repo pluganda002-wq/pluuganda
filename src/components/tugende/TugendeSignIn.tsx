@@ -308,7 +308,7 @@ export function TugendeSignIn({
             Tugende needs your live GPS to match rides, meter distance at UGX 1,000/km, and keep riders and drivers safe.
             Use the <strong>Telegram app on your phone</strong> for best results.
           </p>
-          <TugendeMap you={pos} />
+          <TugendeMap you={pos} size="fullscreen" followYou={Boolean(pos)} />
           {locStatus === "active" && pos ? (
             <p className="tugende-gps tugende-signin__ok">
               Your location · {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}

@@ -68,12 +68,24 @@ export async function tugendeLogin(payload: TugendeLoginPayload): Promise<Tugend
       loginMethod: payload.loginMethod,
       loginId: payload.loginId,
     });
+    tugendeLocal.cacheProfile(res.user);
     return res.user;
   } catch (e) {
     if (isApiUnavailableError(e)) {
       return tugendeLocal.login(id, payload.fullName, payload.phone, payload.role, payload.loginMethod, payload.loginId);
     }
     throw e;
+  }
+}
+
+export async function tugendeLogout(telegramId: number): Promise<void> {
+  const id = String(telegramId);
+  tugendeLocal.logout(id);
+  if (useLocalTugendeOnly()) return;
+  try {
+    await post({ action: "logout", telegramId: id });
+  } catch {
+    /* session cleared locally */
   }
 }
 
@@ -97,7 +109,11 @@ export async function tugendeFetchProfile(telegramId: number): Promise<TugendeUs
   if (useLocalTugendeOnly()) return tugendeLocal.getProfile(id);
   try {
     const res = await get<{ user: TugendeUser | null }>({ action: "profile", telegramId: id });
-    return res.user;
+    if (res.user) {
+      tugendeLocal.cacheProfile(res.user);
+      return res.user;
+    }
+    return tugendeLocal.getProfile(id);
   } catch (e) {
     if (isApiUnavailableError(e)) return tugendeLocal.getProfile(id);
     throw e;
@@ -112,6 +128,7 @@ export async function tugendeUpdateLocation(telegramId: number, lat: number, lng
   }
   try {
     await post({ action: "updateLocation", telegramId: id, lat, lng });
+    tugendeLocal.updateLocation(id, lat, lng);
   } catch (e) {
     if (isApiUnavailableError(e)) tugendeLocal.updateLocation(id, lat, lng);
     else throw e;

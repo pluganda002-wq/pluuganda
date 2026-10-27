@@ -13,7 +13,7 @@
 }
 
 .tugende-map--fullscreen {
-  height: min(58vh, 460px);
+  height: min(68vh, 520px);
 }
 
 @media (min-width: 420px) {
@@ -21,7 +21,7 @@
     height: min(52vh, 420px);
   }
   .tugende-map--fullscreen {
-    height: min(62vh, 520px);
+    height: min(72vh, 580px);
   }
 }
 
@@ -30,7 +30,7 @@
     height: 440px;
   }
   .tugende-map--fullscreen {
-    height: 520px;
+    height: min(70vh, 620px);
   }
 }
 

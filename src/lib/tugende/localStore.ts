@@ -20,11 +20,29 @@ function save(store: Store) {
   localStorage.setItem(KEY, JSON.stringify(store));
 }
 
+function samePoint(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  return Math.abs(a.lat - b.lat) < 1e-6 && Math.abs(a.lng - b.lng) < 1e-6;
+}
+
 export const tugendeLocal = {
   getProfile(telegramId: string): TugendeUser | null {
     const s = load();
     if (!s.user || s.user.telegramId !== telegramId) return null;
     return s.user;
+  },
+
+  cacheProfile(user: TugendeUser) {
+    const s = load();
+    s.user = { ...s.user, ...user, telegramId: user.telegramId };
+    save(s);
+  },
+
+  logout(telegramId: string) {
+    const s = load();
+    if (s.user?.telegramId === telegramId) {
+      s.user = null;
+      save(s);
+    }
   },
 
   login(
@@ -55,7 +73,11 @@ export const tugendeLocal = {
     if (!s.user || s.user.telegramId !== telegramId) return;
     s.user.location = { lat, lng, updatedAt: new Date().toISOString() };
     if (s.ride?.status === "in_progress") {
-      const path = [...(s.ride.path ?? []), { lat, lng }];
+      const path = [...(s.ride.path ?? [])];
+      const last = path[path.length - 1];
+      if (!last || !samePoint(last, { lat, lng })) {
+        path.push({ lat, lng });
+      }
       const distanceKm = pathDistanceKm(path);
       s.ride = { ...s.ride, path, distanceKm, fareUgx: fareFromKm(distanceKm) };
     }

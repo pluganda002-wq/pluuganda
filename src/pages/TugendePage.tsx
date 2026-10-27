@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
 import { fareFromKm, haversineKm, pathDistanceKm, reverseGeocodeLabel } from "@/lib/tugende/geo";
@@ -11,6 +11,7 @@ import {
   tugendeFetchActiveRide,
   tugendeFetchProfile,
   tugendeFetchWalletConfig,
+  tugendeLogout,
   tugendePendingRides,
   tugendeRequestRide,
   tugendeStartRide,
@@ -18,6 +19,7 @@ import {
   tugendeUpdateLocation,
   tugendeWithdraw,
 } from "@/lib/tugende/api";
+import { tugendeLocal } from "@/lib/tugende/localStore";
 import type { TugendeRide, TugendeUser } from "@/lib/tugende/types";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
@@ -28,6 +30,19 @@ const LOGO = "/branding/tugende-safe-boda.png";
 type Tab = "ride" | "wallet" | "drive";
 
 const DEV_TELEGRAM_ID = 800_001;
+
+function mergeRideFromServer(prev: TugendeRide | null, next: TugendeRide): TugendeRide {
+  if (!prev || prev.rideId !== next.rideId) return next;
+  const prevDist = prev.distanceKm ?? 0;
+  const nextDist = next.distanceKm ?? 0;
+  const prevLen = prev.path?.length ?? 0;
+  const nextLen = next.path?.length ?? 0;
+  if (nextDist > prevDist + 0.0001 || nextLen > prevLen) return next;
+  if (prevDist > nextDist + 0.0001 || prevLen > nextLen) {
+    return { ...next, path: prev.path, distanceKm: prev.distanceKm, fareUgx: prev.fareUgx };
+  }
+  return next;
+}
 
 export function TugendePage() {
   const { user: tgUser, displayName, haptic, showAlert, webApp } = useTelegram();
@@ -49,6 +64,7 @@ export function TugendePage() {
   const [loading, setLoading] = useState(false);
   const [pickingDestination, setPickingDestination] = useState(false);
   const [geocodingDest, setGeocodingDest] = useState(false);
+  const autoLocPromptedRef = useRef(false);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("10000");
@@ -64,30 +80,42 @@ export function TugendePage() {
     const r = await tugendeFetchActiveRide(telegramId);
     setRide((prev) => {
       if (!r) return null;
-      if (!prev || prev.rideId !== r.rideId) return r;
-      if (prev.status === "in_progress" && (prev.path?.length ?? 0) > (r.path?.length ?? 0)) {
-        return { ...r, path: prev.path, distanceKm: prev.distanceKm, fareUgx: prev.fareUgx };
-      }
-      return r;
+      return mergeRideFromServer(prev, r);
     });
   }, [telegramId]);
 
-  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(
-    Boolean(profile && tab === "ride")
+  const gpsActive = Boolean(
+    profile && (tab === "ride" || tab === "drive" || ride?.status === "in_progress")
   );
+
+  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(gpsActive);
   const pos = position ? { lat: position.lat, lng: position.lng } : null;
 
   useEffect(() => {
     if (!telegramId) return;
+    const cached = tugendeLocal.getProfile(telegramKey);
+    if (cached) setProfile(cached);
     refreshProfile();
     refreshRide();
     tugendeFetchWalletConfig().then((c) => setMomoEnabled(c.momoEnabled)).catch(() => setMomoEnabled(false));
-  }, [telegramId, refreshProfile, refreshRide]);
+  }, [telegramId, telegramKey, refreshProfile, refreshRide]);
+
+  useEffect(() => {
+    if (!profile || tab !== "ride" || locStatus === "active" || locStatus === "denied") return;
+    if (sessionStorage.getItem("plu-tugende-loc-granted") === "1") return;
+    if (autoLocPromptedRef.current) return;
+    autoLocPromptedRef.current = true;
+    enableLocation();
+  }, [profile, tab, locStatus, enableLocation]);
 
   useEffect(() => {
     if (!telegramId || !pos) return;
-    tugendeUpdateLocation(telegramId, pos.lat, pos.lng).catch(() => {});
-  }, [telegramId, pos?.lat, pos?.lng]);
+    tugendeUpdateLocation(telegramId, pos.lat, pos.lng)
+      .then(() => {
+        if (ride?.status === "in_progress") void refreshRide();
+      })
+      .catch(() => {});
+  }, [telegramId, pos?.lat, pos?.lng, ride?.status, refreshRide]);
 
   useEffect(() => {
     if (!ride) return;
@@ -232,6 +260,17 @@ export function TugendePage() {
     }
   }
 
+  async function logout() {
+    if (!telegramId) return;
+    const ok = window.confirm("Log out of Tugende on this device?");
+    if (!ok) return;
+    await tugendeLogout(telegramId);
+    setProfile(null);
+    setRide(null);
+    setDropoff(null);
+    haptic("light");
+  }
+
   async function acceptPending(rideId: string) {
     if (!telegramId) return;
     setLoading(true);
@@ -277,8 +316,12 @@ export function TugendePage() {
   const plannedFare = plannedKm != null ? fareFromKm(plannedKm) : null;
 
   const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
-  const mapSize =
-    ride?.status === "in_progress" || pickingDestination || dropoff ? "fullscreen" : "large";
+  const mapExpanded =
+    ride?.status === "in_progress" ||
+    pickingDestination ||
+    Boolean(dropoff) ||
+    (locStatus === "active" && tab === "ride");
+  const mapSize = mapExpanded ? "fullscreen" : "large";
   const livePath =
     ride && (ride.path?.length ?? 0) >= 2
       ? ride.path!.map((p) => ({ lat: p.lat, lng: p.lng }))
@@ -295,7 +338,7 @@ export function TugendePage() {
     <main className="page tugende-page">
       <header className="tugende-header card card--flat">
         <img src={LOGO} alt="" className="tugende-header__logo" width={56} height={56} />
-        <div>
+        <div className="tugende-header__body">
           <strong>{profile.fullName}</strong>
           <p className="tugende-header__meta">
             {profile.role === "driver" ? "Rider" : "Passenger"}
@@ -306,6 +349,9 @@ export function TugendePage() {
             Wallet: <span>UGX {profile.walletBalanceUgx.toLocaleString()}</span>
           </p>
         </div>
+        <button type="button" className="btn btn-ghost tugende-header__logout" onClick={() => void logout()}>
+          Log out
+        </button>
       </header>
 
       <nav className="tugende-tabs" aria-label="Tugende sections">
@@ -322,10 +368,22 @@ export function TugendePage() {
       </nav>
 
       {tab === "ride" ? (
-        <section className="card tugende-panel tugende-panel--map">
+        <section className={`card tugende-panel tugende-panel--map${mapExpanded ? " tugende-panel--map-expanded" : ""}`}>
           <h2 className="tugende-panel__title">
             {ride?.status === "in_progress" ? "Live trip" : "Map & destination"}
           </h2>
+          {ride?.status === "in_progress" ? (
+            <div className="tugende-live-meter" aria-live="polite">
+              <div>
+                <span className="tugende-live-meter__label">Distance</span>
+                <strong>{ride.distanceKm.toFixed(2)} km</strong>
+              </div>
+              <div>
+                <span className="tugende-live-meter__label">Meter</span>
+                <strong className="tugende-live-meter__fare">UGX {ride.fareUgx.toLocaleString()}</strong>
+              </div>
+            </div>
+          ) : null}
           {!ride && profile.role === "rider" && locStatus === "active" && pos ? (
             <p className="tugende-map-hint tugende-map-hint--pickup">
               Pickup is your live location (gold pin). Tap the map to choose where you are going.
@@ -492,9 +550,37 @@ export function TugendePage() {
         </section>
       ) : null}
 
+      {tab === "drive" && profile.role === "driver" && ride?.status === "in_progress" ? (
+        <section className="card tugende-panel">
+          <h2 className="tugende-panel__title">Active trip (live meter)</h2>
+          <div className="tugende-live-meter tugende-live-meter--compact">
+            <div>
+              <span className="tugende-live-meter__label">Distance</span>
+              <strong>{ride.distanceKm.toFixed(2)} km</strong>
+            </div>
+            <div>
+              <span className="tugende-live-meter__label">Earnings</span>
+              <strong className="tugende-live-meter__fare">UGX {ride.fareUgx.toLocaleString()}</strong>
+            </div>
+          </div>
+          <p className="tugende-signin__hint">GPS is on while you move. Open the Ride tab for the full map.</p>
+          <button type="button" className="btn btn-primary" onClick={() => setTab("ride")}>
+            Open live map
+          </button>
+        </section>
+      ) : null}
+
       {tab === "drive" && profile.role === "driver" ? (
         <section className="card tugende-panel">
           <h2 className="tugende-panel__title">Open ride requests</h2>
+          {locStatus !== "active" ? (
+            <div className="tugende-loc-banner">
+              <p className="tugende-gps tugende-gps--wait">Turn on location to accept rides and meter trips.</p>
+              <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                Enable live location
+              </button>
+            </div>
+          ) : null}
           {pending.length === 0 ? (
             <p className="tugende-empty">No pending rides. Stay online with GPS on.</p>
           ) : (

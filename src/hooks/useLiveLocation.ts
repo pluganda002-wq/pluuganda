@@ -148,7 +148,7 @@ export function useLiveLocation(active: boolean) {
     clearTgPoll();
     tgPollRef.current = setInterval(() => {
       void readTelegram({ soft: true });
-    }, 8000);
+    }, 4000);
   }, [clearTgPoll, readTelegram]);
 
   const startGrantWaitPoll = useCallback(() => {
