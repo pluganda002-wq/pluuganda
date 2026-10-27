@@ -14,6 +14,7 @@ import { LeadershipPage } from "@/pages/LeadershipPage";
 import { MembershipPage } from "@/pages/MembershipPage";
 import { MobilityPage } from "@/pages/MobilityPage";
 import { TugendePage } from "@/pages/TugendePage";
+import { UgoPage } from "@/pages/UgoPage";
 import { PluTvPage } from "@/pages/PluTvPage";
 import { ProgrammeDetailPage } from "@/pages/ProgrammeDetailPage";
 import { ProgrammesPage } from "@/pages/ProgrammesPage";
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/leadership" element={<LeadershipPage />} />
             <Route path="/education" element={<EducationPage />} />
             <Route path="/mobility" element={<MobilityPage />} />
+            <Route path="/ugo" element={<UgoPage />} />
             <Route path="/tugende" element={<TugendePage />} />
             <Route path="/tourism" element={<TourismPage />} />
             <Route path="/buy-uganda" element={<BuyUgandaPage />} />

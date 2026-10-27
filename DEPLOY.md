@@ -79,7 +79,9 @@ npm run dev:api
 npm run dev
 ```
 
-If you only run `npm run dev`, Tugende uses **browser local storage** when the API is down (Vite will log proxy errors — that is expected).
+If you only run `npm run dev`, Tugende uses **browser local storage** and does not call `/api` (no proxy errors).
+
+To test against local `vercel dev`, add to `.env.local`: `VITE_TUGENDE_USE_API=true` and run `npm run dev:full`.
 
 Optional: point the UI at production APIs without local `vercel dev`:
 

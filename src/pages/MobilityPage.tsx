@@ -1,48 +1,44 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { MOBILITY_SERVICES } from "@/data/plu";
+import "./MobilityPage.css";
+
+const UGO = MOBILITY_SERVICES.find((s) => s.id === "ugo");
+const TUGENDE = MOBILITY_SERVICES.find((s) => s.id === "tugende");
+const HUBS = MOBILITY_SERVICES.find((s) => s.id === "hubs");
 
 export function MobilityPage() {
   return (
     <main className="page">
       <PageHeader
-        title="Mobility & transport hubs"
-        subtitle="UGo Ride, Tugende and trucking coordination for PLU mobilisation."
+        title="Mobility"
+        subtitle="Each app opens on its own — choose UGo Ride or Tugende."
       />
-      {MOBILITY_SERVICES.map((s) => (
-        <div key={s.id} id={s.id} className="card">
-          {"logo" in s && s.logo ? (
-            <img
-              src={s.logo}
-              alt=""
-              width={120}
-              height={120}
-              style={{
-                display: "block",
-                width: "100%",
-                maxWidth: 140,
-                height: "auto",
-                marginBottom: 12,
-                borderRadius: 12,
-              }}
-            />
+      <div className="mobility-launcher" aria-label="Mobility apps">
+        <Link to="/ugo" className="mobility-launcher__tile">
+          {"logo" in (UGO ?? {}) && UGO?.logo ? (
+            <img src={UGO.logo} alt="" width={88} height={88} loading="lazy" />
           ) : null}
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
-            <strong>{s.name}</strong>
-            <span className="badge badge-blue">{s.status}</span>
-          </div>
-          <p style={{ margin: "10px 0", color: "var(--plu-muted)", fontSize: "0.88rem" }}>{s.desc}</p>
-          {s.id === "tugende" ? (
-            <Link to="/tugende" className="btn btn-primary">
-              Open Tugende · request ride
-            </Link>
-          ) : (
-            <button type="button" className="btn btn-primary" disabled>
-              {s.id === "ugo" ? "UGo — partner onboarding" : "Contact PLU logistics"}
-            </button>
-          )}
+          <span className="mobility-launcher__name">UGo Ride</span>
+          <span className="mobility-launcher__tag">{UGO?.status ?? "App"}</span>
+        </Link>
+        <Link to="/tugende" className="mobility-launcher__tile">
+          {"logo" in (TUGENDE ?? {}) && TUGENDE?.logo ? (
+            <img src={TUGENDE.logo} alt="" width={88} height={88} loading="lazy" />
+          ) : null}
+          <span className="mobility-launcher__name">Tugende</span>
+          <span className="mobility-launcher__tag">{TUGENDE?.status ?? "App"}</span>
+        </Link>
+      </div>
+      {HUBS ? (
+        <div className="card">
+          <strong>{HUBS.name}</strong>
+          <span className="badge badge-blue" style={{ marginLeft: 8 }}>
+            {HUBS.status}
+          </span>
+          <p style={{ margin: "10px 0 0", color: "var(--plu-muted)", fontSize: "0.88rem" }}>{HUBS.desc}</p>
         </div>
-      ))}
+      ) : null}
     </main>
   );
 }

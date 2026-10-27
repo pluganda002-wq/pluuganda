@@ -52,25 +52,27 @@ export function HomePage() {
             Mobility
           </h2>
           <div className="home-mobility__duo">
-            <Link to="/mobility#ugo" className="home-mobility__tile">
+            <Link to="/ugo" className="home-mobility__tile" aria-label="Open UGo Ride app">
               <img
                 src={UGO_RIDE_LOGO}
-                alt="UGo Ride"
+                alt=""
                 className="home-mobility__logo"
                 width={88}
                 height={88}
                 loading="lazy"
               />
+              <span className="home-mobility__name">UGo Ride</span>
             </Link>
-            <Link to="/tugende" className="home-mobility__tile">
+            <Link to="/tugende" className="home-mobility__tile" aria-label="Open Tugende app">
               <img
                 src={TUGENDE_LOGO}
-                alt="Tugende"
+                alt=""
                 className="home-mobility__logo"
                 width={88}
                 height={88}
                 loading="lazy"
               />
+              <span className="home-mobility__name">Tugende</span>
             </Link>
           </div>
         </section>

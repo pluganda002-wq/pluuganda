@@ -5,6 +5,13 @@ import type { TugendeLoginPayload, TugendeRide, TugendeUser } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
 
+/** Dev without VITE_API_BASE: use localStorage only — avoids Vite proxy ECONNREFUSED noise. */
+function useLocalTugendeOnly(): boolean {
+  if (API_BASE) return false;
+  if (import.meta.env.VITE_TUGENDE_USE_API === "true") return false;
+  return import.meta.env.DEV;
+}
+
 async function tugendeRequest(url: string, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(url, init);
@@ -48,6 +55,9 @@ async function get<T>(params: Record<string, string>): Promise<T> {
 
 export async function tugendeLogin(payload: TugendeLoginPayload): Promise<TugendeUser> {
   const id = String(payload.telegramId);
+  if (useLocalTugendeOnly()) {
+    return tugendeLocal.login(id, payload.fullName, payload.phone, payload.role, payload.loginMethod, payload.loginId);
+  }
   try {
     const res = await post<{ user: TugendeUser }>({
       action: "login",
@@ -68,6 +78,7 @@ export async function tugendeLogin(payload: TugendeLoginPayload): Promise<Tugend
 }
 
 export async function tugendeVerifyPluNumber(memberId: string): Promise<{ fullName: string; memberId: string } | null> {
+  if (useLocalTugendeOnly()) return null;
   try {
     const res = await get<{ member: { fullName: string; memberId: string } | null }>({
       action: "verifyPlu",
@@ -83,6 +94,7 @@ export async function tugendeVerifyPluNumber(memberId: string): Promise<{ fullNa
 
 export async function tugendeFetchProfile(telegramId: number): Promise<TugendeUser | null> {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) return tugendeLocal.getProfile(id);
   try {
     const res = await get<{ user: TugendeUser | null }>({ action: "profile", telegramId: id });
     return res.user;
@@ -94,6 +106,10 @@ export async function tugendeFetchProfile(telegramId: number): Promise<TugendeUs
 
 export async function tugendeUpdateLocation(telegramId: number, lat: number, lng: number) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    tugendeLocal.updateLocation(id, lat, lng);
+    return;
+  }
   try {
     await post({ action: "updateLocation", telegramId: id, lat, lng });
   } catch (e) {
@@ -104,6 +120,7 @@ export async function tugendeUpdateLocation(telegramId: number, lat: number, lng
 
 export async function tugendeFetchActiveRide(telegramId: number): Promise<TugendeRide | null> {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) return tugendeLocal.activeRide(id);
   try {
     const res = await get<{ ride: TugendeRide | null }>({ action: "activeRide", telegramId: id });
     return res.ride;
@@ -119,6 +136,7 @@ export async function tugendeRequestRide(
   dropoff: LatLng
 ): Promise<TugendeRide> {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) return tugendeLocal.requestRide(id, pickup, dropoff);
   try {
     const res = await post<{ ride: TugendeRide }>({
       action: "requestRide",
@@ -135,6 +153,11 @@ export async function tugendeRequestRide(
 
 export async function tugendeStartRide(telegramId: number, rideId: string) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    const ride = tugendeLocal.startRide(rideId);
+    if (!ride) throw new Error("Cannot start ride");
+    return ride;
+  }
   try {
     const res = await post<{ ride: TugendeRide }>({ action: "startRide", telegramId: id, rideId });
     return res.ride;
@@ -150,6 +173,11 @@ export async function tugendeStartRide(telegramId: number, rideId: string) {
 
 export async function tugendeCompleteRide(telegramId: number, rideId: string, path?: { lat: number; lng: number }[]) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    const res = tugendeLocal.completeRide(rideId);
+    if (!res) throw new Error("Cannot complete ride");
+    return res;
+  }
   try {
     return await post<{ ride: TugendeRide; walletBalanceUgx: number }>({
       action: "completeRide",
@@ -169,6 +197,10 @@ export async function tugendeCompleteRide(telegramId: number, rideId: string, pa
 
 export async function tugendeCancelRide(telegramId: number, rideId: string) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    tugendeLocal.cancelRide(rideId);
+    return;
+  }
   try {
     await post({ action: "cancelRide", telegramId: id, rideId });
   } catch (e) {
@@ -183,6 +215,7 @@ export type TugendeTopUpResult = {
 };
 
 export async function tugendeFetchWalletConfig(): Promise<{ momoEnabled: boolean }> {
+  if (useLocalTugendeOnly()) return { momoEnabled: false };
   try {
     return await get<{ momoEnabled: boolean }>({ action: "walletConfig", telegramId: "0" });
   } catch (e) {
@@ -193,6 +226,9 @@ export async function tugendeFetchWalletConfig(): Promise<{ momoEnabled: boolean
 
 export async function tugendeTopUp(telegramId: number, amountUgx: number, phone?: string): Promise<TugendeTopUpResult> {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    return { walletBalanceUgx: tugendeLocal.topUp(id, amountUgx), payment: { mode: "demo", status: "completed" } };
+  }
   try {
     const res = await post<TugendeTopUpResult>({ action: "topUp", telegramId: id, amountUgx, phone });
     return res;
@@ -206,6 +242,7 @@ export async function tugendeTopUp(telegramId: number, amountUgx: number, phone?
 
 export async function tugendeWithdraw(telegramId: number, amountUgx: number, phone: string) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) return tugendeLocal.withdraw(id, amountUgx);
   try {
     const res = await post<{ walletBalanceUgx: number }>({
       action: "withdraw",
@@ -221,6 +258,7 @@ export async function tugendeWithdraw(telegramId: number, amountUgx: number, pho
 }
 
 export async function tugendePendingRides(): Promise<TugendeRide[]> {
+  if (useLocalTugendeOnly()) return tugendeLocal.pendingRides();
   try {
     const res = await get<{ rides: TugendeRide[] }>({ action: "pendingRides", telegramId: "0" });
     return res.rides;
@@ -232,6 +270,11 @@ export async function tugendePendingRides(): Promise<TugendeRide[]> {
 
 export async function tugendeAcceptRide(telegramId: number, rideId: string) {
   const id = String(telegramId);
+  if (useLocalTugendeOnly()) {
+    const ride = tugendeLocal.acceptRide(id, rideId);
+    if (!ride) throw new Error("Ride unavailable");
+    return ride;
+  }
   try {
     const res = await post<{ ride: TugendeRide }>({ action: "acceptRide", telegramId: id, rideId });
     return res.ride;

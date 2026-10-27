@@ -250,7 +250,7 @@ export function TugendePage() {
   if (!profile) {
     return (
       <>
-        <SubPageBar title="Tugende" backTo="/mobility" />
+        <SubPageBar title="Tugende" backTo="/" />
         {!canSignIn || !telegramId ? (
           <main className="page tugende-page">
             <p className="tugende-signin__error card">
@@ -296,7 +296,7 @@ export function TugendePage() {
 
   return (
     <main className="page tugende-page">
-      <SubPageBar title="Tugende" backTo="/mobility" />
+      <SubPageBar title="Tugende" backTo="/" />
       <header className="tugende-header card card--flat">
         <img src={LOGO} alt="" className="tugende-header__logo" width={56} height={56} />
         <div>
@@ -521,8 +521,8 @@ export function TugendePage() {
         <p className="institutional-page__lead">Switch to Rider at sign-in to accept trips.</p>
       ) : null}
 
-      <Link to="/mobility" className="tugende-back-link">
-        Back to mobility hub
+      <Link to="/" className="tugende-back-link">
+        Back to Home
       </Link>
     </main>
   );
