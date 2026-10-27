@@ -1,4 +1,4 @@
-import { MapPin, Navigation, Search, X } from "lucide-react";
+import { Crosshair, MapPin, Navigation, Search, X } from "lucide-react";
 import type { PlaceResult } from "@/lib/tugende/geo";
 import "./TugendeRouteSheet.css";
 
@@ -14,6 +14,9 @@ type Props = {
   onClearDropoff: () => void;
   onUseMapPick?: () => void;
   onRefreshPickup?: () => void;
+  dropoffFocused?: boolean;
+  onDropoffFocus?: () => void;
+  onDropoffBlur?: () => void;
 };
 
 function formatDistance(km?: number) {
@@ -34,8 +37,12 @@ export function TugendeRouteSheet({
   onClearDropoff,
   onUseMapPick,
   onRefreshPickup,
+  dropoffFocused,
+  onDropoffFocus,
+  onDropoffBlur,
 }: Props) {
-  const showSuggestions = dropoffQuery.trim().length >= 2 && !dropoffLabel;
+  const showSuggestions =
+    !dropoffLabel && (dropoffFocused || dropoffQuery.trim().length >= 2);
 
   return (
     <div className="tugende-route">
@@ -69,6 +76,8 @@ export function TugendeRouteSheet({
               className="tugende-route__input tugende-route__input--drop"
               placeholder="Dropoff location"
               value={dropoffLabel ?? dropoffQuery}
+              onFocus={onDropoffFocus}
+              onBlur={() => setTimeout(() => onDropoffBlur?.(), 150)}
               onChange={(e) => {
                 if (dropoffLabel) onClearDropoff();
                 onDropoffQueryChange(e.target.value);
@@ -101,6 +110,22 @@ export function TugendeRouteSheet({
 
       {showSuggestions ? (
         <ul className="tugende-route__suggestions" aria-label="Place suggestions">
+          {dropoffFocused && !dropoffQuery.trim() && onUseMapPick ? (
+            <li>
+              <button
+                type="button"
+                className="tugende-route__suggestion tugende-route__suggestion--current"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={onUseMapPick}
+              >
+                <Crosshair size={18} className="tugende-route__pin" aria-hidden />
+                <span className="tugende-route__suggestion-text">
+                  <strong>Choose on map</strong>
+                  <span>Tap where you want to go</span>
+                </span>
+              </button>
+            </li>
+          ) : null}
           {searching ? <li className="tugende-route__suggestion tugende-route__suggestion--wait">Searching…</li> : null}
           {!searching && suggestions.length === 0 ? (
             <li className="tugende-route__suggestion tugende-route__suggestion--wait">No places found — try map or another name.</li>

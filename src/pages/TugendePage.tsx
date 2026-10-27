@@ -7,6 +7,7 @@ import {
   pathDistanceKm,
   reverseGeocodeLabel,
   searchPlaces,
+  suggestDropoffNear,
   type PlaceResult,
 } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
@@ -79,6 +80,8 @@ export function TugendePage() {
   const [placeSearching, setPlaceSearching] = useState(false);
   const autoLocPromptedRef = useRef(false);
   const searchGenRef = useRef(0);
+  const [dropoffFocused, setDropoffFocused] = useState(false);
+  const lastPickupGeocodeRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("10000");
@@ -180,11 +183,17 @@ export function TugendePage() {
 
   useEffect(() => {
     if (!pos || profile?.role !== "rider") return;
+    const last = lastPickupGeocodeRef.current;
+    if (last && haversineKm(last.lat, last.lng, pos.lat, pos.lng) < 0.05) return;
+
     let cancelled = false;
     setPickupLoading(true);
     reverseGeocodeLabel(pos.lat, pos.lng)
       .then((label) => {
-        if (!cancelled) setPickupLabel(label);
+        if (!cancelled) {
+          setPickupLabel(label);
+          lastPickupGeocodeRef.current = { lat: pos.lat, lng: pos.lng };
+        }
       })
       .finally(() => {
         if (!cancelled) setPickupLoading(false);
@@ -195,23 +204,38 @@ export function TugendePage() {
   }, [pos?.lat, pos?.lng, profile?.role]);
 
   useEffect(() => {
-    if (dropoff || dropoffQuery.trim().length < 2) {
+    if (dropoff) {
       setPlaceSuggestions([]);
       return;
     }
+    if (!dropoffFocused && dropoffQuery.trim().length < 2) {
+      setPlaceSuggestions([]);
+      return;
+    }
+    if (!pos) return;
+
     const gen = ++searchGenRef.current;
     const t = setTimeout(() => {
       setPlaceSearching(true);
-      searchPlaces(dropoffQuery, pos ?? undefined)
+      const task =
+        dropoffQuery.trim().length >= 2
+          ? searchPlaces(dropoffQuery, pos)
+          : suggestDropoffNear(pos);
+      task
         .then((rows) => {
           if (searchGenRef.current === gen) setPlaceSuggestions(rows);
         })
         .finally(() => {
           if (searchGenRef.current === gen) setPlaceSearching(false);
         });
-    }, 400);
+    }, dropoffQuery.trim().length >= 2 ? 400 : 0);
     return () => clearTimeout(t);
-  }, [dropoffQuery, dropoff, pos?.lat, pos?.lng]);
+  }, [dropoffQuery, dropoff, dropoffFocused, pos?.lat, pos?.lng]);
+
+  function onDropoffFocus() {
+    setDropoffFocused(true);
+    haptic("light");
+  }
 
   function selectPlace(place: PlaceResult) {
     haptic("light");
@@ -448,7 +472,8 @@ export function TugendePage() {
               path={ride?.status === "in_progress" ? livePath : undefined}
               size={mapSize}
               pickMode={mapPickMode && Boolean(pos) && !geocodingDest}
-              followYou={ride?.status === "in_progress" || Boolean(pos)}
+              followYou={ride?.status === "in_progress" ? true : Boolean(pos)}
+              stableCamera={ride?.status !== "in_progress"}
               onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
               onRecenter={pos ? () => haptic("light") : undefined}
             />
@@ -474,8 +499,14 @@ export function TugendePage() {
                       onSelectPlace={selectPlace}
                       onClearDropoff={clearDropoff}
                       onUseMapPick={() => setMapPickMode(true)}
+                      dropoffFocused={dropoffFocused}
+                      onDropoffFocus={onDropoffFocus}
+                      onDropoffBlur={() => setDropoffFocused(false)}
                       onRefreshPickup={() => {
-                        if (pos) void reverseGeocodeLabel(pos.lat, pos.lng).then(setPickupLabel);
+                        if (pos) {
+                          lastPickupGeocodeRef.current = null;
+                          void reverseGeocodeLabel(pos.lat, pos.lng).then(setPickupLabel);
+                        }
                       }}
                     />
                     {plannedKm != null && plannedFare != null && dropoff ? (

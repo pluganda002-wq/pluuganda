@@ -7,7 +7,10 @@ import "./TugendeMap.css";
 type Point = { lat: number; lng: number };
 
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
-const FOLLOW_ZOOM = 15;
+/** Wider neighborhood view — Bolt-like clarity without feeling cramped. */
+const DEFAULT_ZOOM = 13;
+const TRIP_FOLLOW_ZOOM = 15;
+const MIN_MOVE_KM_FOR_PAN = 0.08;
 
 /** CARTO Voyager needs a Basemaps key. Use VITE_CARTO_RASTER_URL (from email) or VITE_CARTO_API_KEY. */
 function resolveMapTiles(): { url: string; attribution: string; maxZoom: number } {
@@ -32,6 +35,16 @@ function resolveMapTiles(): { url: string; attribution: string; maxZoom: number 
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
   };
+}
+
+function haversineKm(a: Point, b: Point): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLon = ((b.lng - a.lng) * Math.PI) / 180;
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 
 function makeYouIcon() {
@@ -59,6 +72,8 @@ type Props = {
   size?: "default" | "large" | "fullscreen" | "hero";
   pickMode?: boolean;
   followYou?: boolean;
+  /** When true, map stays put while GPS updates (marker moves, no bounce). */
+  stableCamera?: boolean;
   onPickDestination?: (point: Point) => void;
   onRecenter?: () => void;
   className?: string;
@@ -71,6 +86,7 @@ export function TugendeMap({
   size = "default",
   pickMode = false,
   followYou = false,
+  stableCamera = true,
   onPickDestination,
   onRecenter,
   className,
@@ -82,13 +98,15 @@ export function TugendeMap({
   const routeRef = useRef<L.Polyline | null>(null);
   const pathRef = useRef<L.Polyline | null>(null);
   const lastBoundsKeyRef = useRef("");
+  const didInitialCenterRef = useRef(false);
+  const lastPanPointRef = useRef<Point | null>(null);
 
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
     const map = L.map(hostRef.current, {
       zoomControl: false,
       attributionControl: true,
-    }).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], 13);
+    }).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], DEFAULT_ZOOM);
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
@@ -102,6 +120,8 @@ export function TugendeMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      didInitialCenterRef.current = false;
+      lastPanPointRef.current = null;
     };
   }, []);
 
@@ -124,6 +144,29 @@ export function TugendeMap({
     };
   }, [onPickDestination]);
 
+  function panToYou(point: Point, zoom: number, animate: boolean) {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setView([point.lat, point.lng], zoom, { animate });
+    lastPanPointRef.current = point;
+  }
+
+  function maybeFollowYou(point: Point) {
+    if (!followYou) return;
+    const zoom = stableCamera ? DEFAULT_ZOOM : TRIP_FOLLOW_ZOOM;
+    if (stableCamera) {
+      if (!didInitialCenterRef.current) {
+        panToYou(point, zoom, false);
+        didInitialCenterRef.current = true;
+      }
+      return;
+    }
+    const last = lastPanPointRef.current;
+    if (!last || haversineKm(last, point) >= MIN_MOVE_KM_FOR_PAN) {
+      panToYou(point, zoom, true);
+    }
+  }
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -134,9 +177,7 @@ export function TugendeMap({
       } else {
         youMarkerRef.current.setLatLng([you.lat, you.lng]);
       }
-      if (followYou || pickMode) {
-        map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
-      }
+      maybeFollowYou(you);
     }
 
     if (destination) {
@@ -164,7 +205,7 @@ export function TugendeMap({
       const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}`;
       if (lastBoundsKeyRef.current !== key) {
         lastBoundsKeyRef.current = key;
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [72, 72], maxZoom: 15 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [72, 72], maxZoom: 14 });
       }
     } else if (routeRef.current) {
       routeRef.current.remove();
@@ -178,25 +219,26 @@ export function TugendeMap({
       } else {
         pathRef.current.setLatLngs(latlngs);
       }
-      if (followYou && you) {
-        map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
+      if (followYou && you && !stableCamera) {
+        maybeFollowYou(you);
       } else if (!followYou && latlngs.length >= 2) {
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 15 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 14 });
       }
     } else if (pathRef.current) {
       pathRef.current.remove();
       pathRef.current = null;
     }
 
-    if (you && !destination && !path?.length) {
-      map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
+    if (you && !destination && !path?.length && pickMode && !didInitialCenterRef.current) {
+      panToYou(you, DEFAULT_ZOOM, false);
+      didInitialCenterRef.current = true;
     }
-  }, [you, destination, path, pickMode, followYou]);
+  }, [you, destination, path, pickMode, followYou, stableCamera]);
 
   function recenter() {
-    const map = mapRef.current;
-    if (!map || !you) return;
-    map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
+    if (!you) return;
+    panToYou(you, DEFAULT_ZOOM, true);
+    didInitialCenterRef.current = true;
     onRecenter?.();
   }
 

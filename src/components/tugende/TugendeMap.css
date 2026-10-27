@@ -74,18 +74,22 @@
   margin: -14px 0 0 -14px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--plu-gold) 35%, transparent);
-  animation: tugende-map-pulse 2s ease-out infinite;
+  animation: tugende-map-pulse 3.5s ease-out infinite;
 }
 
 @keyframes tugende-map-pulse {
   0% {
-    transform: scale(0.55);
-    opacity: 0.85;
+    transform: scale(0.7);
+    opacity: 0.35;
   }
   100% {
-    transform: scale(1.35);
+    transform: scale(1.15);
     opacity: 0;
   }
+}
+
+.tugende-map-you__pulse {
+  animation-duration: 3.5s;
 }
 
 .tugende-map--large {

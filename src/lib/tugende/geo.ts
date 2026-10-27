@@ -133,3 +133,52 @@ export async function searchPlaces(
     return [];
   }
 }
+
+const NEARBY_SEARCH_TERMS = ["road", "market", "hospital", "hotel", "school", "station", "mall"];
+
+/** Bolt-style list when user taps dropoff before typing. */
+export async function suggestDropoffNear(near: { lat: number; lng: number }): Promise<PlaceResult[]> {
+  const seen = new Set<string>();
+  const merged: PlaceResult[] = [];
+
+  const add = (rows: PlaceResult[]) => {
+    for (const row of rows) {
+      const key = `${row.lat.toFixed(5)}:${row.lng.toFixed(5)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(row);
+    }
+  };
+
+  try {
+    const revQ = new URLSearchParams({
+      lat: String(near.lat),
+      lon: String(near.lng),
+      format: "json",
+      addressdetails: "1",
+    });
+    const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?${revQ}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (revRes.ok) {
+      const rev = (await revRes.json()) as { address?: NominatimAddress };
+      const city =
+        rev.address?.city ||
+        rev.address?.town ||
+        rev.address?.village ||
+        rev.address?.suburb ||
+        "";
+      if (city) add(await searchPlaces(city, near));
+    }
+  } catch {
+    /* continue with term search */
+  }
+
+  for (const term of NEARBY_SEARCH_TERMS) {
+    add(await searchPlaces(term, near));
+    if (merged.length >= 10) break;
+  }
+
+  merged.sort((a, b) => (a.distanceKm ?? 99) - (b.distanceKm ?? 99));
+  return merged.slice(0, 10);
+}
