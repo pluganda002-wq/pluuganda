@@ -9,7 +9,30 @@ type Point = { lat: number; lng: number };
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
 const FOLLOW_ZOOM = 15;
 
-const MAP_TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+/** CARTO Voyager needs a Basemaps key. Use VITE_CARTO_RASTER_URL (from email) or VITE_CARTO_API_KEY. */
+function resolveMapTiles(): { url: string; attribution: string; maxZoom: number } {
+  const cartoAttribution =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
+
+  const rasterFromEmail = (import.meta.env.VITE_CARTO_RASTER_URL ?? "").trim();
+  if (rasterFromEmail && rasterFromEmail.includes("{z}") && rasterFromEmail.includes("{x}")) {
+    return { url: rasterFromEmail, attribution: cartoAttribution, maxZoom: 20 };
+  }
+
+  const cartoKey = (import.meta.env.VITE_CARTO_API_KEY ?? "").trim();
+  if (cartoKey) {
+    return {
+      url: `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${encodeURIComponent(cartoKey)}`,
+      attribution: cartoAttribution,
+      maxZoom: 20,
+    };
+  }
+  return {
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  };
+}
 
 function makeYouIcon() {
   return L.divIcon({
@@ -69,9 +92,10 @@ export function TugendeMap({
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    L.tileLayer(MAP_TILES, {
-      maxZoom: 20,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CARTO',
+    const tiles = resolveMapTiles();
+    L.tileLayer(tiles.url, {
+      maxZoom: tiles.maxZoom,
+      attribution: tiles.attribution,
     }).addTo(map);
 
     mapRef.current = map;
