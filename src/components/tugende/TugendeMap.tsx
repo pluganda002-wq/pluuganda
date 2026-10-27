@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Crosshair } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./TugendeMap.css";
@@ -6,13 +7,25 @@ import "./TugendeMap.css";
 type Point = { lat: number; lng: number };
 
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
+const FOLLOW_ZOOM = 15;
 
-function makeIcon(color: string) {
+const MAP_TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+
+function makeYouIcon() {
+  return L.divIcon({
+    className: "tugende-map-you",
+    html: '<span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+}
+
+function makeDestIcon() {
   return L.divIcon({
     className: "tugende-map-marker",
-    html: `<span style="background:${color}"></span>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    html: '<span style="background:#111"></span>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
   });
 }
 
@@ -20,10 +33,11 @@ type Props = {
   you: Point | null;
   destination?: Point | null;
   path?: Point[];
-  size?: "default" | "large" | "fullscreen";
+  size?: "default" | "large" | "fullscreen" | "hero";
   pickMode?: boolean;
   followYou?: boolean;
   onPickDestination?: (point: Point) => void;
+  onRecenter?: () => void;
   className?: string;
 };
 
@@ -35,6 +49,7 @@ export function TugendeMap({
   pickMode = false,
   followYou = false,
   onPickDestination,
+  onRecenter,
   className,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -48,13 +63,15 @@ export function TugendeMap({
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
     const map = L.map(hostRef.current, {
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: true,
-    }).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], 14);
+    }).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], 13);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap",
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    L.tileLayer(MAP_TILES, {
+      maxZoom: 20,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CARTO',
     }).addTo(map);
 
     mapRef.current = map;
@@ -89,21 +106,19 @@ export function TugendeMap({
 
     if (you) {
       if (!youMarkerRef.current) {
-        youMarkerRef.current = L.marker([you.lat, you.lng], { icon: makeIcon("#c9a227") }).addTo(map);
-        youMarkerRef.current.bindTooltip("Pickup · You", { permanent: true, direction: "top", offset: [0, -10] });
+        youMarkerRef.current = L.marker([you.lat, you.lng], { icon: makeYouIcon(), zIndexOffset: 1000 }).addTo(map);
       } else {
         youMarkerRef.current.setLatLng([you.lat, you.lng]);
       }
       if (followYou || pickMode) {
-        const zoom = pickMode ? 15 : 16;
-        map.setView([you.lat, you.lng], Math.max(map.getZoom(), zoom), { animate: true });
+        map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
       }
     }
 
     if (destination) {
       if (!destMarkerRef.current) {
-        destMarkerRef.current = L.marker([destination.lat, destination.lng], { icon: makeIcon("#1a5fb4") }).addTo(map);
-        destMarkerRef.current.bindTooltip("Destination", { permanent: true, direction: "top", offset: [0, -10] });
+        destMarkerRef.current = L.marker([destination.lat, destination.lng], { icon: makeDestIcon() }).addTo(map);
+        destMarkerRef.current.bindTooltip("Dropoff", { direction: "top", offset: [0, -8] });
       } else {
         destMarkerRef.current.setLatLng([destination.lat, destination.lng]);
       }
@@ -118,14 +133,14 @@ export function TugendeMap({
         [destination.lat, destination.lng],
       ];
       if (!routeRef.current) {
-        routeRef.current = L.polyline(latlngs, { color: "#1a5fb4", weight: 4, dashArray: "8 10" }).addTo(map);
+        routeRef.current = L.polyline(latlngs, { color: "#8b6914", weight: 4, dashArray: "10 12", opacity: 0.9 }).addTo(map);
       } else {
         routeRef.current.setLatLngs(latlngs);
       }
       const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}`;
       if (lastBoundsKeyRef.current !== key) {
         lastBoundsKeyRef.current = key;
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 17 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [72, 72], maxZoom: 15 });
       }
     } else if (routeRef.current) {
       routeRef.current.remove();
@@ -135,14 +150,14 @@ export function TugendeMap({
     if (path && path.length >= 2) {
       const latlngs = path.map((p) => [p.lat, p.lng] as L.LatLngExpression);
       if (!pathRef.current) {
-        pathRef.current = L.polyline(latlngs, { color: "#c9a227", weight: 5 }).addTo(map);
+        pathRef.current = L.polyline(latlngs, { color: "#c9a227", weight: 5, opacity: 0.95 }).addTo(map);
       } else {
         pathRef.current.setLatLngs(latlngs);
       }
       if (followYou && you) {
-        map.setView([you.lat, you.lng], Math.max(map.getZoom(), 16), { animate: true });
+        map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
       } else if (!followYou && latlngs.length >= 2) {
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: 17 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 15 });
       }
     } else if (pathRef.current) {
       pathRef.current.remove();
@@ -150,19 +165,35 @@ export function TugendeMap({
     }
 
     if (you && !destination && !path?.length) {
-      map.setView([you.lat, you.lng], pickMode ? 15 : 16, { animate: true });
+      map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
     }
   }, [you, destination, path, pickMode, followYou]);
 
+  function recenter() {
+    const map = mapRef.current;
+    if (!map || !you) return;
+    map.setView([you.lat, you.lng], FOLLOW_ZOOM, { animate: true });
+    onRecenter?.();
+  }
+
   const sizeClass =
-    size === "fullscreen" ? " tugende-map--fullscreen" : size === "large" ? " tugende-map--large" : "";
+    size === "hero"
+      ? " tugende-map--hero"
+      : size === "fullscreen"
+        ? " tugende-map--fullscreen"
+        : size === "large"
+          ? " tugende-map--large"
+          : "";
   const pickClass = pickMode ? " tugende-map--pick" : "";
 
   return (
-    <div
-      ref={hostRef}
-      className={`tugende-map${sizeClass}${pickClass}${className ? ` ${className}` : ""}`}
-      aria-label="Ride map"
-    />
+    <div className={`tugende-map-shell${sizeClass}${pickClass}${className ? ` ${className}` : ""}`}>
+      <div ref={hostRef} className="tugende-map" aria-label="Ride map" />
+      {you && onRecenter !== undefined ? (
+        <button type="button" className="tugende-map__recenter" onClick={recenter} aria-label="Center on my location">
+          <Crosshair size={20} />
+        </button>
+      ) : null}
+    </div>
   );
 }

@@ -401,3 +401,45 @@
   margin-top: 1.5rem;
   font-size: 0.9rem;
 }
+
+.tugende-panel--bolt {
+  padding: 0;
+  margin-left: -0.65rem;
+  margin-right: -0.65rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.tugende-ride-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: min(72vh, 640px);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.tugende-sheet {
+  margin-top: -1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.tugende-fare-card--sheet {
+  margin: 0 1rem 0.65rem;
+}
+
+.tugende-request-btn {
+  width: calc(100% - 2rem);
+  margin: 0 1rem 1rem;
+  padding: 0.85rem !important;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.tugende-loc-banner--sheet {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 1.25rem 1.25rem 0 0;
+}

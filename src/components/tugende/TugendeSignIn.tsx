@@ -1,20 +1,17 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Mail, Phone, Hash, Chrome } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Hash, Chrome } from "lucide-react";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
 import { useLiveLocation } from "@/hooks/useLiveLocation";
-import { TUGENDE_RATE_UGX_PER_KM } from "@/lib/tugende/geo";
 import { tugendeLogin, tugendeVerifyPluNumber } from "@/lib/tugende/api";
 import type { TugendeLoginMethod, TugendeRole, TugendeUser } from "@/lib/tugende/types";
+import "./TugendeSignIn.css";
 
-const LOGO = "/branding/tugende-safe-boda.png";
+type Step = "phone" | "location" | "profile" | "alt-method" | "alt-account";
 
-type Step = "method" | "account" | "name" | "location";
-
-const METHODS: { id: TugendeLoginMethod; label: string; hint: string; Icon: typeof Phone }[] = [
-  { id: "phone", label: "Phone number", hint: "Mobile money / SMS", Icon: Phone },
-  { id: "google", label: "Google", hint: "Gmail account", Icon: Chrome },
-  { id: "email", label: "Email", hint: "Email address", Icon: Mail },
-  { id: "plu", label: "PLU number", hint: "e.g. PLU-482910", Icon: Hash },
+const ALT_METHODS: { id: TugendeLoginMethod; label: string; Icon: typeof Phone }[] = [
+  { id: "google", label: "Google (Gmail)", Icon: Chrome },
+  { id: "email", label: "Email", Icon: Mail },
+  { id: "plu", label: "PLU number", Icon: Hash },
 ];
 
 type Props = {
@@ -35,6 +32,13 @@ function normalizePlu(raw: string) {
   return t;
 }
 
+function normalizeUgPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("256")) return digits;
+  if (digits.startsWith("0")) return `256${digits.slice(1)}`;
+  return digits;
+}
+
 export function TugendeSignIn({
   telegramId,
   defaultName,
@@ -44,8 +48,14 @@ export function TugendeSignIn({
   onError,
   haptic,
 }: Props) {
-  const [step, setStep] = useState<Step>("method");
-  const [method, setMethod] = useState<TugendeLoginMethod | null>(null);
+  const [step, setStep] = useState<Step>("phone");
+  const [method, setMethod] = useState<TugendeLoginMethod>("phone");
+  const [phoneLocal, setPhoneLocal] = useState(() => {
+    const p = suggestedPhone?.replace(/\D/g, "") ?? "";
+    if (p.startsWith("256")) return p.slice(3);
+    if (p.startsWith("0")) return p.slice(1);
+    return p;
+  });
   const [accountValue, setAccountValue] = useState("");
   const [fullName, setFullName] = useState(defaultName);
   const [role, setRole] = useState<TugendeRole>("rider");
@@ -67,33 +77,39 @@ export function TugendeSignIn({
     setInlineError(null);
   }
 
-  function pickMethod(id: TugendeLoginMethod) {
+  function onPhoneContinue(e: FormEvent) {
+    e.preventDefault();
     clearError();
-    setMethod(id);
-    if (id === "plu" && suggestedPlu) setAccountValue(suggestedPlu);
-    else if (id === "phone" && suggestedPhone) setAccountValue(suggestedPhone);
-    else setAccountValue("");
-    setPluVerifiedName(null);
-    setStep("account");
+    const normalized = normalizeUgPhone(phoneLocal);
+    if (normalized.length < 11) {
+      setInlineError("Enter a valid Uganda mobile number.");
+      return;
+    }
+    setMethod("phone");
+    setStep("location");
     haptic("light");
   }
 
-  async function onAccountContinue(e: FormEvent) {
+  function pickAltMethod(id: TugendeLoginMethod) {
+    clearError();
+    setMethod(id);
+    if (id === "plu" && suggestedPlu) setAccountValue(suggestedPlu);
+    else setAccountValue("");
+    setPluVerifiedName(null);
+    setStep("alt-account");
+    haptic("light");
+  }
+
+  async function onAltAccountContinue(e: FormEvent) {
     e.preventDefault();
     clearError();
     const v = accountValue.trim();
-    if (!method) return;
-
-    if (method === "phone" && v.replace(/\D/g, "").length < 9) {
-      setInlineError("Enter a valid Uganda phone number (07… or 256…).");
-      return;
-    }
     if (method === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
       setInlineError("Enter a valid email address.");
       return;
     }
     if (method === "google" && !/^[^\s@]+@(gmail|googlemail)\.com$/i.test(v)) {
-      setInlineError("Enter your Gmail address (name@gmail.com).");
+      setInlineError("Enter your Gmail address.");
       return;
     }
     if (method === "plu") {
@@ -111,43 +127,46 @@ export function TugendeSignIn({
           setFullName(hit.fullName);
         }
       } catch {
-        /* optional lookup */
+        /* optional */
       } finally {
         setLoading(false);
       }
     }
-
-    setStep("name");
+    setStep("location");
     haptic("light");
   }
 
-  function onNameContinue(e: FormEvent) {
+  function onProfileContinue(e: FormEvent) {
     e.preventDefault();
     clearError();
     if (!fullName.trim()) {
       setInlineError("Enter your full name.");
       return;
     }
-    setStep("location");
-    haptic("light");
+    void finishSignIn();
   }
 
   async function finishSignIn() {
     clearError();
-    if (!method || !telegramId) {
+    if (!telegramId) {
       onError("Open PluPatriot from Telegram to sign in securely.");
       return;
     }
     if (locStatus !== "active" || !pos) {
-      setInlineError("Allow location access first — Tugende needs GPS for fares and safety.");
+      setInlineError("Allow precise location first — it sets your pickup automatically.");
+      setStep("location");
       return;
     }
 
     const loginId =
-      method === "plu" ? normalizePlu(accountValue) : method === "phone" ? accountValue.replace(/\s/g, "") : accountValue.trim();
+      method === "phone"
+        ? normalizeUgPhone(phoneLocal)
+        : method === "plu"
+          ? normalizePlu(accountValue)
+          : accountValue.trim();
 
     const phoneForWallet =
-      method === "phone" ? loginId : walletPhone.trim() || suggestedPhone || "";
+      method === "phone" ? loginId.replace(/^256/, "0") : walletPhone.trim() || suggestedPhone || "";
 
     setLoading(true);
     try {
@@ -170,17 +189,29 @@ export function TugendeSignIn({
     }
   }
 
-  const stepIndex = step === "method" ? 1 : step === "account" ? 2 : step === "name" ? 3 : 4;
+  function goBack() {
+    clearError();
+    if (step === "location") setStep(method === "phone" ? "phone" : "alt-account");
+    else if (step === "profile") setStep("location");
+    else if (step === "alt-account") setStep("alt-method");
+    else if (step === "alt-method") setStep("phone");
+  }
+
+  const mainStepIndex =
+    step === "phone" || step === "alt-method" || step === "alt-account"
+      ? 1
+      : step === "location"
+        ? 2
+        : 3;
 
   return (
-    <main className="page tugende-page tugende-signin">
-      <img src={LOGO} alt="" className="tugende-page__logo" width={120} height={120} />
-      <p className="tugende-page__rate">UGX {TUGENDE_RATE_UGX_PER_KM.toLocaleString()} per km · live GPS meter</p>
-
-      <ol className="tugende-signin__steps" aria-label="Sign-in progress">
-        {["Login", "Account", "Name", "Location"].map((label, i) => (
-          <li key={label} className={`tugende-signin__step${stepIndex === i + 1 ? " tugende-signin__step--on" : ""}${stepIndex > i + 1 ? " tugende-signin__step--done" : ""}`}>
-            <span>{i + 1}</span>
+    <main className="tugende-onboard">
+      <ol className="tugende-onboard__steps" aria-label="Sign-in progress">
+        {["Phone", "Location", "Profile"].map((label, i) => (
+          <li
+            key={label}
+            className={`tugende-onboard__step${mainStepIndex === i + 1 ? " tugende-onboard__step--on" : ""}${mainStepIndex > i + 1 ? " tugende-onboard__step--done" : ""}`}
+          >
             {label}
           </li>
         ))}
@@ -192,134 +223,83 @@ export function TugendeSignIn({
         </p>
       ) : null}
 
-      {step === "method" ? (
-        <div className="card tugende-signin__panel">
-          <h2 className="tugende-page__form-title">How do you want to sign in?</h2>
+      {step !== "phone" ? (
+        <button type="button" className="tugende-onboard__back" onClick={goBack}>
+          <ArrowLeft size={22} aria-hidden />
+          Back
+        </button>
+      ) : null}
+
+      {step === "phone" ? (
+        <form className="tugende-onboard__panel" onSubmit={onPhoneContinue}>
+          <h1 className="tugende-onboard__title">Enter your number</h1>
+          <p className="tugende-onboard__lead">We&apos;ll use this for your Tugende wallet and ride receipts.</p>
+          <div className="tugende-phone-row">
+            <div className="tugende-phone-row__code">🇺🇬 +256</div>
+            <input
+              className="tugende-phone-row__input"
+              value={phoneLocal}
+              onChange={(e) => setPhoneLocal(e.target.value.replace(/[^\d\s]/g, ""))}
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="7xx xxx xxx"
+              required
+            />
+          </div>
+          <p className="tugende-onboard__fine">Tugende will not charge you without your consent.</p>
+          <button type="submit" className="btn btn-primary tugende-onboard__continue">
+            Continue
+          </button>
+          <button type="button" className="tugende-onboard__link" onClick={() => setStep("alt-method")}>
+            Other sign-in options (email, Google, PLU)
+          </button>
+        </form>
+      ) : null}
+
+      {step === "alt-method" ? (
+        <div className="tugende-onboard__panel">
+          <h1 className="tugende-onboard__title">Other sign-in</h1>
           <div className="tugende-signin__methods">
-            {METHODS.map(({ id, label, hint, Icon }) => (
-              <button key={id} type="button" className="tugende-signin__method" onClick={() => pickMethod(id)}>
+            {ALT_METHODS.map(({ id, label, Icon }) => (
+              <button key={id} type="button" className="tugende-signin__method" onClick={() => pickAltMethod(id)}>
                 <Icon size={22} aria-hidden />
                 <strong>{label}</strong>
-                <span>{hint}</span>
               </button>
             ))}
           </div>
         </div>
       ) : null}
 
-      {step === "account" && method ? (
-        <form className="card tugende-signin__panel" onSubmit={onAccountContinue}>
-          <h2 className="tugende-page__form-title">
-            {method === "phone" && "Your phone number"}
-            {method === "google" && "Your Google (Gmail)"}
-            {method === "email" && "Your email"}
-            {method === "plu" && "Your PLU member number"}
-          </h2>
+      {step === "alt-account" && method !== "phone" ? (
+        <form className="tugende-onboard__panel" onSubmit={onAltAccountContinue}>
+          <h1 className="tugende-onboard__title">
+            {method === "email" ? "Your email" : method === "google" ? "Your Gmail" : "Your PLU number"}
+          </h1>
           <label className="field">
-            {method === "phone" && "Phone"}
-            {method === "google" && "Gmail address"}
-            {method === "email" && "Email"}
-            {method === "plu" && "PLU number"}
-            <input
-              value={accountValue}
-              onChange={(e) => setAccountValue(e.target.value)}
-              placeholder={
-                method === "phone"
-                  ? "07xx xxx xxx"
-                  : method === "plu"
-                    ? "PLU-482910"
-                    : method === "google"
-                      ? "you@gmail.com"
-                      : "you@example.com"
-              }
-              inputMode={method === "phone" ? "tel" : method === "email" || method === "google" ? "email" : "text"}
-              autoComplete={
-                method === "phone" ? "tel" : method === "email" || method === "google" ? "email" : "off"
-              }
-              required
-            />
+            Account
+            <input value={accountValue} onChange={(e) => setAccountValue(e.target.value)} required />
           </label>
-          {pluVerifiedName ? <p className="tugende-signin__ok">PLU record found: {pluVerifiedName}</p> : null}
-          {method === "google" ? (
-            <p className="tugende-signin__hint">We link your Gmail as your Tugende ID. Full Google OAuth is coming soon.</p>
-          ) : null}
-          <div className="tugende-signin__nav">
-            <button type="button" className="btn btn-secondary" onClick={() => setStep("method")}>
-              Back
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              Continue
-            </button>
-          </div>
-        </form>
-      ) : null}
-
-      {step === "name" ? (
-        <form className="card tugende-signin__panel" onSubmit={onNameContinue}>
-          <h2 className="tugende-page__form-title">Your name</h2>
-          <label className="field">
-            Full name
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-          </label>
-          <p className="tugende-page__role-label">I am a</p>
-          <div className="tugende-role-pick tugende-role-pick--triple">
-            <button
-              type="button"
-              className={`tugende-role-pick__btn${role === "rider" ? " tugende-role-pick__btn--on" : ""}`}
-              onClick={() => setRole("rider")}
-            >
-              Passenger
-            </button>
-            <button
-              type="button"
-              className={`tugende-role-pick__btn${role === "driver" ? " tugende-role-pick__btn--on" : ""}`}
-              onClick={() => setRole("driver")}
-            >
-              Rider
-            </button>
-          </div>
-          <p className="tugende-signin__hint">Passengers request rides; Riders accept trips and earn per km.</p>
-          {method !== "phone" ? (
-            <label className="field">
-              Mobile money number (wallet & payouts)
-              <input
-                value={walletPhone}
-                onChange={(e) => setWalletPhone(e.target.value)}
-                placeholder="07xx xxx xxx"
-                inputMode="tel"
-              />
-            </label>
-          ) : null}
-          <div className="tugende-signin__nav">
-            <button type="button" className="btn btn-secondary" onClick={() => setStep("account")}>
-              Back
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Continue
-            </button>
-          </div>
+          {pluVerifiedName ? <p className="tugende-signin__ok">PLU record: {pluVerifiedName}</p> : null}
+          <button type="submit" className="btn btn-primary tugende-onboard__continue" disabled={loading}>
+            Continue
+          </button>
         </form>
       ) : null}
 
       {step === "location" ? (
-        <div className="card tugende-signin__panel">
-          <h2 className="tugende-page__form-title">Allow location access</h2>
-          <p className="tugende-signin__hint">
-            Tugende needs your live GPS to match rides, meter distance at UGX 1,000/km, and keep riders and drivers safe.
-            Use the <strong>Telegram app on your phone</strong> for best results.
+        <div className="tugende-onboard__panel tugende-onboard__panel--location">
+          <h1 className="tugende-onboard__title">Allow location access</h1>
+          <p className="tugende-onboard__lead">
+            Tugende needs <strong>precise</strong> location to set pickup, show the map clearly, and meter trips at UGX
+            1,000/km. Use the Telegram app on your phone.
           </p>
-          <TugendeMap you={pos} size="fullscreen" followYou={Boolean(pos)} />
+          <TugendeMap you={pos} size="fullscreen" followYou={Boolean(pos)} onRecenter={() => {}} />
           {locStatus === "active" && pos ? (
-            <p className="tugende-gps tugende-signin__ok">
-              Your location · {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
-              {position?.accuracyM ? ` (±${Math.round(position.accuracyM)} m)` : ""}
-            </p>
+            <p className="tugende-signin__ok">Precise location ready · pickup will use this point.</p>
           ) : (
             <>
               <p className="tugende-gps tugende-gps--wait">
-                {locStatus === "starting"
-                  ? "Connecting to GPS… allow if your phone asks."
-                  : "Waiting for GPS — tap Allow location access below."}
+                {locStatus === "starting" ? "Connecting to GPS…" : "Choose “While using the app” / Allow when asked."}
               </p>
               {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
               <div className="tugende-loc-actions">
@@ -332,20 +312,51 @@ export function TugendeSignIn({
               </div>
             </>
           )}
-          <div className="tugende-signin__nav">
-            <button type="button" className="btn btn-secondary" onClick={() => setStep("name")}>
-              Back
+          <button
+            type="button"
+            className="btn btn-primary tugende-onboard__continue"
+            disabled={locStatus !== "active" || !pos}
+            onClick={() => setStep("profile")}
+          >
+            Continue
+          </button>
+        </div>
+      ) : null}
+
+      {step === "profile" ? (
+        <form className="tugende-onboard__panel" onSubmit={onProfileContinue}>
+          <h1 className="tugende-onboard__title">About you</h1>
+          <label className="field">
+            Full name
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+          </label>
+          <p className="tugende-page__role-label">I am a</p>
+          <div className="tugende-role-pick">
+            <button
+              type="button"
+              className={`tugende-role-pick__btn${role === "rider" ? " tugende-role-pick__btn--on" : ""}`}
+              onClick={() => setRole("rider")}
+            >
+              Passenger
             </button>
             <button
               type="button"
-              className="btn btn-primary"
-              disabled={loading || locStatus !== "active" || !pos}
-              onClick={() => void finishSignIn()}
+              className={`tugende-role-pick__btn${role === "driver" ? " tugende-role-pick__btn--on" : ""}`}
+              onClick={() => setRole("driver")}
             >
-              {loading ? "Signing in…" : "Enter Tugende"}
+              Rider (driver)
             </button>
           </div>
-        </div>
+          {method !== "phone" ? (
+            <label className="field">
+              Mobile money number
+              <input value={walletPhone} onChange={(e) => setWalletPhone(e.target.value)} inputMode="tel" />
+            </label>
+          ) : null}
+          <button type="submit" className="btn btn-primary tugende-onboard__continue" disabled={loading}>
+            {loading ? "Starting Tugende…" : "Enter Tugende"}
+          </button>
+        </form>
       ) : null}
     </main>
   );

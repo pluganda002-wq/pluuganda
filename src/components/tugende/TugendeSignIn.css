@@ -1,0 +1,131 @@
+.tugende-onboard {
+  padding: 0.5rem 0 1.5rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.tugende-onboard__steps {
+  display: flex;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tugende-onboard__step {
+  flex: 1;
+  text-align: center;
+  padding: 0.35rem 0.25rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.tugende-onboard__step--on {
+  background: var(--plu-gold);
+  color: #111;
+}
+
+.tugende-onboard__step--done {
+  background: color-mix(in srgb, var(--plu-gold) 22%, transparent);
+  color: var(--plu-gold-dark);
+}
+
+.tugende-onboard__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  color: #111;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.tugende-onboard__panel {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 0.25rem 0;
+}
+
+.tugende-onboard__panel--location .tugende-map-shell {
+  margin: 0.75rem 0;
+}
+
+.tugende-onboard__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.15;
+}
+
+.tugende-onboard__lead {
+  margin: 0 0 1.25rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.tugende-onboard__fine {
+  margin: 0.75rem 0 1rem;
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+.tugende-phone-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.tugende-phone-row__code {
+  display: flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  border-radius: 0.65rem;
+  background: #f3f4f6;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.tugende-phone-row__input {
+  flex: 1;
+  min-width: 0;
+  border: 2px solid var(--plu-gold-dim);
+  border-radius: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.tugende-onboard__continue {
+  width: 100%;
+  padding: 0.85rem 1rem !important;
+  margin-top: 0.5rem;
+}
+
+.tugende-onboard__link {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  border: none;
+  background: transparent;
+  color: var(--plu-gold-dark);
+  font: inherit;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tugende-onboard__continue.btn-primary {
+  border-radius: 999px;
+  font-weight: 700;
+}

@@ -1,8 +1,16 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
-import { fareFromKm, haversineKm, pathDistanceKm, reverseGeocodeLabel } from "@/lib/tugende/geo";
+import {
+  fareFromKm,
+  haversineKm,
+  pathDistanceKm,
+  reverseGeocodeLabel,
+  searchPlaces,
+  type PlaceResult,
+} from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
+import { TugendeRouteSheet } from "@/components/tugende/TugendeRouteSheet";
 import { clearLiveLocationCache, useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
@@ -62,9 +70,15 @@ export function TugendePage() {
   const [momoEnabled, setMomoEnabled] = useState(false);
   const [pending, setPending] = useState<TugendeRide[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pickingDestination, setPickingDestination] = useState(false);
+  const [mapPickMode, setMapPickMode] = useState(false);
   const [geocodingDest, setGeocodingDest] = useState(false);
+  const [pickupLabel, setPickupLabel] = useState("Finding your location…");
+  const [pickupLoading, setPickupLoading] = useState(false);
+  const [dropoffQuery, setDropoffQuery] = useState("");
+  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceResult[]>([]);
+  const [placeSearching, setPlaceSearching] = useState(false);
   const autoLocPromptedRef = useRef(false);
+  const searchGenRef = useRef(0);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("10000");
@@ -156,7 +170,8 @@ export function TugendePage() {
       const label = await reverseGeocodeLabel(point.lat, point.lng);
       const km = haversineKm(pos.lat, pos.lng, point.lat, point.lng);
       setDropoff({ lat: point.lat, lng: point.lng, label });
-      setPickingDestination(false);
+      setDropoffQuery("");
+      setMapPickMode(false);
       showAlert(`Destination set · ${km.toFixed(1)} km · UGX ${fareFromKm(km).toLocaleString()}`);
     } finally {
       setGeocodingDest(false);
@@ -164,9 +179,53 @@ export function TugendePage() {
   }
 
   useEffect(() => {
-    if (tab !== "ride" || ride || profile?.role !== "rider") return;
-    if (pos && !dropoff) setPickingDestination(true);
-  }, [tab, ride, profile?.role, pos, dropoff]);
+    if (!pos || profile?.role !== "rider") return;
+    let cancelled = false;
+    setPickupLoading(true);
+    reverseGeocodeLabel(pos.lat, pos.lng)
+      .then((label) => {
+        if (!cancelled) setPickupLabel(label);
+      })
+      .finally(() => {
+        if (!cancelled) setPickupLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pos?.lat, pos?.lng, profile?.role]);
+
+  useEffect(() => {
+    if (dropoff || dropoffQuery.trim().length < 2) {
+      setPlaceSuggestions([]);
+      return;
+    }
+    const gen = ++searchGenRef.current;
+    const t = setTimeout(() => {
+      setPlaceSearching(true);
+      searchPlaces(dropoffQuery, pos ?? undefined)
+        .then((rows) => {
+          if (searchGenRef.current === gen) setPlaceSuggestions(rows);
+        })
+        .finally(() => {
+          if (searchGenRef.current === gen) setPlaceSearching(false);
+        });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [dropoffQuery, dropoff, pos?.lat, pos?.lng]);
+
+  function selectPlace(place: PlaceResult) {
+    haptic("light");
+    const label = place.subtitle ? `${place.title}, ${place.subtitle}` : place.title;
+    setDropoff({ lat: place.lat, lng: place.lng, label });
+    setDropoffQuery("");
+    setPlaceSuggestions([]);
+  }
+
+  function clearDropoff() {
+    setDropoff(null);
+    setDropoffQuery("");
+    setPlaceSuggestions([]);
+  }
 
   async function requestRide() {
     if (!telegramId || !pos || !dropoff) return;
@@ -174,7 +233,7 @@ export function TugendePage() {
     try {
       const r = await tugendeRequestRide(
         telegramId,
-        { lat: pos.lat, lng: pos.lng, label: "Pickup · your live location" },
+        { lat: pos.lat, lng: pos.lng, label: pickupLabel || "Current location" },
         { lat: dropoff.lat, lng: dropoff.lng, label: dropoff.label }
       );
       setRide(r);
@@ -269,6 +328,7 @@ export function TugendePage() {
     setProfile(null);
     setRide(null);
     setDropoff(null);
+    setDropoffQuery("");
     haptic("light");
   }
 
@@ -317,12 +377,8 @@ export function TugendePage() {
   const plannedFare = plannedKm != null ? fareFromKm(plannedKm) : null;
 
   const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
-  const mapExpanded =
-    ride?.status === "in_progress" ||
-    pickingDestination ||
-    Boolean(dropoff) ||
-    (locStatus === "active" && tab === "ride");
-  const mapSize = mapExpanded ? "fullscreen" : "large";
+  const passengerBoltHome = tab === "ride" && profile.role === "rider" && !ride;
+  const mapSize = passengerBoltHome || ride?.status === "in_progress" ? "hero" : "fullscreen";
   const livePath =
     ride && (ride.path?.length ?? 0) >= 2
       ? ride.path!.map((p) => ({ lat: p.lat, lng: p.lng }))
@@ -369,11 +425,10 @@ export function TugendePage() {
       </nav>
 
       {tab === "ride" ? (
-        <section className={`card tugende-panel tugende-panel--map${mapExpanded ? " tugende-panel--map-expanded" : ""}`}>
-          <h2 className="tugende-panel__title">
-            {ride?.status === "in_progress" ? "Live trip" : "Map & destination"}
-          </h2>
-          {ride?.status === "in_progress" ? (
+        <section
+          className={`tugende-panel tugende-panel--map${passengerBoltHome ? " tugende-panel--bolt" : " card"}`}
+        >
+          {!passengerBoltHome && ride?.status === "in_progress" ? (
             <div className="tugende-live-meter" aria-live="polite">
               <div>
                 <span className="tugende-live-meter__label">Distance</span>
@@ -385,39 +440,74 @@ export function TugendePage() {
               </div>
             </div>
           ) : null}
-          {!ride && profile.role === "rider" && locStatus === "active" && pos ? (
-            <p className="tugende-map-hint tugende-map-hint--pickup">
-              Pickup is your live location (gold pin). Tap the map to choose where you are going.
-            </p>
-          ) : pickingDestination ? (
-            <p className="tugende-map-hint">Tap on the map where you want to go.</p>
-          ) : null}
-          <TugendeMap
-            you={pos}
-            destination={mapDestination}
-            path={ride?.status === "in_progress" ? livePath : undefined}
-            size={mapSize}
-            pickMode={!ride && profile.role === "rider" && Boolean(pos) && !geocodingDest}
-            followYou={
-              ride?.status === "in_progress" ||
-              (!ride && Boolean(pos) && (profile.role === "driver" || !dropoff || pickingDestination))
-            }
-            onPickDestination={
-              !ride && profile.role === "rider" && pos && !geocodingDest ? handlePickDestination : undefined
-            }
-          />
-          {locStatus === "active" && pos ? (
-            <p className="tugende-pickup-auto">
-              <strong>Pickup (automatic):</strong> {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
-              {position?.accuracyM ? ` · ±${Math.round(position.accuracyM)} m` : ""}
-              {position?.source === "telegram" ? " · Telegram GPS" : position?.source === "browser" ? " · browser GPS" : ""}
-            </p>
-          ) : (
+          {mapPickMode ? <p className="tugende-map-hint">Tap the map to set dropoff.</p> : null}
+          <div className={passengerBoltHome ? "tugende-ride-shell" : undefined}>
+            <TugendeMap
+              you={pos}
+              destination={mapDestination}
+              path={ride?.status === "in_progress" ? livePath : undefined}
+              size={mapSize}
+              pickMode={mapPickMode && Boolean(pos) && !geocodingDest}
+              followYou={ride?.status === "in_progress" || Boolean(pos)}
+              onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
+              onRecenter={pos ? () => haptic("light") : undefined}
+            />
+            {passengerBoltHome ? (
+              <div className="tugende-sheet">
+                {locStatus !== "active" || !pos ? (
+                  <div className="tugende-loc-banner tugende-loc-banner--sheet">
+                    <p className="tugende-gps tugende-gps--wait">Turn on precise location to set pickup.</p>
+                    <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                      Allow location
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <TugendeRouteSheet
+                      pickupLabel={pickupLabel}
+                      pickupLoading={pickupLoading}
+                      dropoffQuery={dropoffQuery}
+                      dropoffLabel={dropoff?.label ?? null}
+                      suggestions={placeSuggestions}
+                      searching={placeSearching}
+                      onDropoffQueryChange={setDropoffQuery}
+                      onSelectPlace={selectPlace}
+                      onClearDropoff={clearDropoff}
+                      onUseMapPick={() => setMapPickMode(true)}
+                      onRefreshPickup={() => {
+                        if (pos) void reverseGeocodeLabel(pos.lat, pos.lng).then(setPickupLabel);
+                      }}
+                    />
+                    {plannedKm != null && plannedFare != null && dropoff ? (
+                      <div className="tugende-fare-card tugende-fare-card--sheet">
+                        <div className="tugende-fare-card__row">
+                          <span>Trip</span>
+                          <strong>{plannedKm.toFixed(2)} km</strong>
+                        </div>
+                        <div className="tugende-fare-card__row">
+                          <span>You pay</span>
+                          <strong className="tugende-fare-card__price">UGX {plannedFare.toLocaleString()}</strong>
+                        </div>
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="btn btn-primary tugende-request-btn"
+                      disabled={loading || !pos || !dropoff}
+                      onClick={requestRide}
+                    >
+                      Request Tugende
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {!passengerBoltHome && locStatus !== "active" && !pos ? (
             <div className="tugende-loc-banner">
               <p className="tugende-gps tugende-gps--wait">
-                {locStatus === "starting"
-                  ? "Connecting to GPS…"
-                  : "Location is off — enable it for live metered rides."}
+                {locStatus === "starting" ? "Connecting to GPS…" : "Location is off — enable it for live rides."}
               </p>
               {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
               <div className="tugende-loc-actions">
@@ -431,63 +521,15 @@ export function TugendePage() {
                 ) : null}
               </div>
             </div>
-          )}
+          ) : null}
 
-          {!ride ? (
-            profile.role === "rider" ? (
-              <>
-                {plannedKm != null && plannedFare != null && dropoff ? (
-                  <div className="tugende-fare-card">
-                    <p className="tugende-fare-card__dest">{dropoff.label}</p>
-                    <div className="tugende-fare-card__row">
-                      <span>Distance</span>
-                      <strong>{plannedKm.toFixed(2)} km</strong>
-                    </div>
-                    <div className="tugende-fare-card__row">
-                      <span>You pay</span>
-                      <strong className="tugende-fare-card__price">UGX {plannedFare.toLocaleString()}</strong>
-                    </div>
-                  </div>
-                ) : null}
-                {dropoff ? (
-                  <div className="tugende-dest-actions">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      disabled={!pos || geocodingDest}
-                      onClick={() => setPickingDestination(true)}
-                    >
-                      Change destination (tap map)
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => {
-                        setDropoff(null);
-                        setPickingDestination(true);
-                      }}
-                    >
-                      Clear destination
-                    </button>
-                  </div>
-                ) : geocodingDest ? (
-                  <p className="tugende-gps tugende-gps--wait">Setting destination…</p>
-                ) : null}
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={loading || !pos || !dropoff}
-                  onClick={requestRide}
-                >
-                  Request Tugende
-                </button>
-              </>
-            ) : (
+          {!ride && !passengerBoltHome ? (
+            profile.role === "driver" ? (
               <p className="tugende-empty">
                 You are online as a Rider. Open the Drive tab to accept incoming requests.
               </p>
-            )
-          ) : (
+            ) : null
+          ) : !passengerBoltHome && ride ? (
             <div className="tugende-active">
               <div className="tugende-fare-card">
                 <p>
@@ -518,7 +560,7 @@ export function TugendePage() {
                 </button>
               ) : null}
             </div>
-          )}
+          ) : null}
         </section>
       ) : null}
 
