@@ -1,6 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { SubPageBar } from "@/components/SubPageBar";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
 import { fareFromKm, haversineKm, pathDistanceKm, reverseGeocodeLabel } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
@@ -248,30 +247,28 @@ export function TugendePage() {
   }
 
   if (!profile) {
+    if (!canSignIn || !telegramId) {
+      return (
+        <main className="page tugende-page">
+          <p className="tugende-signin__error card">
+            Open <strong>PluPatriot</strong> from the Telegram bot (Menu → Open app), then return to Tugende to sign in.
+          </p>
+        </main>
+      );
+    }
     return (
-      <>
-        <SubPageBar title="Tugende" backTo="/" />
-        {!canSignIn || !telegramId ? (
-          <main className="page tugende-page">
-            <p className="tugende-signin__error card">
-              Open <strong>PluPatriot</strong> from the Telegram bot (Menu → Open app), then return to Tugende to sign in.
-            </p>
-          </main>
-        ) : (
-          <TugendeSignIn
-            telegramId={telegramId}
-            defaultName={displayName}
-            suggestedPlu={member?.memberId}
-            suggestedPhone={member?.phone}
-            haptic={haptic}
-            onError={showAlert}
-            onComplete={(user) => {
-              setProfile(user);
-              showAlert(`Welcome to Tugende, ${user.fullName}.`);
-            }}
-          />
-        )}
-      </>
+      <TugendeSignIn
+        telegramId={telegramId}
+        defaultName={displayName}
+        suggestedPlu={member?.memberId}
+        suggestedPhone={member?.phone}
+        haptic={haptic}
+        onError={showAlert}
+        onComplete={(user) => {
+          setProfile(user);
+          showAlert(`Welcome to Tugende, ${user.fullName}.`);
+        }}
+      />
     );
   }
 
@@ -296,7 +293,6 @@ export function TugendePage() {
 
   return (
     <main className="page tugende-page">
-      <SubPageBar title="Tugende" backTo="/" />
       <header className="tugende-header card card--flat">
         <img src={LOGO} alt="" className="tugende-header__logo" width={56} height={56} />
         <div>

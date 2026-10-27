@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
-import { SubPageBar } from "@/components/SubPageBar";
 
 const LOGO = "/branding/ugo-ride.png";
 
 export function UgoPage() {
   return (
     <main className="page mobility-app-page">
-      <SubPageBar title="UGo Ride" backTo="/" />
       <img src={LOGO} alt="" className="mobility-app-page__logo" width={140} height={140} />
       <div className="card">
         <h1 className="mobility-app-page__title">UGo Ride</h1>
