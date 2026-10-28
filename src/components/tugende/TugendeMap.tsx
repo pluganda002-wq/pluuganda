@@ -11,6 +11,15 @@ const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
 const DEFAULT_ZOOM = 16;
 const TRIP_FOLLOW_ZOOM = 17;
 const MIN_MOVE_KM_FOR_PAN = 0.08;
+const RIDER_BODA_IMG = "/branding/tugende-safe-boda.png";
+
+export type MapNearbyRider = {
+  id: string;
+  lat: number;
+  lng: number;
+  label?: string;
+  assigned?: boolean;
+};
 
 /** CARTO Voyager needs a Basemaps key. Use VITE_CARTO_RASTER_URL (from email) or VITE_CARTO_API_KEY. */
 function resolveMapTiles(): { url: string; attribution: string; maxZoom: number } {
@@ -50,9 +59,19 @@ function haversineKm(a: Point, b: Point): number {
 function makeYouIcon() {
   return L.divIcon({
     className: "tugende-map-you",
-    html: '<span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    html: `<span class="tugende-map-you__beam"></span><span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>`,
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
+  });
+}
+
+function makeRiderIcon(assigned: boolean) {
+  const cls = assigned ? " tugende-map-rider--assigned" : "";
+  return L.divIcon({
+    className: `tugende-map-rider${cls}`,
+    html: `<img src="${RIDER_BODA_IMG}" alt="" width="36" height="36" />`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
   });
 }
 
@@ -76,6 +95,7 @@ type Props = {
   stableCamera?: boolean;
   onPickDestination?: (point: Point) => void;
   onRecenter?: () => void;
+  nearbyRiders?: MapNearbyRider[];
   className?: string;
 };
 
@@ -89,10 +109,12 @@ export function TugendeMap({
   stableCamera = true,
   onPickDestination,
   onRecenter,
+  nearbyRiders,
   className,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const riderMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   const youMarkerRef = useRef<L.Marker | null>(null);
   const destMarkerRef = useRef<L.Marker | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
@@ -234,6 +256,34 @@ export function TugendeMap({
       didInitialCenterRef.current = true;
     }
   }, [you, destination, path, pickMode, followYou, stableCamera]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const nextIds = new Set((nearbyRiders ?? []).map((r) => r.id));
+    for (const [id, marker] of riderMarkersRef.current) {
+      if (!nextIds.has(id)) {
+        marker.remove();
+        riderMarkersRef.current.delete(id);
+      }
+    }
+    for (const rider of nearbyRiders ?? []) {
+      let marker = riderMarkersRef.current.get(rider.id);
+      if (!marker) {
+        marker = L.marker([rider.lat, rider.lng], {
+          icon: makeRiderIcon(Boolean(rider.assigned)),
+          zIndexOffset: rider.assigned ? 900 : 400,
+        }).addTo(map);
+        if (rider.label) {
+          marker.bindTooltip(rider.label, { direction: "top", offset: [0, -14] });
+        }
+        riderMarkersRef.current.set(rider.id, marker);
+      } else {
+        marker.setLatLng([rider.lat, rider.lng]);
+        marker.setIcon(makeRiderIcon(Boolean(rider.assigned)));
+      }
+    }
+  }, [nearbyRiders]);
 
   function recenter() {
     if (!you) return;

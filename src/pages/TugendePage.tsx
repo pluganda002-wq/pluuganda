@@ -12,7 +12,7 @@ import {
 } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
 import { TugendeRouteSheet } from "@/components/tugende/TugendeRouteSheet";
-import { clearLiveLocationCache, useLiveLocation } from "@/hooks/useLiveLocation";
+import { clearLiveLocationCache, isTugendeLocationGranted, useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
   tugendeCancelRide,
@@ -29,7 +29,9 @@ import {
   tugendeWithdraw,
 } from "@/lib/tugende/api";
 import { tugendeLocal } from "@/lib/tugende/localStore";
-import type { TugendeRide, TugendeUser } from "@/lib/tugende/types";
+import { tugendeNearbyDrivers } from "@/lib/tugende/nearbyDrivers";
+import type { TugendeNearbyDriver, TugendeRide, TugendeUser } from "@/lib/tugende/types";
+import type { MapNearbyRider } from "@/components/tugende/TugendeMap";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./TugendePage.css";
@@ -81,6 +83,7 @@ export function TugendePage() {
   const autoLocPromptedRef = useRef(false);
   const searchGenRef = useRef(0);
   const [dropoffFocused, setDropoffFocused] = useState(false);
+  const [nearbyDrivers, setNearbyDrivers] = useState<TugendeNearbyDriver[]>([]);
   const lastPickupGeocodeRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
@@ -105,7 +108,8 @@ export function TugendePage() {
     profile && (tab === "ride" || tab === "drive" || ride?.status === "in_progress")
   );
 
-  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(gpsActive);
+  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings, locationGranted } =
+    useLiveLocation(gpsActive);
   const pos = position ? { lat: position.lat, lng: position.lng } : null;
 
   useEffect(() => {
@@ -118,10 +122,14 @@ export function TugendePage() {
   }, [telegramId, telegramKey, refreshProfile, refreshRide]);
 
   useEffect(() => {
-    if (!profile || tab !== "ride" || locStatus === "active" || locStatus === "denied") return;
-    if (sessionStorage.getItem("plu-tugende-loc-granted") === "1") return;
+    if (!profile || tab !== "ride" || locStatus === "active") return;
     if (autoLocPromptedRef.current) return;
     autoLocPromptedRef.current = true;
+    if (isTugendeLocationGranted() || locationGranted) {
+      enableLocation();
+      return;
+    }
+    if (locStatus === "denied") return;
     enableLocation();
   }, [profile, tab, locStatus, enableLocation]);
 
@@ -236,6 +244,36 @@ export function TugendePage() {
     setDropoffFocused(true);
     haptic("light");
   }
+
+  const showNearbyRiders =
+    profile?.role === "rider" &&
+    ride &&
+    ["pending", "accepted"].includes(ride.status) &&
+    Boolean(pos);
+
+  useEffect(() => {
+    if (!showNearbyRiders || !pos) {
+      setNearbyDrivers([]);
+      return;
+    }
+    const load = () =>
+      tugendeNearbyDrivers(pos.lat, pos.lng, ride?.driverId ?? null).then(setNearbyDrivers);
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [showNearbyRiders, pos?.lat, pos?.lng, ride?.driverId, ride?.rideId]);
+
+  const mapNearbyRiders: MapNearbyRider[] = useMemo(
+    () =>
+      nearbyDrivers.map((d) => ({
+        id: d.driverId,
+        lat: d.lat,
+        lng: d.lng,
+        label: d.assigned ? `${d.fullName} · your rider` : d.fullName,
+        assigned: d.assigned,
+      })),
+    [nearbyDrivers]
+  );
 
   function selectPlace(place: PlaceResult) {
     haptic("light");
@@ -465,6 +503,11 @@ export function TugendePage() {
             </div>
           ) : null}
           {mapPickMode ? <p className="tugende-map-hint">Tap the map to set dropoff.</p> : null}
+          {showNearbyRiders ? (
+            <p className="tugende-map-hint tugende-map-hint--riders">
+              {ride?.status === "accepted" ? "Your rider is nearby" : "Riders near you — matching a trip…"}
+            </p>
+          ) : null}
           <div className={passengerBoltHome ? "tugende-ride-shell" : undefined}>
             <TugendeMap
               you={pos}
@@ -476,15 +519,26 @@ export function TugendePage() {
               stableCamera={ride?.status !== "in_progress"}
               onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
               onRecenter={pos ? () => haptic("light") : undefined}
+              nearbyRiders={showNearbyRiders ? mapNearbyRiders : undefined}
             />
             {passengerBoltHome ? (
               <div className="tugende-sheet">
                 {locStatus !== "active" || !pos ? (
                   <div className="tugende-loc-banner tugende-loc-banner--sheet">
-                    <p className="tugende-gps tugende-gps--wait">Turn on precise location to set pickup.</p>
-                    <button type="button" className="btn btn-primary" onClick={enableLocation}>
-                      Allow location
-                    </button>
+                    <p className="tugende-gps tugende-gps--wait">
+                      {locationGranted || isTugendeLocationGranted()
+                        ? "Reconnecting to GPS…"
+                        : "Turn on precise location to set pickup."}
+                    </p>
+                    {!locationGranted && !isTugendeLocationGranted() ? (
+                      <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                        Allow location
+                      </button>
+                    ) : (
+                      <button type="button" className="btn btn-secondary" onClick={retryAfterSettings}>
+                        Refresh GPS
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -538,14 +592,20 @@ export function TugendePage() {
           {!passengerBoltHome && locStatus !== "active" && !pos ? (
             <div className="tugende-loc-banner">
               <p className="tugende-gps tugende-gps--wait">
-                {locStatus === "starting" ? "Connecting to GPS…" : "Location is off — enable it for live rides."}
+                {locationGranted || isTugendeLocationGranted()
+                  ? "Reconnecting to GPS…"
+                  : locStatus === "starting"
+                    ? "Connecting to GPS…"
+                    : "Location is off — enable it for live rides."}
               </p>
               {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
               <div className="tugende-loc-actions">
-                <button type="button" className="btn btn-primary" onClick={enableLocation}>
-                  Enable live location
-                </button>
-                {locStatus === "denied" ? (
+                {!locationGranted && !isTugendeLocationGranted() ? (
+                  <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                    Enable live location
+                  </button>
+                ) : null}
+                {(locationGranted || isTugendeLocationGranted() || locStatus === "denied") ? (
                   <button type="button" className="btn btn-secondary" onClick={retryAfterSettings}>
                     Refresh location
                   </button>
@@ -653,10 +713,20 @@ export function TugendePage() {
           <h2 className="tugende-panel__title">Open ride requests</h2>
           {locStatus !== "active" ? (
             <div className="tugende-loc-banner">
-              <p className="tugende-gps tugende-gps--wait">Turn on location to accept rides and meter trips.</p>
-              <button type="button" className="btn btn-primary" onClick={enableLocation}>
-                Enable live location
-              </button>
+              <p className="tugende-gps tugende-gps--wait">
+                {locationGranted || isTugendeLocationGranted()
+                  ? "Reconnecting to GPS…"
+                  : "Turn on location to accept rides and meter trips."}
+              </p>
+              {!locationGranted && !isTugendeLocationGranted() ? (
+                <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                  Enable live location
+                </button>
+              ) : (
+                <button type="button" className="btn btn-secondary" onClick={retryAfterSettings}>
+                  Refresh GPS
+                </button>
+              )}
             </div>
           ) : null}
           {pending.length === 0 ? (

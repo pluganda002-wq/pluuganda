@@ -26,6 +26,15 @@ export type TugendeLoginPayload = {
 
 export type RideStatus = "pending" | "accepted" | "in_progress" | "completed" | "cancelled";
 
+export type TugendeNearbyDriver = {
+  driverId: string;
+  fullName: string;
+  lat: number;
+  lng: number;
+  distanceKm: number;
+  assigned?: boolean;
+};
+
 export type TugendeRide = {
   rideId: string;
   status: RideStatus;

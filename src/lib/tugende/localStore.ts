@@ -1,5 +1,5 @@
-import { fareFromKm, haversineKm, pathDistanceKm } from "./geo";
-import type { TugendeLoginMethod, TugendeRide, TugendeUser } from "./types";
+import { demoNearbyDrivers, fareFromKm, haversineKm, pathDistanceKm } from "./geo";
+import type { TugendeLoginMethod, TugendeNearbyDriver, TugendeRide, TugendeUser } from "./types";
 
 const KEY = "plu-tugende-local-v1";
 
@@ -165,6 +165,27 @@ export const tugendeLocal = {
   pendingRides(): TugendeRide[] {
     const s = load();
     return s.ride?.status === "pending" ? [s.ride] : [];
+  },
+
+  nearbyDrivers(lat: number, lng: number, assignedDriverId?: string | null): TugendeNearbyDriver[] {
+    const seed = Math.round(lat * 1000 + lng * 1000);
+    const drivers = demoNearbyDrivers(lat, lng, seed).map((d) => ({
+      ...d,
+      assigned: assignedDriverId != null && d.driverId === assignedDriverId,
+    }));
+    if (assignedDriverId && !drivers.some((d) => d.driverId === assignedDriverId)) {
+      const anchor = drivers[0];
+      if (anchor) {
+        drivers.unshift({
+          ...anchor,
+          driverId: assignedDriverId,
+          fullName: "Your rider",
+          distanceKm: haversineKm(lat, lng, anchor.lat, anchor.lng),
+          assigned: true,
+        });
+      }
+    }
+    return drivers;
   },
 
   acceptRide(telegramId: string, rideId: string): TugendeRide | null {

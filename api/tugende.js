@@ -78,6 +78,78 @@ export async function GET(request) {
     return Response.json({ momoEnabled: isMomoConfigured() });
   }
 
+  if (action === "nearbyDrivers") {
+    const lat = Number(url.searchParams.get("lat"));
+    const lng = Number(url.searchParams.get("lng"));
+    const assignedDriverId = url.searchParams.get("assignedDriverId");
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return Response.json({ error: "lat and lng required" }, { status: 400 });
+    }
+    const db = await getDb();
+    const maxKm = 8;
+    const raw = await db
+      .collection("tugende_users")
+      .find({ role: "driver", "location.lat": { $type: "double" } })
+      .limit(40)
+      .toArray();
+    let drivers = raw
+      .map((u) => {
+        const dlat = u.location?.lat;
+        const dlng = u.location?.lng;
+        if (typeof dlat !== "number" || typeof dlng !== "number") return null;
+        const distanceKm = haversineKm(lat, lng, dlat, dlng);
+        if (distanceKm > maxKm) return null;
+        return {
+          driverId: String(u.telegramId),
+          fullName: u.fullName || "Rider",
+          lat: dlat,
+          lng: dlng,
+          distanceKm,
+          assigned: assignedDriverId != null && String(u.telegramId) === assignedDriverId,
+        };
+      })
+      .filter(Boolean);
+    if (drivers.length === 0) {
+      const bearings = [12, 68, 155, 220, 312];
+      drivers = bearings.map((bearing, i) => {
+        const distKm = 0.35 + (i * 13) / 100;
+        const br = (bearing * Math.PI) / 180;
+        const R = 6371;
+        const lat1 = (lat * Math.PI) / 180;
+        const lng1 = (lng * Math.PI) / 180;
+        const d = distKm / R;
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(br));
+        const lng2 =
+          lng1 +
+          Math.atan2(Math.sin(br) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+        const rlat = (lat2 * 180) / Math.PI;
+        const rlng = (lng2 * 180) / Math.PI;
+        const id = `demo-${900100 + i}`;
+        return {
+          driverId: id,
+          fullName: ["Ronald", "Brian", "Sarah", "Moses", "Amina"][i],
+          lat: rlat,
+          lng: rlng,
+          distanceKm: haversineKm(lat, lng, rlat, rlng),
+          assigned: assignedDriverId === id,
+        };
+      });
+    }
+    if (assignedDriverId && !drivers.some((d) => d.driverId === assignedDriverId)) {
+      const anchor = drivers[0];
+      if (anchor) {
+        drivers.unshift({
+          ...anchor,
+          driverId: assignedDriverId,
+          fullName: "Your rider",
+          assigned: true,
+        });
+      }
+    }
+    drivers.sort((a, b) => a.distanceKm - b.distanceKm);
+    return Response.json({ drivers });
+  }
+
   if (action === "verifyPlu") {
     const memberId = url.searchParams.get("memberId")?.trim().toUpperCase();
     if (!memberId || !/^PLU-\d{6}$/.test(memberId)) {

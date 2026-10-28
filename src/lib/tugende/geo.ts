@@ -2,6 +2,19 @@ export const TUGENDE_RATE_UGX_PER_KM = 1000;
 
 const R = 6371;
 
+/** Move from a point by bearing (degrees) and distance (km). */
+export function offsetPointKm(lat: number, lng: number, bearingDeg: number, distKm: number): { lat: number; lng: number } {
+  const R = 6371;
+  const br = (bearingDeg * Math.PI) / 180;
+  const lat1 = (lat * Math.PI) / 180;
+  const lng1 = (lng * Math.PI) / 180;
+  const d = distKm / R;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(br));
+  const lng2 =
+    lng1 + Math.atan2(Math.sin(br) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+  return { lat: (lat2 * 180) / Math.PI, lng: (lng2 * 180) / Math.PI };
+}
+
 export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -181,4 +194,22 @@ export async function suggestDropoffNear(near: { lat: number; lng: number }): Pr
 
   merged.sort((a, b) => (a.distanceKm ?? 99) - (b.distanceKm ?? 99));
   return merged.slice(0, 10);
+}
+
+const DEMO_RIDER_NAMES = ["Ronald", "Brian", "Sarah", "Moses", "Amina"];
+
+/** Stable demo riders around pickup when no live drivers in DB (map preview). */
+export function demoNearbyDrivers(lat: number, lng: number, seed = 0) {
+  const bearings = [12, 68, 155, 220, 312];
+  return bearings.map((bearing, i) => {
+    const distKm = 0.35 + ((seed + i * 17) % 40) / 100;
+    const point = offsetPointKm(lat, lng, bearing + (seed % 15), distKm);
+    return {
+      driverId: `demo-${900100 + i}`,
+      fullName: DEMO_RIDER_NAMES[i % DEMO_RIDER_NAMES.length],
+      lat: point.lat,
+      lng: point.lng,
+      distanceKm: haversineKm(lat, lng, point.lat, point.lng),
+    };
+  });
 }

@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, Mail, Phone, Hash, Chrome } from "lucide-react";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
-import { useLiveLocation } from "@/hooks/useLiveLocation";
+import { isTugendeLocationGranted, useLiveLocation } from "@/hooks/useLiveLocation";
 import { tugendeLogin, tugendeVerifyPluNumber } from "@/lib/tugende/api";
 import type { TugendeLoginMethod, TugendeRole, TugendeUser } from "@/lib/tugende/types";
 import "./TugendeSignIn.css";
@@ -64,9 +64,9 @@ export function TugendeSignIn({
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [pluVerifiedName, setPluVerifiedName] = useState<string | null>(null);
 
-  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings } = useLiveLocation(
-    step === "location"
-  );
+  const { position, status: locStatus, platformHint, enableLocation, retryAfterSettings, locationGranted } =
+    useLiveLocation(step === "location");
+  const locAlreadyGranted = locationGranted || isTugendeLocationGranted();
   const pos = position ? { lat: position.lat, lng: position.lng } : null;
 
   useEffect(() => {
@@ -299,15 +299,19 @@ export function TugendeSignIn({
           ) : (
             <>
               <p className="tugende-gps tugende-gps--wait">
-                {locStatus === "starting" ? "Connecting to GPS…" : "Choose “While using the app” / Allow when asked."}
+                {locAlreadyGranted || locStatus === "starting"
+                  ? "Reconnecting to GPS…"
+                  : "Choose “While using the app” / Allow when asked."}
               </p>
               {platformHint ? <p className="tugende-loc-hint">{platformHint}</p> : null}
               <div className="tugende-loc-actions">
-                <button type="button" className="btn btn-primary" onClick={enableLocation}>
-                  Allow location access
-                </button>
+                {!locAlreadyGranted ? (
+                  <button type="button" className="btn btn-primary" onClick={enableLocation}>
+                    Allow location access
+                  </button>
+                ) : null}
                 <button type="button" className="btn btn-secondary" onClick={retryAfterSettings}>
-                  Refresh after Allow
+                  {locAlreadyGranted ? "Refresh GPS" : "Refresh after Allow"}
                 </button>
               </div>
             </>

@@ -19,24 +19,51 @@ export type LiveLocationStatus = "idle" | "starting" | "active" | "denied" | "un
 const GRANTED_KEY = "plu-tugende-loc-granted";
 const LAST_POS_KEY = "plu-tugende-last-pos";
 
+function isGrantedPersisted(): boolean {
+  try {
+    return localStorage.getItem(GRANTED_KEY) === "1" || sessionStorage.getItem(GRANTED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function persistGranted() {
+  try {
+    localStorage.setItem(GRANTED_KEY, "1");
+    sessionStorage.setItem(GRANTED_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function readStoredPosition(): LivePosition | null {
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      const raw = store.getItem(LAST_POS_KEY);
+      if (!raw) continue;
+      const pos = JSON.parse(raw) as LivePosition;
+      if (typeof pos.lat === "number" && typeof pos.lng === "number") return pos;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
 const GEO_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
   maximumAge: 3000,
   timeout: 25000,
 };
 
-function readCachedPosition(): LivePosition | null {
-  try {
-    const raw = sessionStorage.getItem(LAST_POS_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as LivePosition;
-  } catch {
-    return null;
-  }
-}
-
 function cachePosition(pos: LivePosition) {
-  sessionStorage.setItem(LAST_POS_KEY, JSON.stringify(pos));
+  const raw = JSON.stringify(pos);
+  try {
+    localStorage.setItem(LAST_POS_KEY, raw);
+    sessionStorage.setItem(LAST_POS_KEY, raw);
+  } catch {
+    /* ignore */
+  }
 }
 
 function fromTg(loc: TgLocationData): LivePosition {
@@ -78,10 +105,12 @@ function shouldApplyPosition(incoming: LivePosition, current: LivePosition | nul
 }
 
 export function useLiveLocation(active: boolean) {
-  const [status, setStatus] = useState<LiveLocationStatus>(() =>
-    readCachedPosition() ? "active" : "idle"
-  );
-  const [position, setPosition] = useState<LivePosition | null>(() => readCachedPosition());
+  const [status, setStatus] = useState<LiveLocationStatus>(() => {
+    if (readStoredPosition()) return "active";
+    if (isGrantedPersisted()) return "starting";
+    return "idle";
+  });
+  const [position, setPosition] = useState<LivePosition | null>(() => readStoredPosition());
   const [platformHint, setPlatformHint] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const tgPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -96,7 +125,7 @@ export function useLiveLocation(active: boolean) {
     });
     setStatus("active");
     setPlatformHint(null);
-    sessionStorage.setItem(GRANTED_KEY, "1");
+    persistGranted();
   }, []);
 
   const clearBrowserWatch = useCallback(() => {
@@ -179,6 +208,7 @@ export function useLiveLocation(active: boolean) {
       attempts += 1;
       const lm = getTelegramLocationManager();
       if (lm?.isAccessGranted) {
+        persistGranted();
         clearGrantWait();
         void startTelegramPolling();
         return;
@@ -202,17 +232,23 @@ export function useLiveLocation(active: boolean) {
 
       const lm = await initTelegramLocationManager();
       if (lm?.isAccessGranted) {
+        persistGranted();
         await startTelegramPolling();
         return;
       }
 
       if (lm?.isLocationAvailable) {
-        if (opts?.openTelegramSettings) {
+        const askTelegram = opts?.openTelegramSettings && !isGrantedPersisted();
+        if (askTelegram) {
           lm.openSettings();
           setPlatformHint("Tap Allow in Telegram, then wait a moment — your map should update.");
           startGrantWaitPoll();
         } else {
           startBrowserFallback();
+          void readTelegram({ soft: true });
+          if (isGrantedPersisted()) {
+            startGrantWaitPoll();
+          }
         }
         return;
       }
@@ -229,7 +265,7 @@ export function useLiveLocation(active: boolean) {
   );
 
   const enableLocation = useCallback(() => {
-    void connectAll({ openTelegramSettings: true });
+    void connectAll({ openTelegramSettings: !isGrantedPersisted() });
   }, [connectAll]);
 
   const retryAfterSettings = useCallback(() => {
@@ -243,8 +279,10 @@ export function useLiveLocation(active: boolean) {
       readBrowserOnce();
       startBrowserWatch();
       const lm = getTelegramLocationManager();
-      if (lm && !lm.isAccessGranted) {
+      if (lm && !lm.isAccessGranted && !isGrantedPersisted()) {
         lm.openSettings();
+        startGrantWaitPoll();
+      } else if (lm && !lm.isAccessGranted) {
         startGrantWaitPoll();
       }
     })();
@@ -287,10 +325,21 @@ export function useLiveLocation(active: boolean) {
     retryAfterSettings,
     isTracking: status === "active" || status === "starting",
     telegramPreferred: telegramLocationAvailable(),
+    locationGranted: isGrantedPersisted() || status === "active",
   };
 }
 
+export function isTugendeLocationGranted(): boolean {
+  return isGrantedPersisted();
+}
+
 export function clearLiveLocationCache() {
-  sessionStorage.removeItem(LAST_POS_KEY);
-  sessionStorage.removeItem(GRANTED_KEY);
+  try {
+    localStorage.removeItem(LAST_POS_KEY);
+    localStorage.removeItem(GRANTED_KEY);
+    sessionStorage.removeItem(LAST_POS_KEY);
+    sessionStorage.removeItem(GRANTED_KEY);
+  } catch {
+    /* ignore */
+  }
 }
