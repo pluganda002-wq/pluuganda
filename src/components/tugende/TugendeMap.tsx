@@ -7,8 +7,8 @@ import "./TugendeMap.css";
 type Point = { lat: number; lng: number };
 
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
-/** Street-level pickup view (stable camera — no bounce on GPS updates). */
-const DEFAULT_ZOOM = 16;
+/** Street-level pickup — match familiar Tugende home view (neighborhood labels, not city-wide). */
+const DEFAULT_ZOOM = 17;
 const TRIP_FOLLOW_ZOOM = 17;
 const MIN_MOVE_KM_FOR_PAN = 0.08;
 const RIDER_BODA_IMG = "/branding/tugende-safe-boda.png";
@@ -150,9 +150,18 @@ export function TugendeMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const t = setTimeout(() => map.invalidateSize(), 80);
+    const t = setTimeout(() => {
+      map.invalidateSize({ animate: false });
+      if (!you) return;
+      const zoom = stableCamera ? DEFAULT_ZOOM : TRIP_FOLLOW_ZOOM;
+      if (followYou || pickMode) {
+        map.setView([you.lat, you.lng], zoom, { animate: false });
+        lastPanPointRef.current = you;
+        didInitialCenterRef.current = true;
+      }
+    }, 120);
     return () => clearTimeout(t);
-  }, [size]);
+  }, [size, you, followYou, pickMode, stableCamera]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -227,7 +236,7 @@ export function TugendeMap({
       const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}`;
       if (lastBoundsKeyRef.current !== key) {
         lastBoundsKeyRef.current = key;
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 16 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: DEFAULT_ZOOM });
       }
     } else if (routeRef.current) {
       routeRef.current.remove();
@@ -244,7 +253,7 @@ export function TugendeMap({
       if (followYou && you && !stableCamera) {
         maybeFollowYou(you);
       } else if (!followYou && latlngs.length >= 2) {
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: 16 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: DEFAULT_ZOOM });
       }
     } else if (pathRef.current) {
       pathRef.current.remove();
