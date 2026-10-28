@@ -472,7 +472,14 @@ export function TugendePage() {
 
   const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
   const passengerBoltHome = tab === "ride" && profile.role === "rider" && !ride;
-  const mapSize = passengerBoltHome || ride?.status === "in_progress" ? "hero" : "fullscreen";
+  const mapSize =
+    mapPickMode && passengerBoltHome
+      ? "fullscreen"
+      : passengerBoltHome || ride?.status === "in_progress"
+        ? "hero"
+        : "fullscreen";
+  const mapFollowYou =
+    !mapPickMode && (ride?.status === "in_progress" ? true : Boolean(pos));
   const livePath =
     ride && (ride.path?.length ?? 0) >= 2
       ? ride.path!.map((p) => ({ lat: p.lat, lng: p.lng }))
@@ -541,26 +548,37 @@ export function TugendePage() {
               </div>
             </div>
           ) : null}
-          {mapPickMode ? <p className="tugende-map-hint">Tap the map to set dropoff.</p> : null}
+          {mapPickMode ? (
+            <div className="tugende-map-pick-bar">
+              <p className="tugende-map-hint tugende-map-hint--pick">Pinch or use +/− to zoom, then tap where you want to go.</p>
+              <button type="button" className="btn btn-secondary tugende-map-pick-bar__done" onClick={() => setMapPickMode(false)}>
+                Done
+              </button>
+            </div>
+          ) : null}
           {showNearbyRiders ? (
             <p className="tugende-map-hint tugende-map-hint--riders">
               {ride?.status === "accepted" ? "Your rider is nearby" : "Riders near you — matching a trip…"}
             </p>
           ) : null}
-          <div className={passengerBoltHome ? "tugende-ride-shell" : undefined}>
+          <div
+            className={
+              passengerBoltHome ? `tugende-ride-shell${mapPickMode ? " tugende-ride-shell--pick" : ""}` : undefined
+            }
+          >
             <TugendeMap
               you={pos}
-              destination={mapDestination}
+              destination={mapPickMode ? null : mapDestination}
               path={ride?.status === "in_progress" ? livePath : undefined}
               size={mapSize}
               pickMode={mapPickMode && Boolean(pos) && !geocodingDest}
-              followYou={ride?.status === "in_progress" ? true : Boolean(pos)}
+              followYou={mapFollowYou}
               stableCamera={ride?.status !== "in_progress"}
               onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
               onRecenter={pos ? () => haptic("light") : undefined}
               nearbyRiders={showNearbyRiders ? mapNearbyRiders : undefined}
             />
-            {passengerBoltHome ? (
+            {passengerBoltHome && !mapPickMode ? (
               <div className="tugende-sheet">
                 {locStatus !== "active" || !pos ? (
                   <div className="tugende-loc-banner tugende-loc-banner--sheet">

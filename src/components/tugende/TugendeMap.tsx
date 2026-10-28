@@ -122,6 +122,8 @@ export function TugendeMap({
   const lastBoundsKeyRef = useRef("");
   const didInitialCenterRef = useRef(false);
   const lastPanPointRef = useRef<Point | null>(null);
+  const pickModeRef = useRef(pickMode);
+  pickModeRef.current = pickMode;
 
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
@@ -152,16 +154,24 @@ export function TugendeMap({
     if (!map) return;
     const t = setTimeout(() => {
       map.invalidateSize({ animate: false });
-      if (!you) return;
-      const zoom = stableCamera ? DEFAULT_ZOOM : TRIP_FOLLOW_ZOOM;
-      if (followYou || pickMode) {
-        map.setView([you.lat, you.lng], zoom, { animate: false });
-        lastPanPointRef.current = you;
-        didInitialCenterRef.current = true;
-      }
     }, 120);
     return () => clearTimeout(t);
-  }, [size, you, followYou, pickMode, stableCamera]);
+  }, [size]);
+
+  useEffect(() => {
+    if (!pickMode) return;
+    const map = mapRef.current;
+    if (!map || !you) return;
+    const start = { lat: you.lat, lng: you.lng };
+    const t = setTimeout(() => {
+      map.invalidateSize({ animate: false });
+      const z = map.getZoom() || DEFAULT_ZOOM;
+      map.setView([start.lat, start.lng], z, { animate: false });
+      lastPanPointRef.current = start;
+      didInitialCenterRef.current = true;
+    }, 150);
+    return () => clearTimeout(t);
+  }, [pickMode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -183,7 +193,7 @@ export function TugendeMap({
   }
 
   function maybeFollowYou(point: Point) {
-    if (!followYou) return;
+    if (!followYou || pickModeRef.current) return;
     const zoom = stableCamera ? DEFAULT_ZOOM : TRIP_FOLLOW_ZOOM;
     if (stableCamera) {
       if (!didInitialCenterRef.current) {
