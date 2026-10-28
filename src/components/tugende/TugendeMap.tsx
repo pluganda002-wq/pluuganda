@@ -7,9 +7,9 @@ import "./TugendeMap.css";
 type Point = { lat: number; lng: number };
 
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
-/** Street-level pickup — match familiar Tugende home view (neighborhood labels, not city-wide). */
-const DEFAULT_ZOOM = 17;
-const TRIP_FOLLOW_ZOOM = 17;
+/** Wider neighborhood view on home; closer follow during active trip. */
+const DEFAULT_ZOOM = 14;
+const TRIP_FOLLOW_ZOOM = 16;
 const MIN_MOVE_KM_FOR_PAN = 0.08;
 const RIDER_BODA_IMG = "/branding/tugende-safe-boda.png";
 
@@ -59,9 +59,9 @@ function haversineKm(a: Point, b: Point): number {
 function makeYouIcon() {
   return L.divIcon({
     className: "tugende-map-you",
-    html: '<span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    html: `<span class="tugende-map-you__beam"></span><span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>`,
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   });
 }
 

@@ -56,36 +56,50 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   border-radius: 50%;
-  background: var(--plu-gold);
+  background: #2563eb;
   border: 3px solid #fff;
-  box-shadow: 0 1px 6px rgba(201, 162, 39, 0.5);
-  z-index: 2;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.55);
+  z-index: 3;
 }
 
 .tugende-map-you__pulse {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--plu-gold) 35%, transparent);
-  animation: tugende-map-pulse 3.5s ease-out infinite;
+  background: rgba(37, 99, 235, 0.28);
+  animation: tugende-map-pulse 2.2s ease-out infinite;
   z-index: 1;
+}
+
+.tugende-map-you__beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.12);
+  animation: tugende-map-pulse 2.2s ease-out infinite;
+  animation-delay: 0.35s;
+  z-index: 0;
 }
 
 @keyframes tugende-map-pulse {
   0% {
-    transform: scale(0.7);
-    opacity: 0.35;
+    transform: scale(0.55);
+    opacity: 0.75;
   }
   100% {
-    transform: scale(1.15);
+    transform: scale(1.45);
     opacity: 0;
   }
 }
@@ -104,7 +118,7 @@
 }
 
 .tugende-map-rider--assigned img {
-  outline: 3px solid var(--plu-gold);
+  outline: 3px solid #2563eb;
   outline-offset: 2px;
   border-radius: 50%;
 }
