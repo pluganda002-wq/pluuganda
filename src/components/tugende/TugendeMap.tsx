@@ -59,9 +59,9 @@ function haversineKm(a: Point, b: Point): number {
 function makeYouIcon() {
   return L.divIcon({
     className: "tugende-map-you",
-    html: `<span class="tugende-map-you__beam"></span><span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>`,
-    iconSize: [52, 52],
-    iconAnchor: [26, 26],
+    html: '<span class="tugende-map-you__pulse"></span><span class="tugende-map-you__dot"></span>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   });
 }
 

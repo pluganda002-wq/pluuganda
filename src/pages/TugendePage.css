@@ -308,7 +308,7 @@
 }
 
 .tugende-map-hint--riders {
-  color: #2563eb;
+  color: var(--plu-gold-dark, #9a7b1a);
   font-weight: 600;
 }
 
