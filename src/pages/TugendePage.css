@@ -414,7 +414,6 @@
 .tugende-ride-shell {
   display: flex;
   flex-direction: column;
-  min-height: min(72vh, 640px);
   border-radius: 1rem;
   overflow: hidden;
   background: #f3f4f6;

@@ -7,9 +7,9 @@ import "./TugendeMap.css";
 type Point = { lat: number; lng: number };
 
 const DEFAULT_CENTER: Point = { lat: 0.3476, lng: 32.5825 };
-/** Wider neighborhood view — Bolt-like clarity without feeling cramped. */
-const DEFAULT_ZOOM = 13;
-const TRIP_FOLLOW_ZOOM = 15;
+/** Street-level pickup view (stable camera — no bounce on GPS updates). */
+const DEFAULT_ZOOM = 16;
+const TRIP_FOLLOW_ZOOM = 17;
 const MIN_MOVE_KM_FOR_PAN = 0.08;
 
 /** CARTO Voyager needs a Basemaps key. Use VITE_CARTO_RASTER_URL (from email) or VITE_CARTO_API_KEY. */
@@ -205,7 +205,7 @@ export function TugendeMap({
       const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}`;
       if (lastBoundsKeyRef.current !== key) {
         lastBoundsKeyRef.current = key;
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [72, 72], maxZoom: 14 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 16 });
       }
     } else if (routeRef.current) {
       routeRef.current.remove();
@@ -222,7 +222,7 @@ export function TugendeMap({
       if (followYou && you && !stableCamera) {
         maybeFollowYou(you);
       } else if (!followYou && latlngs.length >= 2) {
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [56, 56], maxZoom: 14 });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: 16 });
       }
     } else if (pathRef.current) {
       pathRef.current.remove();

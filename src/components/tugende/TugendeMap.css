@@ -16,16 +16,16 @@
 
 .tugende-map-shell.tugende-map--hero {
   margin-bottom: 0;
-  flex: 1;
-  min-height: 42vh;
+  flex: 0 0 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .tugende-map-shell.tugende-map--hero .tugende-map {
-  flex: 1;
-  height: auto;
-  min-height: 42vh;
+  flex: 0 0 auto;
+  height: min(38vh, 320px);
+  min-height: 240px;
   border-radius: 0;
   border: none;
 }
