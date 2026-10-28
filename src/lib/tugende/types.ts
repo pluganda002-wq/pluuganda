@@ -46,4 +46,6 @@ export type TugendeRide = {
   fareUgx: number;
   path?: { lat: number; lng: number }[];
   estimatedKm?: number;
+  createdAt?: string;
+  endedAt?: string;
 };

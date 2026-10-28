@@ -6,18 +6,35 @@ const KEY = "plu-tugende-local-v1";
 type Store = {
   user: TugendeUser | null;
   ride: TugendeRide | null;
+  history?: TugendeRide[];
 };
 
 function load(): Store {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "{}") as Store;
+    const raw = JSON.parse(localStorage.getItem(KEY) ?? "{}") as Store;
+    return { user: raw.user ?? null, ride: raw.ride ?? null, history: raw.history ?? [] };
   } catch {
-    return { user: null, ride: null };
+    return { user: null, ride: null, history: [] };
   }
+}
+
+function archiveRide(s: Store, ride: TugendeRide) {
+  const history = s.history ?? [];
+  if (!history.some((r) => r.rideId === ride.rideId)) {
+    history.unshift(ride);
+  }
+  s.history = history.slice(0, 40);
+  s.ride = null;
 }
 
 function save(store: Store) {
   localStorage.setItem(KEY, JSON.stringify(store));
+}
+
+function migrateFinishedActiveRide(s: Store) {
+  if (!s.ride || !["completed", "cancelled"].includes(s.ride.status)) return;
+  archiveRide(s, s.ride);
+  save(s);
 }
 
 function samePoint(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -95,6 +112,7 @@ export const tugendeLocal = {
   requestRide(telegramId: string, pickup: TugendeRide["pickup"], dropoff: TugendeRide["dropoff"]): TugendeRide {
     const s = load();
     const estKm = haversineKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
+    const now = new Date().toISOString();
     const ride: TugendeRide = {
       rideId: `TG-L-${Date.now().toString(36).toUpperCase()}`,
       status: "pending",
@@ -106,6 +124,7 @@ export const tugendeLocal = {
       distanceKm: 0,
       fareUgx: fareFromKm(estKm),
       estimatedKm: estKm,
+      createdAt: now,
     };
     s.ride = ride;
     save(s);
@@ -132,17 +151,35 @@ export const tugendeLocal = {
       throw new Error("Insufficient wallet balance. Top up to pay.");
     }
     s.user.walletBalanceUgx -= fareUgx;
-    s.ride = { ...s.ride, status: "completed", distanceKm, fareUgx };
+    const finished: TugendeRide = {
+      ...s.ride,
+      status: "completed",
+      distanceKm,
+      fareUgx,
+      endedAt: new Date().toISOString(),
+    };
+    archiveRide(s, finished);
     save(s);
-    return { ride: s.ride, walletBalanceUgx: s.user.walletBalanceUgx };
+    return { ride: finished, walletBalanceUgx: s.user.walletBalanceUgx };
   },
 
   cancelRide(rideId: string) {
     const s = load();
     if (s.ride?.rideId === rideId) {
-      s.ride = { ...s.ride, status: "cancelled" };
+      const finished: TugendeRide = {
+        ...s.ride,
+        status: "cancelled",
+        endedAt: new Date().toISOString(),
+      };
+      archiveRide(s, finished);
       save(s);
     }
+  },
+
+  rideHistory(telegramId: string): TugendeRide[] {
+    const s = load();
+    migrateFinishedActiveRide(s);
+    return (s.history ?? []).filter((r) => r.riderId === telegramId || r.driverId === telegramId);
   },
 
   topUp(telegramId: string, amountUgx: number): number {

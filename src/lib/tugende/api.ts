@@ -285,6 +285,22 @@ export async function tugendePendingRides(): Promise<TugendeRide[]> {
   }
 }
 
+export async function tugendeFetchRideHistory(telegramId: number, limit = 30): Promise<TugendeRide[]> {
+  const id = String(telegramId);
+  if (useLocalTugendeOnly()) return tugendeLocal.rideHistory(id);
+  try {
+    const res = await get<{ rides: TugendeRide[] }>({
+      action: "rideHistory",
+      telegramId: id,
+      limit: String(limit),
+    });
+    return res.rides;
+  } catch (e) {
+    if (isApiUnavailableError(e)) return tugendeLocal.rideHistory(id);
+    throw e;
+  }
+}
+
 export async function tugendeAcceptRide(telegramId: number, rideId: string) {
   const id = String(telegramId);
   if (useLocalTugendeOnly()) {

@@ -191,6 +191,20 @@ export async function GET(request) {
     return Response.json({ rides: rides.map(serializeRide) });
   }
 
+  if (action === "rideHistory") {
+    const limit = Math.min(Number(url.searchParams.get("limit") ?? 30), 50);
+    const rides = await db
+      .collection("tugende_rides")
+      .find({
+        $or: [{ riderId: String(telegramId) }, { driverId: String(telegramId) }],
+        status: { $in: ["completed", "cancelled"] },
+      })
+      .sort({ endedAt: -1, createdAt: -1 })
+      .limit(limit)
+      .toArray();
+    return Response.json({ rides: rides.map(serializeRide) });
+  }
+
   return Response.json({ error: "Unknown action" }, { status: 400 });
 }
 

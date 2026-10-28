@@ -160,11 +160,39 @@
   background: color-mix(in srgb, var(--accent, #c9a227) 12%, transparent);
 }
 
+.tugende-page {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--plu-gold, #c9a227) 10%, var(--bg, #fafafa)) 0%,
+    var(--bg, #fafafa) 12rem
+  );
+}
+
 .tugende-header {
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--plu-gold, #c9a227) 8%, #fff) 100%);
+  border: 1px solid color-mix(in srgb, var(--plu-gold, #c9a227) 28%, transparent);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.07);
+}
+
+.tugende-header__brand {
+  margin: 0 0 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--plu-gold-dark, #8a6914);
+}
+
+.tugende-header__name {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.25;
 }
 
 .tugende-header__body {
@@ -201,12 +229,18 @@
 
 .tugende-tabs__btn {
   flex: 1;
-  padding: 0.55rem;
-  border-radius: 0.65rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.35rem;
+  border-radius: 0.75rem;
   border: none;
-  background: color-mix(in srgb, var(--text) 8%, transparent);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .tugende-tabs__btn--on {
@@ -442,8 +476,121 @@
   font-weight: 700;
 }
 
+.tugende-request-btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tugende-request-hint {
+  margin: 0 1rem 1.1rem;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  text-align: center;
+  color: color-mix(in srgb, var(--text) 70%, transparent);
+  background: color-mix(in srgb, var(--plu-gold, #c9a227) 10%, transparent);
+  border-radius: 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--plu-gold, #c9a227) 35%, transparent);
+}
+
 .tugende-loc-banner--sheet {
   padding: 1rem;
   background: #fff;
   border-radius: 1.25rem 1.25rem 0 0;
+}
+
+.tugende-panel--trips {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--plu-gold, #c9a227) 20%, transparent);
+}
+
+.tugende-panel--wallet {
+  padding: 1rem;
+}
+
+.tugende-wallet-hero {
+  padding: 1.1rem 1rem;
+  margin: -0.25rem 0 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #111 0%, #1f2937 100%);
+  color: #fff;
+}
+
+.tugende-wallet-hero__label {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tugende-wallet-hero__amount {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--plu-gold, #c9a227);
+}
+
+.tugende-wallet-hero__note {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.8rem;
+}
+
+.tugende-pending--card {
+  padding: 0.95rem;
+  margin-bottom: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--plu-gold, #c9a227) 22%, transparent);
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.tugende-pending--card:first-of-type {
+  border-top: 1px solid color-mix(in srgb, var(--plu-gold, #c9a227) 22%, transparent);
+}
+
+.tugende-pending__route {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+}
+
+.tugende-pending__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 0.4rem;
+}
+
+.tugende-pending__dot--pick {
+  background: var(--plu-gold, #c9a227);
+}
+
+.tugende-pending__dot--drop {
+  background: #111;
+}
+
+.tugende-pending__meta {
+  margin: 0.5rem 0 0.65rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.tugende-drive-history {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+.tugende-drive-history__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }

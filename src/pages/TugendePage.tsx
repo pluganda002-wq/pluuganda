@@ -11,7 +11,9 @@ import {
   type PlaceResult,
 } from "@/lib/tugende/geo";
 import { TugendeMap } from "@/components/tugende/TugendeMap";
+import { TugendeJourneyList } from "@/components/tugende/TugendeJourneyList";
 import { TugendeRouteSheet } from "@/components/tugende/TugendeRouteSheet";
+import { Bike, History, MapPinned, Wallet as WalletIcon } from "lucide-react";
 import { clearLiveLocationCache, isTugendeLocationGranted, useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
@@ -19,6 +21,7 @@ import {
   tugendeCompleteRide,
   tugendeFetchActiveRide,
   tugendeFetchProfile,
+  tugendeFetchRideHistory,
   tugendeFetchWalletConfig,
   tugendeLogout,
   tugendePendingRides,
@@ -38,7 +41,7 @@ import "./TugendePage.css";
 
 const LOGO = "/branding/tugende-safe-boda.png";
 
-type Tab = "ride" | "wallet" | "drive";
+type Tab = "ride" | "trips" | "wallet" | "drive";
 
 const DEV_TELEGRAM_ID = 800_001;
 
@@ -84,6 +87,8 @@ export function TugendePage() {
   const searchGenRef = useRef(0);
   const [dropoffFocused, setDropoffFocused] = useState(false);
   const [nearbyDrivers, setNearbyDrivers] = useState<TugendeNearbyDriver[]>([]);
+  const [journeyHistory, setJourneyHistory] = useState<TugendeRide[]>([]);
+  const [journeysLoading, setJourneysLoading] = useState(false);
   const lastPickupGeocodeRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
@@ -102,6 +107,19 @@ export function TugendePage() {
       if (!r) return null;
       return mergeRideFromServer(prev, r);
     });
+  }, [telegramId]);
+
+  const refreshJourneys = useCallback(async () => {
+    if (!telegramId) return;
+    setJourneysLoading(true);
+    try {
+      const rides = await tugendeFetchRideHistory(telegramId);
+      setJourneyHistory(rides);
+    } catch {
+      setJourneyHistory([]);
+    } finally {
+      setJourneysLoading(false);
+    }
   }, [telegramId]);
 
   const gpsActive = Boolean(
@@ -172,6 +190,11 @@ export function TugendePage() {
     const t = setInterval(load, 4000);
     return () => clearInterval(t);
   }, [profile?.role, tab]);
+
+  useEffect(() => {
+    if (!profile || (tab !== "trips" && tab !== "drive")) return;
+    void refreshJourneys();
+  }, [profile, tab, refreshJourneys]);
 
   async function handlePickDestination(point: { lat: number; lng: number }) {
     if (!pos) return;
@@ -281,6 +304,7 @@ export function TugendePage() {
     setDropoff({ lat: place.lat, lng: place.lng, label });
     setDropoffQuery("");
     setPlaceSuggestions([]);
+    setDropoffFocused(false);
   }
 
   function clearDropoff() {
@@ -330,6 +354,7 @@ export function TugendePage() {
       setProfile((p) => (p ? { ...p, walletBalanceUgx: res.walletBalanceUgx } : p));
       haptic("heavy");
       showAlert(`Ride complete. Paid UGX ${res.ride.fareUgx.toLocaleString()} (${res.ride.distanceKm.toFixed(2)} km).`);
+      void refreshJourneys();
       await refreshProfile();
     } catch (err) {
       showAlert(err instanceof Error ? err.message : "Could not end ride");
@@ -342,6 +367,7 @@ export function TugendePage() {
     if (!telegramId || !ride) return;
     await tugendeCancelRide(telegramId, ride.rideId);
     setRide(null);
+    void refreshJourneys();
     haptic("light");
   }
 
@@ -434,9 +460,15 @@ export function TugendePage() {
     );
   }
 
+  const destinationReady = Boolean(
+    dropoff && Number.isFinite(dropoff.lat) && Number.isFinite(dropoff.lng) && dropoff.label.trim()
+  );
   const plannedKm =
-    pos && dropoff ? haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng) : null;
+    pos && destinationReady && dropoff
+      ? haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng)
+      : null;
   const plannedFare = plannedKm != null ? fareFromKm(plannedKm) : null;
+  const canRequestRide = Boolean(destinationReady && pos && locStatus === "active" && !loading && !ride);
 
   const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
   const passengerBoltHome = tab === "ride" && profile.role === "rider" && !ride;
@@ -453,19 +485,23 @@ export function TugendePage() {
   const canEndRide =
     ride?.status === "in_progress" && (profile.role === "driver" ? isDriverOnRide : isRiderOnRide);
 
+  const navTabs: { id: Tab; label: string; Icon: typeof MapPinned; driverOnly?: boolean }[] = [
+    { id: "ride", label: "Ride", Icon: MapPinned },
+    { id: "trips", label: "Trips", Icon: History },
+    { id: "wallet", label: "Wallet", Icon: WalletIcon },
+    { id: "drive", label: "Drive", Icon: Bike, driverOnly: true },
+  ];
+
   return (
     <main className="page tugende-page">
-      <header className="tugende-header card card--flat">
-        <img src={LOGO} alt="" className="tugende-header__logo" width={56} height={56} />
+      <header className="tugende-header">
+        <img src={LOGO} alt="" className="tugende-header__logo" width={52} height={52} />
         <div className="tugende-header__body">
-          <strong>{profile.fullName}</strong>
+          <p className="tugende-header__brand">Tugende</p>
+          <strong className="tugende-header__name">{profile.fullName}</strong>
           <p className="tugende-header__meta">
-            {profile.role === "driver" ? "Rider" : "Passenger"}
-            {profile.loginMethod ? ` · ${profile.loginMethod}` : ""}
-            {profile.phone ? ` · ${profile.phone}` : profile.loginId ? ` · ${profile.loginId}` : ""}
-          </p>
-          <p className="tugende-header__wallet">
-            Wallet: <span>UGX {profile.walletBalanceUgx.toLocaleString()}</span>
+            {profile.role === "driver" ? "Rider (driver)" : "Passenger"}
+            {profile.phone ? ` · ${profile.phone}` : ""}
           </p>
         </div>
         <button type="button" className="btn btn-ghost tugende-header__logout" onClick={() => void logout()}>
@@ -474,16 +510,19 @@ export function TugendePage() {
       </header>
 
       <nav className="tugende-tabs" aria-label="Tugende sections">
-        {(["ride", "wallet", "drive"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            className={`tugende-tabs__btn${tab === t ? " tugende-tabs__btn--on" : ""}`}
-            onClick={() => setTab(t)}
-          >
-            {t === "ride" ? "Ride" : t === "wallet" ? "Wallet" : "Drive"}
-          </button>
-        ))}
+        {navTabs
+          .filter((t) => !t.driverOnly || profile.role === "driver")
+          .map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              className={`tugende-tabs__btn${tab === id ? " tugende-tabs__btn--on" : ""}`}
+              onClick={() => setTab(id)}
+            >
+              <Icon size={17} strokeWidth={2.25} aria-hidden />
+              {label}
+            </button>
+          ))}
       </nav>
 
       {tab === "ride" ? (
@@ -563,26 +602,35 @@ export function TugendePage() {
                         }
                       }}
                     />
-                    {plannedKm != null && plannedFare != null && dropoff ? (
-                      <div className="tugende-fare-card tugende-fare-card--sheet">
-                        <div className="tugende-fare-card__row">
-                          <span>Trip</span>
-                          <strong>{plannedKm.toFixed(2)} km</strong>
-                        </div>
-                        <div className="tugende-fare-card__row">
-                          <span>You pay</span>
-                          <strong className="tugende-fare-card__price">UGX {plannedFare.toLocaleString()}</strong>
-                        </div>
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      className="btn btn-primary tugende-request-btn"
-                      disabled={loading || !pos || !dropoff}
-                      onClick={requestRide}
-                    >
-                      Request Tugende
-                    </button>
+                    {destinationReady ? (
+                      <>
+                        {plannedKm != null && plannedFare != null ? (
+                          <div className="tugende-fare-card tugende-fare-card--sheet">
+                            <p className="tugende-fare-card__dest">{dropoff!.label}</p>
+                            <div className="tugende-fare-card__row">
+                              <span>Trip</span>
+                              <strong>{plannedKm.toFixed(2)} km</strong>
+                            </div>
+                            <div className="tugende-fare-card__row">
+                              <span>You pay</span>
+                              <strong className="tugende-fare-card__price">UGX {plannedFare.toLocaleString()}</strong>
+                            </div>
+                          </div>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="btn btn-primary tugende-request-btn"
+                          disabled={!canRequestRide}
+                          onClick={requestRide}
+                        >
+                          {!pos || locStatus !== "active"
+                            ? "Waiting for GPS…"
+                            : "Request Tugende"}
+                        </button>
+                      </>
+                    ) : (
+                      <p className="tugende-request-hint">Select a dropoff from search or the map to request a ride.</p>
+                    )}
                   </>
                 )}
               </div>
@@ -655,15 +703,30 @@ export function TugendePage() {
         </section>
       ) : null}
 
+      {tab === "trips" ? (
+        <section className="tugende-panel tugende-panel--trips card">
+          <TugendeJourneyList
+            rides={journeyHistory}
+            viewerId={telegramKey}
+            viewerRole={profile.role}
+            loading={journeysLoading}
+            onRefresh={() => void refreshJourneys()}
+          />
+        </section>
+      ) : null}
+
       {tab === "wallet" ? (
-        <section className="card tugende-panel">
-          <h2 className="tugende-panel__title">Wallet</h2>
-          <p className="tugende-momo-note">
-            {momoEnabled
-              ? "Top-ups use MTN MoMo STK push to your registered number."
-              : "Demo wallet — set MOMO_* env on Vercel for real mobile money."}
-          </p>
-          <p className="tugende-balance">UGX {profile.walletBalanceUgx.toLocaleString()}</p>
+        <section className="card tugende-panel tugende-panel--wallet">
+          <div className="tugende-wallet-hero">
+            <p className="tugende-wallet-hero__label">Available balance</p>
+            <p className="tugende-wallet-hero__amount">UGX {profile.walletBalanceUgx.toLocaleString()}</p>
+            <p className="tugende-momo-note tugende-wallet-hero__note">
+              {momoEnabled
+                ? "Top-ups use MTN MoMo STK push to your registered number."
+                : "Demo wallet — set MOMO_* env on Vercel for live mobile money."}
+            </p>
+          </div>
+          <h2 className="tugende-panel__title">Quick top-up</h2>
           <div className="tugende-topups">
             {[5000, 10000, 20000, 50000].map((amt) => (
               <button key={amt} type="button" className="btn btn-secondary" disabled={loading} onClick={() => topUp(amt)}>
@@ -733,9 +796,16 @@ export function TugendePage() {
             <p className="tugende-empty">No pending rides. Stay online with GPS on.</p>
           ) : (
             pending.map((r) => (
-              <div key={r.rideId} className="tugende-pending">
-                <strong>{r.rideId}</strong>
-                <p>
+              <div key={r.rideId} className="tugende-pending tugende-pending--card">
+                <div className="tugende-pending__route">
+                  <span className="tugende-pending__dot tugende-pending__dot--pick" />
+                  <span>{r.pickup.label ?? "Pickup"}</span>
+                </div>
+                <div className="tugende-pending__route">
+                  <span className="tugende-pending__dot tugende-pending__dot--drop" />
+                  <span>{r.dropoff.label ?? "Dropoff"}</span>
+                </div>
+                <p className="tugende-pending__meta">
                   Est. {r.estimatedKm?.toFixed(1) ?? "?"} km · UGX {r.fareUgx.toLocaleString()}
                 </p>
                 <button type="button" className="btn btn-primary" onClick={() => acceptPending(r.rideId)}>
@@ -744,6 +814,17 @@ export function TugendePage() {
               </div>
             ))
           )}
+          <div className="tugende-drive-history">
+            <h3 className="tugende-drive-history__title">Your completed drives</h3>
+            <TugendeJourneyList
+              rides={journeyHistory.filter((r) => r.driverId === telegramKey)}
+              viewerId={telegramKey}
+              viewerRole="driver"
+              loading={journeysLoading}
+              compact
+              onRefresh={() => void refreshJourneys()}
+            />
+          </div>
         </section>
       ) : null}
 
