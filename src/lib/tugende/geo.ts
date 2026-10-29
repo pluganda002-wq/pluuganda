@@ -40,6 +40,38 @@ export function fareFromKm(km: number): number {
   return Math.round(billable * TUGENDE_RATE_UGX_PER_KM);
 }
 
+/** Stable Uganda-style plate for demo / fallback drivers. */
+export function vehiclePlateFromId(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  const L = "ABCDEFGHJKLMNPRSTUVWXYZ";
+  const prefix = `U${L[h % 26]}${L[(h >> 4) % 26]}${L[(h >> 8) % 26]}`;
+  const num = 100 + (h % 900);
+  const suffix = L[(h >> 12) % 26];
+  return `${prefix} ${num}${suffix}`;
+}
+
+export async function fetchRoadRoute(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number }
+): Promise<{ points: { lat: number; lng: number }[]; distanceKm: number } | null> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      routes?: { distance: number; geometry?: { coordinates?: [number, number][] } }[];
+    };
+    const route = data.routes?.[0];
+    const coords = route?.geometry?.coordinates;
+    if (!route || !coords?.length) return null;
+    const points = coords.map(([lng, lat]) => ({ lat, lng }));
+    return { points, distanceKm: route.distance / 1000 };
+  } catch {
+    return null;
+  }
+}
+
 export type LatLng = { lat: number; lng: number; label?: string };
 
 type NominatimAddress = {
@@ -204,12 +236,14 @@ export function demoNearbyDrivers(lat: number, lng: number, seed = 0) {
   return bearings.map((bearing, i) => {
     const distKm = 0.35 + ((seed + i * 17) % 40) / 100;
     const point = offsetPointKm(lat, lng, bearing + (seed % 15), distKm);
+    const driverId = `demo-${900100 + i}`;
     return {
-      driverId: `demo-${900100 + i}`,
+      driverId,
       fullName: DEMO_RIDER_NAMES[i % DEMO_RIDER_NAMES.length],
       lat: point.lat,
       lng: point.lng,
       distanceKm: haversineKm(lat, lng, point.lat, point.lng),
+      vehiclePlate: vehiclePlateFromId(driverId),
     };
   });
 }

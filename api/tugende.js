@@ -1,6 +1,12 @@
 import { getDb, isDbConfigured } from "./lib/mongodb.js";
 import { isMomoConfigured, requestToPay } from "./lib/momo.js";
-import { fareFromKm, haversineKm, pathDistanceKm, TUGENDE_RATE_UGX_PER_KM } from "./lib/tugendeMath.js";
+import {
+  fareFromKm,
+  haversineKm,
+  pathDistanceKm,
+  TUGENDE_RATE_UGX_PER_KM,
+  vehiclePlateFromId,
+} from "./lib/tugendeMath.js";
 
 const DEMO_DRIVER_ID = 900001;
 
@@ -99,13 +105,15 @@ export async function GET(request) {
         if (typeof dlat !== "number" || typeof dlng !== "number") return null;
         const distanceKm = haversineKm(lat, lng, dlat, dlng);
         if (distanceKm > maxKm) return null;
+        const driverId = String(u.telegramId);
         return {
-          driverId: String(u.telegramId),
+          driverId,
           fullName: u.fullName || "Rider",
           lat: dlat,
           lng: dlng,
           distanceKm,
-          assigned: assignedDriverId != null && String(u.telegramId) === assignedDriverId,
+          vehiclePlate: u.vehiclePlate || vehiclePlateFromId(driverId),
+          assigned: assignedDriverId != null && driverId === assignedDriverId,
         };
       })
       .filter(Boolean);
@@ -131,6 +139,7 @@ export async function GET(request) {
           lat: rlat,
           lng: rlng,
           distanceKm: haversineKm(lat, lng, rlat, rlng),
+          vehiclePlate: vehiclePlateFromId(id),
           assigned: assignedDriverId === id,
         };
       });

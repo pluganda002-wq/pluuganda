@@ -1,8 +1,8 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { TugendeSignIn } from "@/components/tugende/TugendeSignIn";
 import {
   fareFromKm,
+  fetchRoadRoute,
   haversineKm,
   pathDistanceKm,
   reverseGeocodeLabel,
@@ -13,7 +13,7 @@ import {
 import { TugendeMap } from "@/components/tugende/TugendeMap";
 import { TugendeJourneyList } from "@/components/tugende/TugendeJourneyList";
 import { TugendeRouteSheet } from "@/components/tugende/TugendeRouteSheet";
-import { Bike, History, MapPinned, Wallet as WalletIcon } from "lucide-react";
+import { Bike, History, LogOut, MapPin, MapPinned, Wallet as WalletIcon } from "lucide-react";
 import { clearLiveLocationCache, isTugendeLocationGranted, useLiveLocation } from "@/hooks/useLiveLocation";
 import {
   tugendeAcceptRide,
@@ -89,6 +89,9 @@ export function TugendePage() {
   const [nearbyDrivers, setNearbyDrivers] = useState<TugendeNearbyDriver[]>([]);
   const [journeyHistory, setJourneyHistory] = useState<TugendeRide[]>([]);
   const [journeysLoading, setJourneysLoading] = useState(false);
+  const [roadRoute, setRoadRoute] = useState<{ points: { lat: number; lng: number }[]; distanceKm: number } | null>(
+    null
+  );
   const lastPickupGeocodeRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const [withdrawPhone, setWithdrawPhone] = useState("");
@@ -196,6 +199,20 @@ export function TugendePage() {
     void refreshJourneys();
   }, [profile, tab, refreshJourneys]);
 
+  useEffect(() => {
+    if (!pos || !dropoff) {
+      setRoadRoute(null);
+      return;
+    }
+    let cancelled = false;
+    fetchRoadRoute(pos, dropoff).then((route) => {
+      if (!cancelled) setRoadRoute(route);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pos?.lat, pos?.lng, dropoff?.lat, dropoff?.lng]);
+
   async function handlePickDestination(point: { lat: number; lng: number }) {
     if (!pos) return;
     setGeocodingDest(true);
@@ -293,6 +310,8 @@ export function TugendePage() {
         lat: d.lat,
         lng: d.lng,
         label: d.assigned ? `${d.fullName} · your rider` : d.fullName,
+        vehiclePlate: d.vehiclePlate,
+        distanceKm: d.distanceKm,
         assigned: d.assigned,
       })),
     [nearbyDrivers]
@@ -463,21 +482,16 @@ export function TugendePage() {
   const destinationReady = Boolean(
     dropoff && Number.isFinite(dropoff.lat) && Number.isFinite(dropoff.lng) && dropoff.label.trim()
   );
-  const plannedKm =
-    pos && destinationReady && dropoff
-      ? haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng)
-      : null;
+  const straightKm =
+    pos && destinationReady && dropoff ? haversineKm(pos.lat, pos.lng, dropoff.lat, dropoff.lng) : null;
+  const plannedKm = roadRoute?.distanceKm ?? straightKm;
   const plannedFare = plannedKm != null ? fareFromKm(plannedKm) : null;
   const canRequestRide = Boolean(destinationReady && pos && locStatus === "active" && !loading && !ride);
 
   const mapDestination = ride ? { lat: ride.dropoff.lat, lng: ride.dropoff.lng } : dropoff;
   const passengerBoltHome = tab === "ride" && profile.role === "rider" && !ride;
-  const mapSize =
-    mapPickMode && passengerBoltHome
-      ? "fullscreen"
-      : passengerBoltHome || ride?.status === "in_progress"
-        ? "hero"
-        : "fullscreen";
+  const immersiveRide = tab === "ride";
+  const mapSize = immersiveRide ? "viewport" : passengerBoltHome || ride?.status === "in_progress" ? "hero" : "fullscreen";
   const mapFollowYou =
     !mapPickMode && (ride?.status === "in_progress" ? true : Boolean(pos));
   const livePath =
@@ -500,42 +514,42 @@ export function TugendePage() {
   ];
 
   return (
-    <main className="page tugende-page">
-      <header className="tugende-header">
-        <img src={LOGO} alt="" className="tugende-header__logo" width={52} height={52} />
-        <div className="tugende-header__body">
-          <p className="tugende-header__brand">Tugende</p>
-          <strong className="tugende-header__name">{profile.fullName}</strong>
-          <p className="tugende-header__meta">
-            {profile.role === "driver" ? "Rider (driver)" : "Passenger"}
-            {profile.phone ? ` · ${profile.phone}` : ""}
-          </p>
-        </div>
-        <button type="button" className="btn btn-ghost tugende-header__logout" onClick={() => void logout()}>
-          Log out
-        </button>
-      </header>
-
-      <nav className="tugende-tabs" aria-label="Tugende sections">
+    <main className={`page tugende-page${immersiveRide ? " tugende-page--immersive" : ""}`}>
+      <nav className="tugende-corner-nav" aria-label="Tugende sections">
         {navTabs
           .filter((t) => !t.driverOnly || profile.role === "driver")
           .map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
-              className={`tugende-tabs__btn${tab === id ? " tugende-tabs__btn--on" : ""}`}
+              className={`tugende-corner-nav__btn${tab === id ? " tugende-corner-nav__btn--on" : ""}`}
               onClick={() => setTab(id)}
             >
-              <Icon size={17} strokeWidth={2.25} aria-hidden />
+              <Icon size={15} strokeWidth={2.25} aria-hidden />
               {label}
             </button>
           ))}
+        <button type="button" className="tugende-corner-nav__logout" onClick={() => void logout()} aria-label="Log out">
+          <LogOut size={16} />
+        </button>
       </nav>
 
+      {!immersiveRide ? (
+        <header className="tugende-header">
+          <img src={LOGO} alt="" className="tugende-header__logo" width={52} height={52} />
+          <div className="tugende-header__body">
+            <p className="tugende-header__brand">Tugende</p>
+            <strong className="tugende-header__name">{profile.fullName}</strong>
+            <p className="tugende-header__meta">
+              {profile.role === "driver" ? "Rider (driver)" : "Passenger"}
+              {profile.phone ? ` · ${profile.phone}` : ""}
+            </p>
+          </div>
+        </header>
+      ) : null}
+
       {tab === "ride" ? (
-        <section
-          className={`tugende-panel tugende-panel--map${passengerBoltHome ? " tugende-panel--bolt" : " card"}`}
-        >
+        <section className={`tugende-ride-view${passengerBoltHome ? " tugende-ride-view--home" : ""}`}>
           {!passengerBoltHome && ride?.status === "in_progress" ? (
             <div className="tugende-live-meter" aria-live="polite">
               <div>
@@ -548,38 +562,45 @@ export function TugendePage() {
               </div>
             </div>
           ) : null}
+          <div className="tugende-ride-view__map">
+            <TugendeMap
+              you={pos}
+              destination={mapPickMode ? null : mapDestination}
+              routeLine={roadRoute?.points}
+              path={ride?.status === "in_progress" ? livePath : undefined}
+              size={mapSize}
+              pickMode={mapPickMode && Boolean(pos) && !geocodingDest}
+              followYou={mapFollowYou}
+              stableCamera={ride?.status !== "in_progress" && !mapPickMode}
+              onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
+              onRecenter={pos ? () => haptic("light") : undefined}
+              nearbyRiders={showNearbyRiders ? mapNearbyRiders : undefined}
+            />
+            {showNearbyRiders ? (
+              <p className="tugende-ride-view__riders-hint">
+                {ride?.status === "accepted" ? "Your rider is nearby" : "Available riders · plates & distance on map"}
+              </p>
+            ) : null}
+          </div>
+
+          {passengerBoltHome && !mapPickMode && locStatus === "active" && pos ? (
+            <button type="button" className="tugende-map-pick-below" onClick={() => setMapPickMode(true)}>
+              <MapPin size={18} aria-hidden />
+              Choose on map
+            </button>
+          ) : null}
+
           {mapPickMode ? (
             <div className="tugende-map-pick-bar">
-              <p className="tugende-map-hint tugende-map-hint--pick">Pinch or use +/− to zoom, then tap where you want to go.</p>
+              <p className="tugende-map-hint tugende-map-hint--pick">Zoom in, then tap your dropoff on the map.</p>
               <button type="button" className="btn btn-secondary tugende-map-pick-bar__done" onClick={() => setMapPickMode(false)}>
                 Done
               </button>
             </div>
           ) : null}
-          {showNearbyRiders ? (
-            <p className="tugende-map-hint tugende-map-hint--riders">
-              {ride?.status === "accepted" ? "Your rider is nearby" : "Riders near you — matching a trip…"}
-            </p>
-          ) : null}
-          <div
-            className={
-              passengerBoltHome ? `tugende-ride-shell${mapPickMode ? " tugende-ride-shell--pick" : ""}` : undefined
-            }
-          >
-            <TugendeMap
-              you={pos}
-              destination={mapPickMode ? null : mapDestination}
-              path={ride?.status === "in_progress" ? livePath : undefined}
-              size={mapSize}
-              pickMode={mapPickMode && Boolean(pos) && !geocodingDest}
-              followYou={mapFollowYou}
-              stableCamera={ride?.status !== "in_progress"}
-              onPickDestination={mapPickMode && pos && !geocodingDest ? handlePickDestination : undefined}
-              onRecenter={pos ? () => haptic("light") : undefined}
-              nearbyRiders={showNearbyRiders ? mapNearbyRiders : undefined}
-            />
-            {passengerBoltHome && !mapPickMode ? (
-              <div className="tugende-sheet">
+
+          {passengerBoltHome && !mapPickMode ? (
+              <div className="tugende-ride-view__dock">
                 {locStatus !== "active" || !pos ? (
                   <div className="tugende-loc-banner tugende-loc-banner--sheet">
                     <p className="tugende-gps tugende-gps--wait">
@@ -609,7 +630,7 @@ export function TugendePage() {
                       onDropoffQueryChange={setDropoffQuery}
                       onSelectPlace={selectPlace}
                       onClearDropoff={clearDropoff}
-                      onUseMapPick={() => setMapPickMode(true)}
+                      hideMapPick
                       dropoffFocused={dropoffFocused}
                       onDropoffFocus={onDropoffFocus}
                       onDropoffBlur={() => setDropoffFocused(false)}
@@ -626,7 +647,7 @@ export function TugendePage() {
                           <div className="tugende-fare-card tugende-fare-card--sheet">
                             <p className="tugende-fare-card__dest">{dropoff!.label}</p>
                             <div className="tugende-fare-card__row">
-                              <span>Trip</span>
+                              <span>{roadRoute ? "Road distance" : "Trip"}</span>
                               <strong>{plannedKm.toFixed(2)} km</strong>
                             </div>
                             <div className="tugende-fare-card__row">
@@ -653,7 +674,6 @@ export function TugendePage() {
                 )}
               </div>
             ) : null}
-          </div>
 
           {!passengerBoltHome && locStatus !== "active" && !pos ? (
             <div className="tugende-loc-banner">
@@ -849,10 +869,6 @@ export function TugendePage() {
       {tab === "drive" && profile.role !== "driver" ? (
         <p className="institutional-page__lead">Switch to Rider at sign-in to accept trips.</p>
       ) : null}
-
-      <Link to="/" className="tugende-back-link">
-        Back to Home
-      </Link>
     </main>
   );
 }

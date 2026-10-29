@@ -32,6 +32,7 @@ export type TugendeNearbyDriver = {
   lat: number;
   lng: number;
   distanceKm: number;
+  vehiclePlate?: string;
   assigned?: boolean;
 };
 

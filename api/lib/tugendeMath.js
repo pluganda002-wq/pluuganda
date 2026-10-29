@@ -28,6 +28,16 @@ export function pathDistanceKm(points) {
   return total;
 }
 
+export function vehiclePlateFromId(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  const L = "ABCDEFGHJKLMNPRSTUVWXYZ";
+  const prefix = `U${L[h % 26]}${L[(h >> 4) % 26]}${L[(h >> 8) % 26]}`;
+  const num = 100 + (h % 900);
+  const suffix = L[(h >> 12) % 26];
+  return `${prefix} ${num}${suffix}`;
+}
+
 export function fareFromKm(km) {
   const billable = Math.max(km, 0.5); // minimum 500m billed
   return Math.round(billable * TUGENDE_RATE_UGX_PER_KM);

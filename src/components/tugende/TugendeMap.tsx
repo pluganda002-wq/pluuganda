@@ -18,6 +18,8 @@ export type MapNearbyRider = {
   lat: number;
   lng: number;
   label?: string;
+  vehiclePlate?: string;
+  distanceKm?: number;
   assigned?: boolean;
 };
 
@@ -65,13 +67,16 @@ function makeYouIcon() {
   });
 }
 
-function makeRiderIcon(assigned: boolean) {
+function makeRiderIcon(assigned: boolean, plate?: string, distanceKm?: number) {
   const cls = assigned ? " tugende-map-rider--assigned" : "";
+  const dist =
+    distanceKm != null ? `<span class="tugende-map-rider__dist">${distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>` : "";
+  const plateHtml = plate ? `<span class="tugende-map-rider__plate">${plate}</span>${dist}` : dist;
   return L.divIcon({
     className: `tugende-map-rider${cls}`,
-    html: `<img src="${RIDER_BODA_IMG}" alt="" width="36" height="36" />`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+    html: `<div class="tugende-map-rider__stack"><img src="${RIDER_BODA_IMG}" alt="" width="36" height="36" />${plateHtml ? `<div class="tugende-map-rider__meta">${plateHtml}</div>` : ""}</div>`,
+    iconSize: [96, 72],
+    iconAnchor: [48, 36],
   });
 }
 
@@ -88,7 +93,9 @@ type Props = {
   you: Point | null;
   destination?: Point | null;
   path?: Point[];
-  size?: "default" | "large" | "fullscreen" | "hero";
+  /** Road-following preview line (pickup → dropoff). */
+  routeLine?: Point[];
+  size?: "default" | "large" | "fullscreen" | "hero" | "viewport";
   pickMode?: boolean;
   followYou?: boolean;
   /** When true, map stays put while GPS updates (marker moves, no bounce). */
@@ -103,6 +110,7 @@ export function TugendeMap({
   you,
   destination,
   path,
+  routeLine,
   size = "default",
   pickMode = false,
   followYou = false,
@@ -234,19 +242,33 @@ export function TugendeMap({
     }
 
     if (you && destination && !path?.length) {
-      const latlngs: L.LatLngExpression[] = [
-        [you.lat, you.lng],
-        [destination.lat, destination.lng],
-      ];
+      const latlngs: L.LatLngExpression[] =
+        routeLine && routeLine.length >= 2
+          ? routeLine.map((p) => [p.lat, p.lng] as L.LatLngExpression)
+          : [
+              [you.lat, you.lng],
+              [destination.lat, destination.lng],
+            ];
+      const roadStyle = routeLine && routeLine.length >= 2;
       if (!routeRef.current) {
-        routeRef.current = L.polyline(latlngs, { color: "#8b6914", weight: 4, dashArray: "10 12", opacity: 0.9 }).addTo(map);
+        routeRef.current = L.polyline(latlngs, {
+          color: roadStyle ? "#2563eb" : "#8b6914",
+          weight: roadStyle ? 5 : 4,
+          dashArray: roadStyle ? undefined : "10 12",
+          opacity: 0.92,
+        }).addTo(map);
       } else {
         routeRef.current.setLatLngs(latlngs);
+        routeRef.current.setStyle({
+          color: roadStyle ? "#2563eb" : "#8b6914",
+          weight: roadStyle ? 5 : 4,
+          dashArray: roadStyle ? undefined : "10 12",
+        });
       }
-      const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}`;
-      if (lastBoundsKeyRef.current !== key) {
+      const key = `${you.lat.toFixed(4)}:${destination.lat.toFixed(4)}:${destination.lng.toFixed(4)}:${routeLine?.length ?? 0}`;
+      if (lastBoundsKeyRef.current !== key && !pickModeRef.current) {
         lastBoundsKeyRef.current = key;
-        map.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48], maxZoom: DEFAULT_ZOOM });
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [52, 52], maxZoom: 15 });
       }
     } else if (routeRef.current) {
       routeRef.current.remove();
@@ -274,7 +296,7 @@ export function TugendeMap({
       panToYou(you, DEFAULT_ZOOM, false);
       didInitialCenterRef.current = true;
     }
-  }, [you, destination, path, pickMode, followYou, stableCamera]);
+  }, [you, destination, path, routeLine, pickMode, followYou, stableCamera]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -290,16 +312,16 @@ export function TugendeMap({
       let marker = riderMarkersRef.current.get(rider.id);
       if (!marker) {
         marker = L.marker([rider.lat, rider.lng], {
-          icon: makeRiderIcon(Boolean(rider.assigned)),
+          icon: makeRiderIcon(Boolean(rider.assigned), rider.vehiclePlate, rider.distanceKm),
           zIndexOffset: rider.assigned ? 900 : 400,
         }).addTo(map);
-        if (rider.label) {
+        if (rider.label && !rider.vehiclePlate) {
           marker.bindTooltip(rider.label, { direction: "top", offset: [0, -14] });
         }
         riderMarkersRef.current.set(rider.id, marker);
       } else {
         marker.setLatLng([rider.lat, rider.lng]);
-        marker.setIcon(makeRiderIcon(Boolean(rider.assigned)));
+        marker.setIcon(makeRiderIcon(Boolean(rider.assigned), rider.vehiclePlate, rider.distanceKm));
       }
     }
   }, [nearbyRiders]);
@@ -312,13 +334,15 @@ export function TugendeMap({
   }
 
   const sizeClass =
-    size === "hero"
-      ? " tugende-map--hero"
-      : size === "fullscreen"
-        ? " tugende-map--fullscreen"
-        : size === "large"
-          ? " tugende-map--large"
-          : "";
+    size === "viewport"
+      ? " tugende-map--viewport"
+      : size === "hero"
+        ? " tugende-map--hero"
+        : size === "fullscreen"
+          ? " tugende-map--fullscreen"
+          : size === "large"
+            ? " tugende-map--large"
+            : "";
   const pickClass = pickMode ? " tugende-map--pick" : "";
 
   return (

@@ -6,7 +6,6 @@ import { SubPageBar } from "./SubPageBar";
 const MAIN_TABS = new Set(["/", "/programmes", "/services", "/social", "/profile"]);
 
 const SUBPAGE_BAR: Record<string, { title: string; backTo?: string }> = {
-  "/tugende": { title: "Tugende", backTo: "/" },
   "/ugo": { title: "UGo Ride", backTo: "/" },
 };
 

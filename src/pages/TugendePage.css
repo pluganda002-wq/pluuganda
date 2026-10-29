@@ -168,6 +168,132 @@
   );
 }
 
+.tugende-page--immersive {
+  padding: 0;
+  background: #e8eef4;
+  min-height: calc(100dvh - 140px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tugende-corner-nav {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 800;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  max-width: 92%;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.tugende-corner-nav__btn,
+.tugende-corner-nav__logout {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.tugende-corner-nav__btn--on {
+  background: var(--plu-gold, #c9a227);
+  color: #111;
+  border-color: color-mix(in srgb, var(--plu-gold, #c9a227) 70%, #111);
+}
+
+.tugende-corner-nav__logout {
+  padding: 0.35rem 0.45rem;
+}
+
+.tugende-ride-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.tugende-ride-view__map {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tugende-ride-view__riders-hint {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.55rem;
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2563eb;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
+  z-index: 450;
+  max-width: calc(100% - 5rem);
+}
+
+.tugende-ride-view__dock {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 1.15rem 1.15rem 0 0;
+  box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.1);
+  padding: 0.85rem 0.85rem 1rem;
+  max-height: min(46vh, 360px);
+  overflow-y: auto;
+}
+
+.tugende-map-pick-below {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--plu-gold-dark, #8a6914);
+}
+
+.tugende-ride-view .tugende-live-meter {
+  position: absolute;
+  top: 2.6rem;
+  left: 0.65rem;
+  right: 4.5rem;
+  z-index: 450;
+  margin: 0;
+}
+
+.tugende-ride-view .tugende-request-btn {
+  width: 100%;
+  margin: 0.5rem 0 0;
+}
+
 .tugende-header {
   display: flex;
   gap: 0.75rem;
@@ -434,12 +560,6 @@
   font-size: 0.9rem;
 }
 
-.tugende-back-link {
-  display: block;
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-}
 
 .tugende-panel--bolt {
   padding: 0;

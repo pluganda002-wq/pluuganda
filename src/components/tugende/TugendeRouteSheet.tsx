@@ -13,6 +13,8 @@ type Props = {
   onSelectPlace: (place: PlaceResult) => void;
   onClearDropoff: () => void;
   onUseMapPick?: () => void;
+  /** When true, hide in-sheet map button (use external control below map). */
+  hideMapPick?: boolean;
   onRefreshPickup?: () => void;
   dropoffFocused?: boolean;
   onDropoffFocus?: () => void;
@@ -36,6 +38,7 @@ export function TugendeRouteSheet({
   onSelectPlace,
   onClearDropoff,
   onUseMapPick,
+  hideMapPick = false,
   onRefreshPickup,
   dropoffFocused,
   onDropoffFocus,
@@ -101,7 +104,7 @@ export function TugendeRouteSheet({
         </div>
       </div>
 
-      {onUseMapPick ? (
+      {onUseMapPick && !hideMapPick ? (
         <button type="button" className="tugende-route__map-pick" onClick={onUseMapPick}>
           <MapPin size={18} aria-hidden />
           Choose on map
