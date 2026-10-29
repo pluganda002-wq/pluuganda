@@ -200,6 +200,16 @@ export function TugendePage() {
   }, [profile, tab, refreshJourneys]);
 
   useEffect(() => {
+    const immersive = Boolean(profile && tab === "ride");
+    if (immersive) {
+      document.documentElement.setAttribute("data-tugende-immersive", "true");
+    } else {
+      document.documentElement.removeAttribute("data-tugende-immersive");
+    }
+    return () => document.documentElement.removeAttribute("data-tugende-immersive");
+  }, [profile, tab]);
+
+  useEffect(() => {
     if (!pos || !dropoff) {
       setRoadRoute(null);
       return;

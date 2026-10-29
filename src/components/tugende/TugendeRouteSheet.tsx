@@ -50,7 +50,7 @@ export function TugendeRouteSheet({
   return (
     <div className="tugende-route">
       <div className="tugende-route__header">
-        <h2 className="tugende-route__title">Route</h2>
+        <h2 className="tugende-route__title">Where to?</h2>
       </div>
 
       <div className="tugende-route__fields">
