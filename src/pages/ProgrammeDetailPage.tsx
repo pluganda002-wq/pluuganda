@@ -29,9 +29,14 @@ export function ProgrammeDetailPage() {
         <p className="section-sub">{programme.act}</p>
       </div>
       {programme.slug === "anti-corruption" ? (
-        <Link to="/integrity" className="btn btn-primary" style={{ marginTop: 16 }}>
-          Open integrity desk
-        </Link>
+        <>
+          <Link to="/integrity" className="btn btn-primary" style={{ marginTop: 16 }}>
+            Open national projects & corruption tracker
+          </Link>
+          <p className="section-sub" style={{ marginTop: 12 }}>
+            Search public projects, file red flags, submit field proof, and follow audit logs.
+          </p>
+        </>
       ) : null}
       {programme.slug === "youth" ? (
         <Link to="/youth" className="btn btn-primary" style={{ marginTop: 16 }}>

@@ -54,7 +54,7 @@ export function ReportPage() {
           </p>
         </div>
         <Link to="/integrity" className="btn btn-secondary" style={{ marginTop: 16 }}>
-          Back to case tracker
+          Back to corruption tracker
         </Link>
       </main>
     );
@@ -73,6 +73,8 @@ export function ReportPage() {
             <option value="procurement">Public procurement</option>
             <option value="service">Service delivery</option>
             <option value="revenue">Local revenue / fees</option>
+            <option value="bribery">Bribery or inducement</option>
+            <option value="ghost">Ghost project / stalled works</option>
             <option value="other">Other public resource abuse</option>
           </select>
         </div>
