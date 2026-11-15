@@ -1,0 +1,58 @@
+.report-recording {
+  margin-top: 0.25rem;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--plu-border-strong, rgba(0, 0, 0, 0.15));
+  background: color-mix(in srgb, var(--plu-gold, #c9a227) 6%, #fff);
+}
+
+.report-recording__label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.report-recording__hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--plu-muted);
+  line-height: 1.35;
+}
+
+.report-recording__timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #b42318;
+  margin-bottom: 0.5rem;
+}
+
+.report-recording__timer--idle {
+  color: var(--plu-muted);
+  font-weight: 500;
+}
+
+.report-recording__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.report-recording__actions .btn {
+  flex: 1 1 8rem;
+  width: auto;
+}
+
+.report-recording__status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #047857;
+}
+
+.report-recording audio {
+  width: 100%;
+  margin-top: 0.5rem;
+  height: 2.25rem;
+}

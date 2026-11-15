@@ -33,6 +33,7 @@ import "@/pages/HomePage.css";
 import "@/components/ProfileEditorSheet.css";
 import "@/pages/ProgrammesPage.css";
 import "@/pages/AccountabilityPage.css";
+import "@/pages/ReportPage.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
 import "@/styles/sections.css";

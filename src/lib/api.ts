@@ -48,6 +48,7 @@ export async function submitReportApi(payload: {
   details: string;
   contact?: string;
   telegramId?: number;
+  audioRecording?: { mimeType: string; durationSec: number; dataBase64: string };
 }) {
   return postJson<{ ok: boolean; reference: string; status: string }>("/api/reports", payload);
 }
