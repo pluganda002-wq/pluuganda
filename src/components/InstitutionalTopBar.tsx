@@ -3,7 +3,7 @@ import { HomeProfileAvatar } from "./HomeProfileAvatar";
 import { ThemeToggle } from "./ThemeToggle";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/programmes": "Programmes",
+  "/programmes": "Accountability",
   "/services": "Services",
   "/social": "Social",
   "/profile": "Guild",

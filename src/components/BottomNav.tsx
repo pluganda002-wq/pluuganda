@@ -4,7 +4,7 @@ import "./BottomNav.css";
 
 const items = [
   { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/programmes", label: "Programmes", icon: Layers, end: false },
+  { to: "/programmes", label: "Accountability", icon: Layers, end: false },
   { to: "/services", label: "Services", icon: LayoutGrid, end: false },
   { to: "/social", label: "Social", icon: MessageCircle, end: false },
   { to: "/profile", label: "Guild", icon: Users, end: false },

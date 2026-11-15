@@ -27,14 +27,7 @@ export const PLU_VALUES = [
   },
 ] as const;
 
-export type ProgrammeSlug =
-  | "barazas"
-  | "community-service"
-  | "civic-education"
-  | "youth"
-  | "sports"
-  | "diaspora"
-  | "anti-corruption";
+export type ProgrammeSlug = "anti-corruption";
 
 export const PROGRAMMES: {
   slug: ProgrammeSlug;
@@ -44,55 +37,6 @@ export const PROGRAMMES: {
   organise: string;
   act: string;
 }[] = [
-  {
-    slug: "barazas",
-    title: "District Barazas",
-    summary:
-      "Open district gatherings for citizens, leaders and PLU structures to discuss priorities and follow-up.",
-    listen: "Barazas create space for communities to raise priorities and share ideas.",
-    organise: "PLU teams turn priorities into coordinated civic and service activities.",
-    act: "Activities are delivered publicly and connected to reporting and accountability.",
-  },
-  {
-    slug: "community-service",
-    title: "Community service initiatives",
-    summary: "Volunteer clean-ups and locally identified service with residents and institutions.",
-    listen: "Residents identify needs in their neighbourhoods.",
-    organise: "Volunteers and local leaders schedule service days.",
-    act: "Visible national service in healthier public spaces.",
-  },
-  {
-    slug: "civic-education",
-    title: "Civic education",
-    summary: "Forums on citizenship, constitutional duties, national values and peaceful participation.",
-    listen: "Questions and concerns from citizens guide session topics.",
-    organise: "Educators and mobilisers prepare accessible learning.",
-    act: "Participants apply knowledge in local engagement.",
-  },
-  {
-    slug: "youth",
-    title: "Youth programmes",
-    summary: "Youth forums, leadership development and service for constructive participation.",
-    listen: "Young Ugandans share ideas and local challenges.",
-    organise: "Youth leagues coordinate forums and mentorship.",
-    act: "Projects and service activities led by youth structures.",
-  },
-  {
-    slug: "sports",
-    title: "Sports & community programmes",
-    summary: "Runs, sports and gatherings that build solidarity, wellbeing and teamwork.",
-    listen: "Communities propose accessible participation points.",
-    organise: "Events are scheduled with safety and inclusion in mind.",
-    act: "Families and young people meet, compete and serve together.",
-  },
-  {
-    slug: "diaspora",
-    title: "Diaspora engagement",
-    summary: "Channels for Ugandans abroad to stay connected and contribute skills and ideas.",
-    listen: "Diaspora voices on development priorities.",
-    organise: "Virtual and in-country linkages with PLU programmes.",
-    act: "Support for civic and community initiatives at home.",
-  },
   {
     slug: "anti-corruption",
     title: "Anti-corruption & accountability",

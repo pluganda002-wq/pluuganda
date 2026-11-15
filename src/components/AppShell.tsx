@@ -7,7 +7,7 @@ const MAIN_TABS = new Set(["/", "/programmes", "/services", "/social", "/profile
 
 const SUBPAGE_BAR: Record<string, { title: string; backTo?: string }> = {
   "/ugo": { title: "UGo Ride", backTo: "/" },
-  "/integrity": { title: "Corruption tracker", backTo: "/programmes/anti-corruption" },
+  "/integrity": { title: "Corruption tracker", backTo: "/programmes" },
   "/integrity/report": { title: "Whistleblower report", backTo: "/integrity" },
 };
 

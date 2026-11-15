@@ -1,21 +1,16 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { PROGRAMMES, type ProgrammeSlug } from "@/data/plu";
 
-export function ProgrammeDetailPage() {
-  const { slug } = useParams<{ slug: ProgrammeSlug }>();
-  const programme = PROGRAMMES.find((p) => p.slug === slug);
+const ACCOUNTABILITY_SLUG: ProgrammeSlug = "anti-corruption";
 
-  if (!programme) {
-    return (
-      <main className="page">
-        <PageHeader title="Programme not found" />
-        <Link to="/programmes" className="btn btn-secondary">
-          Back to programmes
-        </Link>
-      </main>
-    );
+export function ProgrammeDetailPage() {
+  const { slug } = useParams<{ slug: string }>();
+  if (slug !== ACCOUNTABILITY_SLUG) {
+    return <Navigate to="/programmes" replace />;
   }
+
+  const programme = PROGRAMMES[0];
 
   return (
     <main className="page">
@@ -28,21 +23,18 @@ export function ProgrammeDetailPage() {
         <h3 className="section-title">Act & account</h3>
         <p className="section-sub">{programme.act}</p>
       </div>
-      {programme.slug === "anti-corruption" ? (
-        <>
-          <Link to="/integrity" className="btn btn-primary" style={{ marginTop: 16 }}>
-            Open national projects & corruption tracker
-          </Link>
-          <p className="section-sub" style={{ marginTop: 12 }}>
-            Search public projects, file red flags, submit field proof, and follow audit logs.
-          </p>
-        </>
-      ) : null}
-      {programme.slug === "youth" ? (
-        <Link to="/youth" className="btn btn-primary" style={{ marginTop: 16 }}>
-          Youth league hub
-        </Link>
-      ) : null}
+      <Link to="/integrity" className="btn btn-primary" style={{ marginTop: 16 }}>
+        Open national projects & corruption tracker
+      </Link>
+      <Link to="/integrity/report" className="btn btn-secondary" style={{ marginTop: 10 }}>
+        File whistleblower report
+      </Link>
+      <p className="section-sub" style={{ marginTop: 12 }}>
+        Search public projects, file red flags, submit field proof, and follow audit logs.
+      </p>
+      <Link to="/programmes" className="btn btn-ghost" style={{ marginTop: 8 }}>
+        ← Back to programme hub
+      </Link>
     </main>
   );
 }

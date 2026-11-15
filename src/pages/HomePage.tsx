@@ -88,8 +88,8 @@ export function HomePage() {
               />
               <HomeMiniLink
                 to="/programmes"
-                title="All programmes"
-                subtitle="Barazas, youth & accountability"
+                title="Anti-corruption programme"
+                subtitle="Report, track & hold leaders accountable"
                 icon={<Sparkles size={18} />}
               />
             </div>

@@ -25,8 +25,8 @@ export function YouthPage() {
           </button>
         </div>
       ))}
-      <Link to="/programmes/youth" className="btn btn-ghost" style={{ marginTop: 8 }}>
-        Read youth programme details
+      <Link to="/programmes" className="btn btn-ghost" style={{ marginTop: 8 }}>
+        Open accountability programme hub
       </Link>
     </main>
   );
