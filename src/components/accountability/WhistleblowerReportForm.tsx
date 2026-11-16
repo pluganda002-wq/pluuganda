@@ -1,11 +1,14 @@
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
-import { Mic, Square, Trash2 } from "lucide-react";
+import { Mic, Paperclip, Square, X } from "lucide-react";
 import { useTelegram } from "@/hooks/useTelegram";
+import { CIVIC_WATCH_FORM_TITLE } from "@/data/accountabilityProgramme";
+import { WhistleblowerDisclaimer } from "@/components/accountability/WhistleblowerDisclaimer";
 import { isApiUnavailableError, submitReportApi } from "@/lib/api";
 import "@/pages/ReportPage.css";
 
 const MAX_RECORD_SEC = 120;
 const MIN_RECORD_SEC = 2;
+const MAX_FILE_BYTES = 5_000_000;
 
 type SavedRecording = {
   blob: Blob;
@@ -39,20 +42,26 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
   const [reference, setReference] = useState("");
   const [category, setCategory] = useState("procurement");
   const [details, setDetails] = useState("");
-  const [contact, setContact] = useState("");
+  const [shareIdentity, setShareIdentity] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [recording, setRecording] = useState<SavedRecording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordSec, setRecordSec] = useState(0);
+  const [attachmentName, setAttachmentName] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const recordStartRef = useRef(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryId = `${uid}-category`;
   const detailsId = `${uid}-details`;
-  const contactId = `${uid}-contact`;
+  const nameId = `${uid}-name`;
+  const phoneId = `${uid}-phone`;
+  const identityToggleId = `${uid}-identity`;
 
   useEffect(() => {
     return () => {
@@ -130,11 +139,34 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
     haptic("light");
   }
 
+  function onPickFile() {
+    fileInputRef.current?.click();
+  }
+
+  function onFileChange(file: File | null) {
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      showAlert("File too large. Use a file under 5 MB.");
+      return;
+    }
+    setAttachmentName(file.name);
+    haptic("light");
+  }
+
+  function clearAttachment() {
+    setAttachmentName(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const hasRecording = Boolean(recording && recording.durationSec >= MIN_RECORD_SEC);
-    if (details.trim().length < 20 && !hasRecording) {
-      showAlert("Add a short written note (20+ letters) or record your voice (2+ seconds).");
+    const hasAttachment = Boolean(attachmentName);
+    const trimmed = details.trim();
+    const longEnough = trimmed.length >= 20;
+
+    if (!longEnough && !hasRecording && !hasAttachment) {
+      showAlert("Add a short note, record voice, or attach a file.");
       return;
     }
     if (isRecording) {
@@ -156,12 +188,22 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
       };
     }
 
+    let detailBody =
+      trimmed ||
+      (hasRecording ? "(Voice report — see attached recording.)" : "(Report with attachment.)");
+    if (hasAttachment && attachmentName) {
+      detailBody += `\n\n[Attachment: ${attachmentName}]`;
+    }
+
+    const contactParts = [fullName.trim(), phone.trim()].filter(Boolean);
+    const contact = shareIdentity && contactParts.length > 0 ? contactParts.join(" · ") : undefined;
+
     setSubmitted(true);
     try {
       const result = await submitReportApi({
         category,
-        details: details.trim() || "(Voice report — see attached recording.)",
-        contact: contact.trim() || undefined,
+        details: detailBody,
+        contact,
         telegramId: user?.id,
         audioRecording,
       });
@@ -194,7 +236,7 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
       className={`whistle-form${embedded ? " whistle-form--embed card" : " card"}`}
       onSubmit={(e) => void onSubmit(e)}
     >
-      {embedded ? <h2 className="whistle-form__title">Whistleblower report</h2> : null}
+      {embedded ? <h2 className="whistle-form__title">{CIVIC_WATCH_FORM_TITLE}</h2> : null}
       <div className="field">
         <label htmlFor={categoryId}>Category</label>
         <select id={categoryId} value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -217,60 +259,146 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
         />
       </div>
 
-      <div className="report-recording">
-        <p className="report-recording__hint">Tap the mic and record your submission (optional).</p>
-        <div className="report-recording__mic-row">
-          {!isRecording ? (
-            <button
-              type="button"
-              className={`report-recording__mic${recording ? " report-recording__mic--saved" : ""}`}
-              aria-label={recording ? "Record again" : "Start recording"}
-              onClick={() => void startRecording()}
-            >
-              <Mic size={28} strokeWidth={2.2} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="report-recording__mic report-recording__mic--live"
-              aria-label="Stop recording"
-              onClick={stopRecording}
-            >
-              <Square size={22} fill="currentColor" />
-            </button>
-          )}
-          <p className="report-recording__status" aria-live="polite">
-            {isRecording
-              ? `Recording… ${recordSec}s`
-              : recording
-                ? `Saved · ${recording.durationSec}s`
-                : "No recording yet"}
-          </p>
-        </div>
-        {recording && !isRecording ? (
-          <div className="report-recording__saved">
-            <audio controls src={recording.url} preload="metadata">
-              Your browser does not support audio playback.
-            </audio>
-            <button type="button" className="report-recording__remove" onClick={clearRecording}>
-              <Trash2 size={16} /> Remove
-            </button>
-          </div>
-        ) : null}
-      </div>
+      <ReportMediaControls
+        isRecording={isRecording}
+        recordSec={recordSec}
+        recording={recording}
+        attachmentName={attachmentName}
+        fileInputRef={fileInputRef}
+        onStartRecording={() => void startRecording()}
+        onStopRecording={stopRecording}
+        onClearRecording={clearRecording}
+        onPickFile={onPickFile}
+        onFileChange={onFileChange}
+        onClearAttachment={clearAttachment}
+      />
 
-      <div className="field">
-        <label htmlFor={contactId}>Contact (optional)</label>
+      <label className="whistle-identity-toggle" htmlFor={identityToggleId}>
         <input
-          id={contactId}
-          value={contact}
-          onChange={(e) => setContact(e.target.value)}
-          placeholder="Phone or email"
+          id={identityToggleId}
+          type="checkbox"
+          checked={shareIdentity}
+          onChange={(e) => setShareIdentity(e.target.checked)}
         />
-      </div>
+        I choose to share my name and phone
+      </label>
+
+      {shareIdentity ? (
+        <div className="whistle-identity__fields">
+          <div className="field">
+            <label htmlFor={nameId}>Full name</label>
+            <input
+              id={nameId}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your name"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor={phoneId}>Phone number</label>
+            <input
+              id={phoneId}
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 07xx xxx xxx"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      <WhistleblowerDisclaimer />
+
       <button type="submit" className="btn btn-primary">
         Submit
       </button>
     </form>
+  );
+}
+
+type MediaControlProps = {
+  isRecording: boolean;
+  recordSec: number;
+  recording: SavedRecording | null;
+  attachmentName: string | null;
+  fileInputRef: { current: HTMLInputElement | null };
+  onStartRecording: () => void;
+  onStopRecording: () => void;
+  onClearRecording: () => void;
+  onPickFile: () => void;
+  onFileChange: (file: File | null) => void;
+  onClearAttachment: () => void;
+};
+
+function ReportMediaControls(props: MediaControlProps) {
+  const {
+    isRecording,
+    recordSec,
+    recording,
+    attachmentName,
+    fileInputRef,
+    onStartRecording,
+    onStopRecording,
+    onClearRecording,
+    onPickFile,
+    onFileChange,
+    onClearAttachment,
+  } = props;
+
+  return (
+    <div className="report-media">
+      <div className="report-media__row">
+        {!isRecording ? (
+          <button
+            type="button"
+            className={`report-media__mic${recording ? " report-media__mic--saved" : ""}`}
+            aria-label={recording ? "Record again" : "Record voice"}
+            onClick={onStartRecording}
+          >
+            <Mic size={26} strokeWidth={2.2} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="report-media__mic report-media__mic--live"
+            aria-label="Stop recording"
+            onClick={onStopRecording}
+          >
+            <Square size={20} fill="currentColor" />
+            <span className="report-media__time">{recordSec}s</span>
+          </button>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="report-media__file-input"
+          accept="image/*,.pdf,.doc,.docx,audio/*,video/*"
+          onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+        />
+        <button type="button" className="report-media__attach" onClick={onPickFile}>
+          <Paperclip size={18} />
+          Attach file
+        </button>
+      </div>
+
+      {recording && !isRecording ? (
+        <div className="report-media__playback">
+          <audio controls src={recording.url} preload="metadata" />
+          <button type="button" className="report-media__clear" onClick={onClearRecording} aria-label="Remove recording">
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
+
+      {attachmentName ? (
+        <p className="report-media__file">
+          <Paperclip size={14} /> {attachmentName}
+          <button type="button" onClick={onClearAttachment} aria-label="Remove file">
+            <X size={14} />
+          </button>
+        </p>
+      ) : null}
+    </div>
   );
 }

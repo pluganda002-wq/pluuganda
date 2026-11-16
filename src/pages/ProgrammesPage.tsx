@@ -4,6 +4,7 @@ import {
   ACCOUNTABILITY_DASHBOARD,
   ACCOUNTABILITY_DASHBOARD_METRICS,
 } from "@/data/accountabilityProgramme";
+import { ACCOUNTABILITY_STATS, formatReconciled } from "@/data/accountability";
 import { AccountabilityTasksPanel } from "@/components/accountability/AccountabilityTasksPanel";
 import { WhistleblowerReportForm } from "@/components/accountability/WhistleblowerReportForm";
 import { useTelegram } from "@/hooks/useTelegram";
@@ -33,7 +34,7 @@ export function ProgrammesPage() {
   return (
     <main className="institutional-page prog-dash">
       <div className="institutional-page__body prog-dash__body">
-        <section className="prog-dash__board" aria-label="Accountability dashboard">
+        <section className="prog-dash__board card" aria-label="Active audit desk">
           <header className="prog-dash__board-top">
             <span className="prog-dash__live" aria-hidden>
               <span className="prog-dash__live-dot" />
@@ -53,10 +54,13 @@ export function ProgrammesPage() {
               >
                 <strong>{formatMetric(m.value)}</strong>
                 <span>{m.label}</span>
-                <i className="prog-dash__spark" aria-hidden />
               </Link>
             ))}
           </div>
+
+          <p className="prog-dash__funds">
+            Funds reconciled <strong>{formatReconciled(ACCOUNTABILITY_STATS.fundsReconciledUgx)}</strong>
+          </p>
         </section>
 
         <form className="prog-dash__search" onSubmit={onSearch}>
