@@ -1,0 +1,48 @@
+.digital-duty {
+  padding: 12px 18px 28px;
+}
+
+.digital-duty__card {
+  padding: 18px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+  box-shadow: var(--plu-shadow-sm);
+}
+
+.digital-duty__tag {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--plu-muted);
+}
+
+.digital-duty__title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+.digital-duty__pts {
+  margin: 0 0 14px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--plu-gold-dark);
+}
+
+.digital-duty__body {
+  margin: 0 0 16px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--plu-text);
+}
+
+.digital-duty__cta {
+  width: 100%;
+  min-height: 48px;
+  text-transform: uppercase;
+}
+
+.digital-duty__cta--done {
+  width: 100%;
+}

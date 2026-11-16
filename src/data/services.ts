@@ -144,6 +144,15 @@ export const SERVICE_ITEMS: ServiceItem[] = [
     iconKey: "tasks",
   },
   {
+    id: "duty-admin",
+    to: "/admin/duties",
+    title: "Duty admin",
+    subtitle: "Configure & assign",
+    category: "leadership",
+    accent: "gold",
+    iconKey: "clipboard",
+  },
+  {
     id: "leadership",
     to: "/leadership",
     title: "Rankings",

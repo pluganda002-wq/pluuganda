@@ -1,0 +1,124 @@
+.admin-duty {
+  padding: 8px 18px 32px;
+}
+
+.admin-duty__head {
+  margin-bottom: 18px;
+}
+
+.admin-duty__tag {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--plu-gold-dark);
+}
+
+.admin-duty__head h1 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.admin-duty__lead,
+.admin-duty__meta,
+.admin-duty__hint {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--plu-muted);
+}
+
+.admin-duty__toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.admin-duty__login {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-duty__section {
+  margin-bottom: 22px;
+}
+
+.admin-duty__section h2 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.admin-duty__card {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+  box-shadow: var(--plu-shadow-sm);
+}
+
+.admin-duty__card--advanced {
+  border-left: 3px solid #64748b;
+}
+
+.admin-duty__card-title {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+}
+
+.admin-duty__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.admin-duty__field span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--plu-muted);
+}
+
+.admin-duty__field input,
+.admin-duty__field select,
+.admin-duty__field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--plu-border-strong);
+  background: var(--plu-cream);
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.admin-duty__row {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 10px;
+}
+
+.admin-duty__field--narrow input {
+  text-align: center;
+}
+
+.admin-duty__publish {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-duty__publish h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.admin-duty__publish code {
+  font-size: 0.75rem;
+}

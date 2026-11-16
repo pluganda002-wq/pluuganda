@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { UserProvider } from "@/context/UserContext";
+import { DutyConfigProvider } from "@/context/DutyConfigContext";
 import { AssistantPage } from "@/pages/AssistantPage";
 import { BuyUgandaPage } from "@/pages/BuyUgandaPage";
 import { CharityPage } from "@/pages/CharityPage";
@@ -24,6 +25,8 @@ import { ReportPage } from "@/pages/ReportPage";
 import { ServicesPage } from "@/pages/ServicesPage";
 import { SocialPage } from "@/pages/SocialPage";
 import { TasksPage } from "@/pages/TasksPage";
+import { DigitalDutyPage } from "@/pages/DigitalDutyPage";
+import { AdminDutiesPage } from "@/pages/AdminDutiesPage";
 import { TourismPage } from "@/pages/TourismPage";
 import { YouthPage } from "@/pages/YouthPage";
 import "@/pages/AssistantPage.css";
@@ -36,6 +39,8 @@ import "@/pages/AccountabilityPage.css";
 import "@/pages/ReportPage.css";
 import "@/components/accountability/DutyVerificationDesk.css";
 import "@/components/accountability/FieldDutySheet.css";
+import "@/pages/DigitalDutyPage.css";
+import "@/pages/AdminDutiesPage.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
 import "@/styles/sections.css";
@@ -45,11 +50,14 @@ export default function App() {
   return (
     <ThemeProvider>
       <UserProvider>
+      <DutyConfigProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/programmes" element={<ProgrammesPage />} />
+            <Route path="/programmes/tasks/duty/:dutyId" element={<DigitalDutyPage />} />
+            <Route path="/admin/duties" element={<AdminDutiesPage />} />
             <Route path="/programmes/tasks" element={<TasksPage />} />
             <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
@@ -81,6 +89,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </DutyConfigProvider>
       </UserProvider>
     </ThemeProvider>
   );

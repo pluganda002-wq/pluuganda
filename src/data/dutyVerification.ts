@@ -16,9 +16,13 @@ export type DutyTask = {
   assigneeLabel?: string;
   /** Digital: external or in-app action */
   actionTo?: string;
+  /** Digital: in-app duty brief (duty detail page) */
+  instructions?: string;
+  /** Digital: external join / open link */
+  externalUrl?: string;
 };
 
-export const DUTY_TASKS: DutyTask[] = [
+export const DEFAULT_DUTY_TASKS: DutyTask[] = [
   {
     id: "dig-like",
     kind: "digital",
@@ -44,6 +48,9 @@ export const DUTY_TASKS: DutyTask[] = [
     subtitle: "Forward to 5 patriots",
     points: 40,
     cta: "Share",
+    actionTo: "/integrity",
+    instructions:
+      "Open the projects dashboard, pick a live update, and share it with at least five patriots on Telegram or your social feed.",
   },
   {
     id: "dig-channel",
@@ -52,6 +59,9 @@ export const DUTY_TASKS: DutyTask[] = [
     subtitle: "Digital mobilisation",
     points: 20,
     cta: "Join",
+    instructions:
+      "Join the official PLU Telegram channel to receive mobilisation alerts and verify duty completions.",
+    externalUrl: "https://t.me/share/url?url=https%3A%2F%2Fpluuganda.vercel.app",
   },
   {
     id: "dig-module",

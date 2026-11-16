@@ -1,0 +1,175 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { DEFAULT_DUTY_TASKS, type DutyTask } from "@/data/dutyVerification";
+import { fetchDutyTasksFromApi, saveDutyTasksToApi } from "@/lib/dutyApi";
+
+const STORAGE_KEY = "plu-duty-config-v1";
+const ADMIN_SESSION_KEY = "plu-duty-admin-session";
+
+type DutyConfigValue = {
+  tasks: DutyTask[];
+  loading: boolean;
+  source: "default" | "local" | "api";
+  updateTask: (id: string, patch: Partial<DutyTask>) => void;
+  setTasks: (tasks: DutyTask[]) => void;
+  resetToDefaults: () => void;
+  saveToServer: (adminPassword: string) => Promise<void>;
+  isAdmin: boolean;
+  adminLogin: (password: string) => boolean;
+  adminLogout: () => void;
+};
+
+const DutyConfigContext = createContext<DutyConfigValue | null>(null);
+
+function loadLocalTasks(): DutyTask[] | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DutyTask[];
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalTasks(tasks: DutyTask[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+function clientAdminPasswordOk(password: string): boolean {
+  const expected = import.meta.env.VITE_ADMIN_DUTY_PASSWORD ?? "";
+  if (expected && password === expected) return true;
+  if (import.meta.env.DEV && password === "manage-tasks") return true;
+  return false;
+}
+
+export function DutyConfigProvider({ children }: { children: ReactNode }) {
+  const [tasks, setTasksState] = useState<DutyTask[]>(DEFAULT_DUTY_TASKS);
+  const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState<DutyConfigValue["source"]>("default");
+  const [isAdmin, setIsAdmin] = useState(
+    () => sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const fromApi = await fetchDutyTasksFromApi();
+      if (cancelled) return;
+      if (fromApi) {
+        setTasksState(fromApi);
+        setSource("api");
+        saveLocalTasks(fromApi);
+        setLoading(false);
+        return;
+      }
+      const local = loadLocalTasks();
+      if (local) {
+        setTasksState(local);
+        setSource("local");
+      } else {
+        setTasksState(DEFAULT_DUTY_TASKS);
+        setSource("default");
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const persistLocal = useCallback((next: DutyTask[]) => {
+    setTasksState(next);
+    saveLocalTasks(next);
+    if (source === "default") setSource("local");
+  }, [source]);
+
+  const updateTask = useCallback(
+    (id: string, patch: Partial<DutyTask>) => {
+      persistLocal(
+        tasks.map((t) => (t.id === id ? { ...t, ...patch, id: t.id, kind: t.kind } : t))
+      );
+    },
+    [tasks, persistLocal]
+  );
+
+  const setTasks = useCallback(
+    (next: DutyTask[]) => {
+      persistLocal(next);
+    },
+    [persistLocal]
+  );
+
+  const resetToDefaults = useCallback(() => {
+    persistLocal([...DEFAULT_DUTY_TASKS]);
+    setSource("local");
+  }, [persistLocal]);
+
+  const saveToServer = useCallback(
+    async (adminPassword: string) => {
+      await saveDutyTasksToApi(tasks, adminPassword);
+      setSource("api");
+    },
+    [tasks]
+  );
+
+  const adminLogin = useCallback((password: string) => {
+    const ok = clientAdminPasswordOk(password);
+    if (ok) {
+      setIsAdmin(true);
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+    }
+    return ok;
+  }, []);
+
+  const adminLogout = useCallback(() => {
+    setIsAdmin(false);
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      tasks,
+      loading,
+      source,
+      updateTask,
+      setTasks,
+      resetToDefaults,
+      saveToServer,
+      isAdmin,
+      adminLogin,
+      adminLogout,
+    }),
+    [
+      tasks,
+      loading,
+      source,
+      updateTask,
+      setTasks,
+      resetToDefaults,
+      saveToServer,
+      isAdmin,
+      adminLogin,
+      adminLogout,
+    ]
+  );
+
+  return <DutyConfigContext.Provider value={value}>{children}</DutyConfigContext.Provider>;
+}
+
+export function useDutyConfig() {
+  const ctx = useContext(DutyConfigContext);
+  if (!ctx) throw new Error("useDutyConfig must be used within DutyConfigProvider");
+  return ctx;
+}
+
+export function useDutyTasks() {
+  return useDutyConfig().tasks;
+}
