@@ -153,8 +153,8 @@ export function HomePage() {
               />
               <HomeMiniLink
                 to="/programmes/tasks"
-                title="Tasks"
-                subtitle="Missions & rewards"
+                title="Duty verification"
+                subtitle="Field, digital & advanced"
                 icon={<Sparkles size={18} />}
               />
             </div>

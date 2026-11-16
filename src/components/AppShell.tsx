@@ -9,7 +9,7 @@ const SUBPAGE_BAR: Record<string, { title: string; backTo?: string }> = {
   "/ugo": { title: "UGo Ride", backTo: "/" },
   "/integrity": { title: "Projects dashboard", backTo: "/programmes" },
   "/integrity/report": { title: "Civic accountability watch", backTo: "/integrity" },
-  "/programmes/tasks": { title: "Tasks", backTo: "/programmes" },
+  "/programmes/tasks": { title: "Duty verification desk", backTo: "/programmes" },
 };
 
 export function AppShell() {

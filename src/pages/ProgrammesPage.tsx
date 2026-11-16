@@ -5,7 +5,7 @@ import {
   ACCOUNTABILITY_DASHBOARD_METRICS,
 } from "@/data/accountabilityProgramme";
 import { ACCOUNTABILITY_STATS, formatReconciled } from "@/data/accountability";
-import { AccountabilityTasksPanel } from "@/components/accountability/AccountabilityTasksPanel";
+import { DutyVerificationDesk } from "@/components/accountability/DutyVerificationDesk";
 import { WhistleblowerReportForm } from "@/components/accountability/WhistleblowerReportForm";
 import { useTelegram } from "@/hooks/useTelegram";
 import { Search } from "lucide-react";
@@ -79,7 +79,7 @@ export function ProgrammesPage() {
 
         <WhistleblowerReportForm embedded />
 
-        <AccountabilityTasksPanel compact tasksLink="/programmes/tasks" />
+        <DutyVerificationDesk compact fullPageLink="/programmes/tasks" />
       </div>
     </main>
   );

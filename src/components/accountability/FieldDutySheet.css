@@ -1,0 +1,94 @@
+.field-duty-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  margin: 0;
+  padding: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.field-duty-sheet {
+  width: 100%;
+  max-width: 440px;
+  padding: 14px;
+  margin: 0;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.field-duty-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.field-duty-sheet__head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.field-duty-sheet__close {
+  padding: 6px;
+  border: none;
+  background: transparent;
+  color: var(--plu-muted);
+  cursor: pointer;
+}
+
+.field-duty-sheet__task {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--plu-gold-dark);
+}
+
+.field-duty-sheet__file {
+  display: none;
+}
+
+.field-duty-sheet__btn {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.field-duty-sheet__preview {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.field-duty-sheet__preview img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border);
+}
+
+.field-duty-sheet__preview button {
+  margin-top: 6px;
+  border: none;
+  background: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--plu-muted);
+  cursor: pointer;
+}
+
+.field-duty-sheet__pin {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0d6b4c;
+  text-align: center;
+}
+
+.field-duty-sheet__submit {
+  width: 100%;
+  justify-content: center;
+}

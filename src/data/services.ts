@@ -137,8 +137,8 @@ export const SERVICE_ITEMS: ServiceItem[] = [
   {
     id: "tasks",
     to: "/programmes/tasks",
-    title: "Tasks",
-    subtitle: "Missions",
+    title: "Duty verification",
+    subtitle: "Field & digital duties",
     category: "leadership",
     accent: "gold",
     iconKey: "tasks",

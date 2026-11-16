@@ -7,13 +7,9 @@ export const ACCOUNTABILITY_DASHBOARD = {
 
 export const CIVIC_WATCH_FORM_TITLE = "Civic accountability and corruption watch" as const;
 
-export const WHISTLEBLOWER_DISCLAIMER_SHORT =
-  "Your identity (if provided) will be protected according to applicable whistleblower protection laws." as const;
-
 export const WHISTLEBLOWER_DISCLAIMER_FULL = [
   "You may submit this form anonymously.",
   "Provide as much accurate detail as possible. False or malicious reports may have legal consequences.",
-  WHISTLEBLOWER_DISCLAIMER_SHORT,
   "Do not use this form for general tax questions or complaints about service.",
   "Some whistle-blowing tasks are paid once successful.",
 ] as const;

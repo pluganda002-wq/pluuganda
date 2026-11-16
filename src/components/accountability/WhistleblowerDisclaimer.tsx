@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import {
-  WHISTLEBLOWER_DISCLAIMER_FULL,
-  WHISTLEBLOWER_DISCLAIMER_SHORT,
-} from "@/data/accountabilityProgramme";
+import { WHISTLEBLOWER_DISCLAIMER_FULL } from "@/data/accountabilityProgramme";
 import { useTelegram } from "@/hooks/useTelegram";
 
 export function WhistleblowerDisclaimer() {
@@ -12,7 +9,6 @@ export function WhistleblowerDisclaimer() {
 
   return (
     <div className="whistle-disclaimer">
-      <p className="whistle-disclaimer__short">{WHISTLEBLOWER_DISCLAIMER_SHORT}</p>
       {open ? (
         <ul className="whistle-disclaimer__list">
           {WHISTLEBLOWER_DISCLAIMER_FULL.map((line) => (
