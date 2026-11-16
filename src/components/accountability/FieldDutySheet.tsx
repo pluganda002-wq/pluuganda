@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, MapPin, X } from "lucide-react";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./FieldDutySheet.css";
@@ -19,6 +19,15 @@ export function FieldDutySheet({ taskTitle, open, onClose, onSubmitted }: Props)
   const [pin, setPin] = useState<Pin | null>(null);
   const [pinning, setPinning] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -85,11 +94,13 @@ export function FieldDutySheet({ taskTitle, open, onClose, onSubmitted }: Props)
   return (
     <div className="field-duty-backdrop" role="presentation" onClick={resetAndClose}>
       <div
-        className="field-duty-sheet card"
+        className="field-duty-sheet"
         role="dialog"
+        aria-modal="true"
         aria-labelledby="field-duty-title"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="field-duty-sheet__handle" aria-hidden />
         <header className="field-duty-sheet__head">
           <h3 id="field-duty-title">Field verification</h3>
           <button type="button" className="field-duty-sheet__close" aria-label="Close" onClick={resetAndClose}>
@@ -106,8 +117,8 @@ export function FieldDutySheet({ taskTitle, open, onClose, onSubmitted }: Props)
           className="field-duty-sheet__file"
           onChange={(e) => onPhotoPick(e.target.files?.[0] ?? null)}
         />
-        <button type="button" className="btn btn-secondary field-duty-sheet__btn" onClick={() => fileRef.current?.click()}>
-          <Camera size={18} /> Capture picture
+        <button type="button" className="field-duty-sheet__btn" onClick={() => fileRef.current?.click()}>
+          <Camera size={18} aria-hidden /> Capture picture
         </button>
         {photoPreview ? (
           <div className="field-duty-sheet__preview">
@@ -120,15 +131,15 @@ export function FieldDutySheet({ taskTitle, open, onClose, onSubmitted }: Props)
 
         <button
           type="button"
-          className="btn btn-secondary field-duty-sheet__btn"
+          className="field-duty-sheet__btn"
           disabled={pinning}
           onClick={() => void pinLocation()}
         >
-          <MapPin size={18} /> {pinning ? "Pinning…" : pin ? "Location pinned" : "Pin location"}
+          <MapPin size={18} aria-hidden /> {pinning ? "Pinning…" : pin ? "Location pinned" : "Pin location"}
         </button>
         {pin ? <p className="field-duty-sheet__pin">{pin.label}</p> : null}
 
-        <button type="button" className="btn btn-primary field-duty-sheet__submit" onClick={submitForApproval}>
+        <button type="button" className="field-duty-sheet__submit" onClick={submitForApproval}>
           Submit for approval
         </button>
       </div>

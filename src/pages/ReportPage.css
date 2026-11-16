@@ -1,6 +1,20 @@
+.whistle-form .field--details textarea {
+  min-height: 128px;
+  resize: vertical;
+}
+
+.whistle-form--embed .field--details textarea {
+  min-height: 148px;
+}
+
 .report-media {
   margin: 0.25rem 0 0.5rem;
   padding: 0.5rem 0;
+}
+
+.report-media--compact {
+  margin: 0.1rem 0 0.35rem;
+  padding: 0.2rem 0;
 }
 
 .report-media__row {
@@ -65,6 +79,42 @@
 
 .report-media__attach:active {
   transform: scale(0.98);
+}
+
+.report-media--compact .report-media__mic {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.report-media--compact .report-media__mic--live {
+  min-width: 2.75rem;
+  padding: 0 10px;
+}
+
+.report-media--compact .report-media__time {
+  font-size: 0.72rem;
+}
+
+.report-media--compact .report-media__attach {
+  padding: 6px 10px;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.report-media--compact .report-media__playback {
+  margin-top: 0.4rem;
+}
+
+.report-media--compact .report-media__playback audio {
+  height: 1.85rem;
+}
+
+.report-media--compact .report-media__file {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
 }
 
 .report-media__file-input {

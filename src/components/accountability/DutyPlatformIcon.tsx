@@ -57,19 +57,17 @@ function YoutubeIcon({ size }: { size: number }) {
   );
 }
 
+const TIKTOK_NOTE_PATH =
+  "M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 1 1-2.298-3.158 2.973 2.973 0 0 1 .88.13V9.4a6.329 6.329 0 1 0 5.958 6.339V9.554a8.196 8.196 0 0 0 4.675 1.451V7.56a4.767 4.767 0 0 1-1-.874z";
+
 function TikTokIcon({ size }: { size: number }) {
   return (
     <BrandBox size={size}>
       <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
         <rect width="24" height="24" rx="6" fill="#000" />
-        <path
-          d="M16.5 8.2v2.1a3.4 3.4 0 01-2-.6v5.8a3.45 3.45 0 11-2.4-3.25V9.3a5.5 5.5 0 005.8 5.5v-2.2a3.3 3.3 0 01-1.4-.3V8.2h1.5z"
-          fill="#25F4EE"
-        />
-        <path
-          d="M15.5 7.7v2.6c-.7-.2-1.4-.4-2.1-.4v3.9a2.45 2.45 0 11-1.7-2.3V8.1a4.5 4.5 0 004.3 4.3V10a2.8 2.8 0 01-.5-.3V7.7h1z"
-          fill="#FE2C55"
-        />
+        <path d={TIKTOK_NOTE_PATH} fill="#25F4EE" transform="translate(-0.45 0.45) scale(0.92)" transformOrigin="12 12" />
+        <path d={TIKTOK_NOTE_PATH} fill="#FE2C55" transform="translate(0.45 -0.45) scale(0.92)" transformOrigin="12 12" />
+        <path d={TIKTOK_NOTE_PATH} fill="#fff" transform="scale(0.92)" transformOrigin="12 12" />
       </svg>
     </BrandBox>
   );

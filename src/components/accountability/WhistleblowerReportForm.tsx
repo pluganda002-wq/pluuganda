@@ -248,18 +248,19 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
           <option value="other">Other public resource abuse</option>
         </select>
       </div>
-      <div className="field">
+      <div className="field field--details">
         <label htmlFor={detailsId}>What happened?</label>
         <textarea
           id={detailsId}
           value={details}
           onChange={(e) => setDetails(e.target.value)}
           placeholder="Where, when, and what you saw."
-          rows={embedded ? 3 : 4}
+          rows={embedded ? 7 : 6}
         />
       </div>
 
       <ReportMediaControls
+        compact
         isRecording={isRecording}
         recordSec={recordSec}
         recording={recording}
@@ -317,6 +318,7 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
 }
 
 type MediaControlProps = {
+  compact?: boolean;
   isRecording: boolean;
   recordSec: number;
   recording: SavedRecording | null;
@@ -332,6 +334,7 @@ type MediaControlProps = {
 
 function ReportMediaControls(props: MediaControlProps) {
   const {
+    compact = false,
     isRecording,
     recordSec,
     recording,
@@ -345,8 +348,11 @@ function ReportMediaControls(props: MediaControlProps) {
     onClearAttachment,
   } = props;
 
+  const micSize = compact ? 18 : 22;
+  const clipSize = compact ? 14 : 16;
+
   return (
-    <div className="report-media">
+    <div className={`report-media${compact ? " report-media--compact" : ""}`}>
       <div className="report-media__row">
         {!isRecording ? (
           <button
@@ -355,7 +361,7 @@ function ReportMediaControls(props: MediaControlProps) {
             aria-label={recording ? "Record again" : "Record voice"}
             onClick={onStartRecording}
           >
-            <Mic size={26} strokeWidth={2.2} />
+            <Mic size={micSize} strokeWidth={2.2} />
           </button>
         ) : (
           <button
@@ -364,7 +370,7 @@ function ReportMediaControls(props: MediaControlProps) {
             aria-label="Stop recording"
             onClick={onStopRecording}
           >
-            <Square size={20} fill="currentColor" />
+            <Square size={compact ? 16 : 18} fill="currentColor" />
             <span className="report-media__time">{recordSec}s</span>
           </button>
         )}
@@ -377,8 +383,8 @@ function ReportMediaControls(props: MediaControlProps) {
           onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
         />
         <button type="button" className="report-media__attach" onClick={onPickFile}>
-          <Paperclip size={18} />
-          Attach file
+          <Paperclip size={clipSize} />
+          Attach
         </button>
       </div>
 

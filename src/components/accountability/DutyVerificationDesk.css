@@ -34,10 +34,12 @@
 }
 
 .duty-desk__open-badge {
-  padding: 5px 11px;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: 0.58rem;
   font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   background: #f5efe0;
   color: var(--plu-gold-dark);
   border: 1px solid rgba(201, 162, 39, 0.28);

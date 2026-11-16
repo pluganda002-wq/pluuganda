@@ -40,6 +40,15 @@ export type DutyTask = {
   actionTo?: string;
   instructions?: string;
   externalUrl?: string;
+  /** Field mobilization viewport preview */
+  evidencePhoto?: string;
+};
+
+/** Default field evidence stills (from user reference mocks). */
+export const FIELD_EVIDENCE_PHOTOS: Record<string, string> = {
+  "field-parish": "/branding/field-evidence-parish.jpg",
+  "field-handbooks": "/branding/field-evidence-handbooks.jpg",
+  "field-cleanup": "/branding/field-evidence-cleanup.jpg",
 };
 
 export const DUTY_TABS: { id: DutyTab; label: string }[] = [
@@ -153,6 +162,7 @@ export const DEFAULT_DUTY_TASKS: DutyTask[] = [
     points: 50,
     cta: "Submit proof",
     iconKey: "field",
+    evidencePhoto: FIELD_EVIDENCE_PHOTOS["field-parish"],
   },
   {
     id: "field-handbooks",
@@ -164,6 +174,7 @@ export const DEFAULT_DUTY_TASKS: DutyTask[] = [
     points: 25,
     cta: "Submit proof",
     iconKey: "book",
+    evidencePhoto: FIELD_EVIDENCE_PHOTOS["field-handbooks"],
   },
   {
     id: "field-cleanup",
@@ -175,6 +186,7 @@ export const DEFAULT_DUTY_TASKS: DutyTask[] = [
     points: 40,
     cta: "Submit proof",
     iconKey: "cleanup",
+    evidencePhoto: FIELD_EVIDENCE_PHOTOS["field-cleanup"],
   },
   {
     id: "adv-audit",
