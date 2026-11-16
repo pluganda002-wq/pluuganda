@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronRight, Lock, MapPin, Shield } from "lucide-react";
+import { Check, ChevronRight, Coins, Lock, MapPin, Shield } from "lucide-react";
 import { dutyReturnPath, openDigitalDuty } from "@/lib/dutyNavigation";
 import {
   isTaskLocked,
@@ -53,29 +53,26 @@ function StatusStrip({ done }: { done: boolean }) {
   );
 }
 
-function DigitalGridCard({ task, handlers }: { task: DutyTask; handlers: Handlers }) {
+function DigitalRowCard({ task, handlers }: { task: DutyTask; handlers: Handlers }) {
   const done = handlers.completedTasks.includes(task.id);
   return (
-    <li className="duty-grid__item">
+    <li className="duty-row__item">
       <button
         type="button"
-        className={`duty-grid__card${done ? " duty-grid__card--done" : ""}`}
+        className={`duty-row${done ? " duty-row--done" : ""}`}
         disabled={done}
         onClick={() => handlers.openDigital(task)}
       >
-        {done ? (
-          <span className="duty-grid__check" aria-label="Completed">
-            <Check size={14} strokeWidth={3} />
-          </span>
-        ) : null}
-        <span className="duty-grid__icon duty-grid__icon--brand">
-          <DutyPlatformIcon iconKey={task.iconKey} size={28} />
+        <span className="duty-row__icon">
+          <DutyPlatformIcon iconKey={task.iconKey} size={26} />
         </span>
-        <span className="duty-grid__body">
-          <strong>{task.title}</strong>
-          <span className="duty-grid__pts">+{task.points} pts</span>
+        <span className="duty-row__title">{task.title}</span>
+        <span className="duty-row__divider" aria-hidden />
+        <span className="duty-row__reward">
+          {done ? <Check size={14} strokeWidth={2.5} aria-hidden /> : <Coins size={14} aria-hidden />}
+          +{task.points} pts
         </span>
-        {!done ? <ChevronRight size={18} className="duty-grid__chev" aria-hidden /> : null}
+        {!done ? <ChevronRight size={20} className="duty-row__chev" aria-hidden /> : null}
       </button>
     </li>
   );
@@ -184,9 +181,9 @@ function TaskList({ tab, tasks, handlers }: { tab: DutyTab; tasks: DutyTask[]; h
   }
   if (tab === "digital") {
     return (
-      <ul className="duty-grid">
+      <ul className="duty-row__list">
         {tasks.map((task) => (
-          <DigitalGridCard key={task.id} task={task} handlers={handlers} />
+          <DigitalRowCard key={task.id} task={task} handlers={handlers} />
         ))}
       </ul>
     );
@@ -307,12 +304,14 @@ export function DutyVerificationDesk({
     >
       <div className="duty-desk__head">
         {!fullPage ? <h2 className="duty-desk__title">{DUTY_VERIFICATION_DESK_TITLE}</h2> : null}
-        <span className="duty-desk__open-badge">{openCount} open</span>
-        {compact && fullPageLink ? (
-          <Link to={fullPageLink} className="duty-desk__all">
-            Full desk
-          </Link>
-        ) : null}
+        <div className="duty-desk__head-badges">
+          <span className="duty-desk__open-badge">{openCount} Open</span>
+          {compact && fullPageLink ? (
+            <Link to={fullPageLink} className="duty-desk__all">
+              Full Desk
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="duty-desk__tabs" role="tablist" aria-label="Duty categories">

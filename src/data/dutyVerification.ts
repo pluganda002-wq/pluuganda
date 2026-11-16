@@ -2,7 +2,7 @@ export type DutyKind = "digital" | "field" | "advanced" | "classified";
 
 export type DutyTab = DutyKind;
 
-export const DUTY_VERIFICATION_DESK_TITLE = "Duty verification desk" as const;
+export const DUTY_VERIFICATION_DESK_TITLE = "Duty Verification Desk" as const;
 
 export type DutyIconKey =
   | "youtube"
