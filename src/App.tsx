@@ -35,6 +35,7 @@ import "@/pages/GuildPage.css";
 import "@/pages/HomePage.css";
 import "@/components/ProfileEditorSheet.css";
 import "@/pages/ProgrammesPage.css";
+import "@/pages/TasksPage.css";
 import "@/pages/AccountabilityPage.css";
 import "@/pages/ReportPage.css";
 import "@/components/accountability/DutyVerificationDesk.css";

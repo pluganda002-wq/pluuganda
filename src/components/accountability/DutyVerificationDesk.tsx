@@ -1,11 +1,15 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Lock, MapPin, Shield } from "lucide-react";
 import { dutyReturnPath, openDigitalDuty } from "@/lib/dutyNavigation";
+import {
+  isTaskLocked,
+  openActionCount,
+  visibleTabs,
+  visibleTasksForTab,
+} from "@/lib/dutyAccess";
 import { useEffect, useMemo, useState } from "react";
 import {
-  DUTY_TABS,
   DUTY_VERIFICATION_DESK_TITLE,
-  type DutyKind,
   type DutyTab,
   type DutyTask,
 } from "@/data/dutyVerification";
@@ -13,150 +17,208 @@ import { useUser } from "@/context/UserContext";
 import { useDutyTasks } from "@/context/DutyConfigContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import { FieldDutySheet } from "@/components/accountability/FieldDutySheet";
-import { Layers, Lock, Shield, Wifi } from "lucide-react";
+import { DutyPlatformIcon } from "@/components/accountability/DutyPlatformIcon";
 import "./DutyVerificationDesk.css";
 
 type Props = {
   compact?: boolean;
+  fullPage?: boolean;
   fullPageLink?: string;
-  /** Full desk page: open Digital tab from ?tab=digital */
   initialTab?: DutyTab;
   syncTabToUrl?: boolean;
 };
 
-const ALL_SECTIONS: { kind: DutyKind; title: string }[] = [
-  { kind: "field", title: "Field mobilisation" },
-  { kind: "digital", title: "Digital" },
-  { kind: "advanced", title: "Advanced" },
-];
+type Handlers = {
+  completedTasks: string[];
+  userId?: number;
+  onField: (task: DutyTask) => void;
+  openDigital: (task: DutyTask) => void;
+  onRestricted: (task: DutyTask) => void;
+};
 
-const TAB_ICONS = {
-  all: Layers,
-  field: Wifi,
-  digital: Wifi,
-  advanced: Shield,
-} as const;
-
-function tabCount(id: DutyTab, tasks: DutyTask[]) {
-  if (id === "all") return tasks.length;
-  return tasks.filter((t) => t.kind === id).length;
-}
-
-function filterByTab(tab: DutyTab, tasks: DutyTask[]) {
-  if (tab === "all") return tasks;
-  return tasks.filter((t) => t.kind === tab);
-}
-
-function isAdvancedLocked(task: DutyTask, userId?: number) {
-  if (task.kind !== "advanced") return false;
-  if (task.assigneeTelegramId == null) return true;
-  return task.assigneeTelegramId !== userId;
-}
-
-function DutyCta({
-  task,
-  done,
-  locked,
-  onField,
-  onDigital,
-  onAdvanced,
-}: {
-  task: DutyTask;
-  done: boolean;
-  locked: boolean;
-  onField: () => void;
-  onDigital: () => void;
-  onAdvanced: () => void;
-}) {
-  const label = done ? "Done" : locked ? "Locked" : task.cta;
-
-  function onClick() {
-    if (done) return;
-    if (task.kind === "field") onField();
-    else if (task.kind === "digital") onDigital();
-    else onAdvanced();
+function StatusStrip({ done }: { done: boolean }) {
+  if (done) {
+    return (
+      <div className="duty-brief__status duty-brief__status--ok">
+        <Check size={14} aria-hidden />
+        Verified · points credited
+      </div>
+    );
   }
-
   return (
-    <button
-      type="button"
-      className={`duty-desk__cta${done ? " duty-desk__cta--done" : ""}${locked ? " duty-desk__cta--locked" : ""}`}
-      disabled={done || (locked && task.kind === "advanced")}
-      onClick={onClick}
-    >
-      {label}
-    </button>
+    <div className="duty-brief__status duty-brief__status--open">
+      <span className="duty-brief__status-dot" aria-hidden />
+      Status: Open
+    </div>
   );
 }
 
-type RowHandlers = {
-  onField: (task: DutyTask) => void;
-  openDigital: (task: DutyTask) => void;
-  onAdvanced: (task: DutyTask) => void;
-  completedTasks: string[];
-  userId?: number;
-};
-
-function DutyTaskRow({
-  task,
-  handlers,
-}: {
-  task: DutyTask;
-  handlers: RowHandlers;
-}) {
+function DigitalGridCard({ task, handlers }: { task: DutyTask; handlers: Handlers }) {
   const done = handlers.completedTasks.includes(task.id);
-  const locked = isAdvancedLocked(task, handlers.userId);
-
-  if (task.kind === "digital") {
-    return (
-      <li>
-        <button
-          type="button"
-          className={`duty-desk__row duty-desk__row--digital duty-desk__row--tap${done ? " duty-desk__row--done" : ""}`}
-          disabled={done}
-          onClick={() => handlers.openDigital(task)}
-        >
-          <div className="duty-desk__copy">
-            <strong>{task.title}</strong>
-            {task.subtitle ? <span>{task.subtitle}</span> : null}
-            <b className="duty-desk__pts">{task.points} pts</b>
-          </div>
-          <span className={`duty-desk__action${done ? " duty-desk__action--done" : ""}`}>
-            <span className="duty-desk__action-text">{done ? "Done" : task.cta}</span>
-            {!done ? <ChevronRight size={16} strokeWidth={2.5} aria-hidden /> : null}
+  return (
+    <li className="duty-grid__item">
+      <button
+        type="button"
+        className={`duty-grid__card${done ? " duty-grid__card--done" : ""}`}
+        disabled={done}
+        onClick={() => handlers.openDigital(task)}
+      >
+        {done ? (
+          <span className="duty-grid__check" aria-label="Completed">
+            <Check size={14} strokeWidth={3} />
           </span>
-        </button>
-      </li>
-    );
-  }
+        ) : null}
+        <span className="duty-grid__icon duty-grid__icon--brand">
+          <DutyPlatformIcon iconKey={task.iconKey} size={28} />
+        </span>
+        <span className="duty-grid__body">
+          <strong>{task.title}</strong>
+          <span className="duty-grid__pts">+{task.points} pts</span>
+        </span>
+        {!done ? <ChevronRight size={18} className="duty-grid__chev" aria-hidden /> : null}
+      </button>
+    </li>
+  );
+}
+
+function FieldDetailCard({ task, handlers }: { task: DutyTask; handlers: Handlers }) {
+  const done = handlers.completedTasks.includes(task.id);
+  const category = task.categoryLabel ?? "Field action";
 
   return (
-    <li className={`duty-desk__row duty-desk__row--${task.kind}`}>
-      <div className="duty-desk__copy">
-        <strong>
-          {locked ? <Lock size={14} className="duty-desk__lock" aria-hidden /> : null}
-          {task.title}
-        </strong>
-        {task.subtitle ? <span>{task.subtitle}</span> : null}
-        {task.kind === "advanced" && task.assigneeLabel ? <em>{task.assigneeLabel}</em> : null}
-        <b className="duty-desk__pts">{task.points} pts</b>
-      </div>
-      <DutyCta
-        task={task}
-        done={done}
-        locked={locked}
-        onField={() => handlers.onField(task)}
-        onDigital={() => handlers.openDigital(task)}
-        onAdvanced={() => handlers.onAdvanced(task)}
-      />
+    <li className="duty-brief">
+      <article className={`duty-brief__card duty-brief__card--field${done ? " duty-brief__card--done" : ""}`}>
+        <header className="duty-brief__top">
+          <span className="duty-brief__tag">
+            <span className="duty-brief__dot" aria-hidden />
+            {category}
+          </span>
+          <span className="duty-brief__pts">+{task.points} pts</span>
+        </header>
+        <h3 className="duty-brief__title">{task.title}</h3>
+        {task.location ? (
+          <p className="duty-brief__loc">
+            <MapPin size={13} aria-hidden />
+            {task.location}
+          </p>
+        ) : task.subtitle ? (
+          <p className="duty-brief__loc">{task.subtitle}</p>
+        ) : null}
+        {task.description ? <p className="duty-brief__desc">{task.description}</p> : null}
+        <StatusStrip done={done} />
+        <button
+          type="button"
+          className={`duty-brief__cta${done ? " duty-brief__cta--done" : ""}`}
+          disabled={done}
+          onClick={() => handlers.onField(task)}
+        >
+          {done ? "Verified · points credited" : task.cta}
+        </button>
+      </article>
     </li>
+  );
+}
+
+function RestrictedCard({
+  task,
+  handlers,
+  restricted,
+}: {
+  task: DutyTask;
+  handlers: Handlers;
+  restricted: "advanced" | "classified";
+}) {
+  const done = handlers.completedTasks.includes(task.id);
+  const locked = isTaskLocked(task, handlers.userId);
+  const category = task.categoryLabel ?? (restricted === "classified" ? "Classified" : "Advanced");
+
+  return (
+    <li className="duty-brief">
+      <article
+        className={`duty-brief__card duty-brief__card--${restricted}${locked ? " duty-brief__card--locked" : ""}`}
+      >
+        <header className="duty-brief__top">
+          <span className="duty-brief__tag">
+            {locked ? <Lock size={12} aria-hidden /> : <Shield size={12} aria-hidden />}
+            {category}
+          </span>
+          <span className="duty-brief__pts">+{task.points} pts</span>
+        </header>
+        <h3 className="duty-brief__title">{task.title}</h3>
+        {task.subtitle ? <p className="duty-brief__loc">{task.subtitle}</p> : null}
+        {task.description ? <p className="duty-brief__desc">{task.description}</p> : null}
+        {task.assigneeLabel ? <p className="duty-brief__assignee">{task.assigneeLabel}</p> : null}
+        {restricted === "classified" ? (
+          <p className="duty-brief__classified-note">Secretariat-assigned · do not share</p>
+        ) : null}
+        <StatusStrip done={done} />
+        <button
+          type="button"
+          className={`duty-brief__cta${done ? " duty-brief__cta--done" : ""}${locked ? " duty-brief__cta--locked" : ""}`}
+          disabled={done || locked}
+          onClick={() => handlers.onRestricted(task)}
+        >
+          {done ? "Completed" : locked ? "Restricted" : task.cta}
+        </button>
+      </article>
+    </li>
+  );
+}
+
+function ClassifiedEmpty() {
+  return (
+    <div className="duty-desk__empty duty-desk__empty--classified">
+      <Shield size={28} strokeWidth={1.75} aria-hidden />
+      <h3>No assigned directives</h3>
+      <p>
+        Classified duties are issued by the secretariat. When you are selected, your directive will
+        appear here.
+      </p>
+    </div>
+  );
+}
+
+function TaskList({ tab, tasks, handlers }: { tab: DutyTab; tasks: DutyTask[]; handlers: Handlers }) {
+  if (tab === "classified" && tasks.length === 0) {
+    return <ClassifiedEmpty />;
+  }
+  if (tab === "digital") {
+    return (
+      <ul className="duty-grid">
+        {tasks.map((task) => (
+          <DigitalGridCard key={task.id} task={task} handlers={handlers} />
+        ))}
+      </ul>
+    );
+  }
+  if (tab === "field") {
+    return (
+      <ul className="duty-brief__list">
+        {tasks.map((task) => (
+          <FieldDetailCard key={task.id} task={task} handlers={handlers} />
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <ul className="duty-brief__list">
+      {tasks.map((task) => (
+        <RestrictedCard
+          key={task.id}
+          task={task}
+          handlers={handlers}
+          restricted={tab === "classified" ? "classified" : "advanced"}
+        />
+      ))}
+    </ul>
   );
 }
 
 export function DutyVerificationDesk({
   compact = false,
+  fullPage = false,
   fullPageLink = "/programmes/tasks",
-  initialTab = "all",
+  initialTab = "digital",
   syncTabToUrl = false,
 }: Props) {
   const [tab, setTab] = useState<DutyTab>(initialTab);
@@ -167,18 +229,24 @@ export function DutyVerificationDesk({
   const { user, haptic, showAlert } = useTelegram();
   const navigate = useNavigate();
 
-  const filtered = useMemo(() => filterByTab(tab, dutyTasks), [tab, dutyTasks]);
-  const flatList = useMemo(() => {
-    if (tab === "all") return filtered;
-    return compact ? filtered.slice(0, 3) : filtered;
-  }, [tab, filtered, compact]);
+  const userId = user?.id;
+  const tabs = useMemo(() => visibleTabs(dutyTasks, userId), [dutyTasks, userId]);
+  const list = useMemo(() => {
+    const items = visibleTasksForTab(tab, dutyTasks, userId);
+    return compact ? items.slice(0, 3) : items;
+  }, [tab, dutyTasks, userId, compact]);
+
+  const openCount = useMemo(
+    () => openActionCount(dutyTasks, completedTasks, userId),
+    [dutyTasks, completedTasks, userId]
+  );
 
   const returnTo = useMemo(() => dutyReturnPath(compact, tab), [compact, tab]);
 
-  const handlers: RowHandlers = useMemo(
+  const handlers: Handlers = useMemo(
     () => ({
       completedTasks,
-      userId: user?.id,
+      userId,
       onField: (task: DutyTask) => {
         if (completedTasks.includes(task.id)) return;
         haptic("light");
@@ -189,22 +257,27 @@ export function DutyVerificationDesk({
         haptic("light");
         openDigitalDuty(navigate, task, returnTo);
       },
-      onAdvanced: (task: DutyTask) => {
-        if (isAdvancedLocked(task, user?.id)) {
+      onRestricted: (task: DutyTask) => {
+        if (isTaskLocked(task, userId)) {
           haptic("light");
           showAlert(
-            task.assigneeLabel
-              ? `Assigned duty: ${task.assigneeLabel}. Contact the integrity desk for access.`
-              : "This duty is assigned to another patriot."
+            task.kind === "classified"
+              ? "Classified duties are visible only to patriots selected by the secretariat."
+              : "This advanced duty is assigned to another coordinator."
           );
+          return;
+        }
+        if (task.actionTo) {
+          haptic("light");
+          navigate(task.actionTo, { state: { returnTo: dutyReturnPath(compact, tab) } });
           return;
         }
         completeTask(task.id);
         haptic("medium");
-        showAlert("Advanced duty opened. Follow coordinator instructions.");
+        showAlert("Duty opened. Follow coordinator instructions.");
       },
     }),
-    [completedTasks, user?.id, haptic, navigate, returnTo, completeTask, showAlert]
+    [completedTasks, userId, haptic, navigate, returnTo, compact, tab, completeTask, showAlert]
   );
 
   function onFieldSubmitted() {
@@ -212,39 +285,29 @@ export function DutyVerificationDesk({
     setFieldTask(null);
   }
 
-  const sectionsForAll = useMemo(() => {
-    if (tab !== "all") return null;
-    return ALL_SECTIONS.map((section) => ({
-      ...section,
-      tasks: dutyTasks.filter((t) => t.kind === section.kind),
-    })).filter((s) => s.tasks.length > 0);
-  }, [tab, dutyTasks]);
-
-  const hideAdvancedOnCompact = compact && tab === "all";
-
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
-    if (tab === "field" && !dutyTasks.some((t) => t.kind === "field")) {
-      setTab("all");
+    if (!tabs.some((t) => t.id === tab) && tabs[0]) {
+      setTab(tabs[0].id);
     }
-  }, [tab, dutyTasks]);
+  }, [tab, tabs]);
 
   useEffect(() => {
     if (!syncTabToUrl) return;
-    if (tab === "all") {
-      setSearchParams({}, { replace: true });
-    } else {
-      setSearchParams({ tab }, { replace: true });
-    }
+    setSearchParams({ tab }, { replace: true });
   }, [tab, syncTabToUrl, setSearchParams]);
 
   return (
-    <section className="duty-desk" aria-labelledby="duty-desk-title">
+    <section
+      className={`duty-desk${fullPage ? " duty-desk--full" : ""}${compact ? " duty-desk--compact" : ""}`}
+      aria-label={DUTY_VERIFICATION_DESK_TITLE}
+    >
       <div className="duty-desk__head">
-        <h2 id="duty-desk-title">{DUTY_VERIFICATION_DESK_TITLE}</h2>
+        {!fullPage ? <h2 className="duty-desk__title">{DUTY_VERIFICATION_DESK_TITLE}</h2> : null}
+        <span className="duty-desk__open-badge">{openCount} open</span>
         {compact && fullPageLink ? (
           <Link to={fullPageLink} className="duty-desk__all">
             Full desk
@@ -253,11 +316,8 @@ export function DutyVerificationDesk({
       </div>
 
       <div className="duty-desk__tabs" role="tablist" aria-label="Duty categories">
-        {DUTY_TABS.filter(
-          (t) => t.id === "all" || dutyTasks.some((task) => task.kind === t.id)
-        ).map((t) => {
-          const Icon = TAB_ICONS[t.id];
-          const count = tabCount(t.id, dutyTasks);
+        {tabs.map((t) => {
+          const count = visibleTasksForTab(t.id, dutyTasks, userId).length;
           const isActive = tab === t.id;
           return (
             <button
@@ -266,37 +326,30 @@ export function DutyVerificationDesk({
               role="tab"
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
-              className={`duty-desk__tab duty-desk__tab--${t.id}${isActive ? " duty-desk__tab--active" : ""}`}
+              className={`duty-desk__tab${isActive ? " duty-desk__tab--active" : ""}`}
               onClick={() => {
                 setTab(t.id);
                 haptic("light");
               }}
             >
-              <span className="duty-desk__tab-icon" aria-hidden>
-                <Icon size={15} strokeWidth={2.25} />
-              </span>
-              <span className="duty-desk__tab-label">
-                {t.label}
-                {isActive ? (
-                  <span className="duty-desk__tab-count" aria-label={`${count} duties`}>
-                    {count}
-                  </span>
-                ) : null}
-              </span>
+              <span className="duty-desk__tab-label">{t.label}</span>
+              <span className="duty-desk__tab-count">({count})</span>
             </button>
           );
         })}
       </div>
 
-      {tab === "all" && sectionsForAll ? (
-        <AllSections sections={sectionsForAll} handlers={handlers} hideAdvanced={hideAdvancedOnCompact} />
-      ) : (
-        <ul className="duty-desk__list">
-          {flatList.map((task) => (
-            <DutyTaskRow key={task.id} task={task} handlers={handlers} />
-          ))}
-        </ul>
-      )}
+      <TaskList tab={tab} tasks={list} handlers={handlers} />
+
+      {fullPage ? (
+        <footer className="duty-desk__standard">
+          <Shield size={16} aria-hidden />
+          <p>
+            <strong>Verification standard</strong>
+            Field tasks are cross-referenced with geo-coordinates and accredited by district captains.
+          </p>
+        </footer>
+      ) : null}
 
       <FieldDutySheet
         taskTitle={fieldTask?.title ?? ""}
@@ -305,33 +358,5 @@ export function DutyVerificationDesk({
         onSubmitted={onFieldSubmitted}
       />
     </section>
-  );
-}
-
-function AllSections({
-  sections,
-  handlers,
-  hideAdvanced,
-}: {
-  sections: { kind: DutyKind; title: string; tasks: DutyTask[] }[];
-  handlers: RowHandlers;
-  hideAdvanced: boolean;
-}) {
-  return (
-    <div className="duty-desk__groups">
-      {sections.map((section) => {
-        if (hideAdvanced && section.kind === "advanced") return null;
-        return (
-          <div key={section.kind} className="duty-desk__group">
-            <h3 className="duty-desk__group-title">{section.title}</h3>
-            <ul className="duty-desk__list">
-              {section.tasks.map((task) => (
-                <DutyTaskRow key={task.id} task={task} handlers={handlers} />
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </div>
   );
 }

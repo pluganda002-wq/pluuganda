@@ -14,7 +14,7 @@ function adminOk(password) {
 function sanitizeTask(raw) {
   if (!raw || typeof raw !== "object") return null;
   const kind = raw.kind;
-  if (kind !== "field" && kind !== "digital" && kind !== "advanced") return null;
+  if (kind !== "field" && kind !== "digital" && kind !== "advanced" && kind !== "classified") return null;
   if (typeof raw.id !== "string" || !raw.id.trim()) return null;
   if (typeof raw.title !== "string" || !raw.title.trim()) return null;
   const points = Number(raw.points);
@@ -31,6 +31,10 @@ function sanitizeTask(raw) {
     instructions: typeof raw.instructions === "string" ? raw.instructions.trim() : undefined,
     externalUrl: typeof raw.externalUrl === "string" && raw.externalUrl.trim() ? raw.externalUrl.trim() : undefined,
     assigneeLabel: typeof raw.assigneeLabel === "string" ? raw.assigneeLabel.trim() : undefined,
+    categoryLabel: typeof raw.categoryLabel === "string" ? raw.categoryLabel.trim() : undefined,
+    location: typeof raw.location === "string" ? raw.location.trim() : undefined,
+    description: typeof raw.description === "string" ? raw.description.trim() : undefined,
+    iconKey: typeof raw.iconKey === "string" ? raw.iconKey.trim() : undefined,
   };
 
   if (raw.assigneeTelegramId === null || raw.assigneeTelegramId === undefined || raw.assigneeTelegramId === "") {

@@ -10,7 +10,7 @@ import {
 import { DEFAULT_DUTY_TASKS, type DutyTask } from "@/data/dutyVerification";
 import { fetchDutyTasksFromApi, saveDutyTasksToApi } from "@/lib/dutyApi";
 
-const STORAGE_KEY = "plu-duty-config-v1";
+const STORAGE_KEY = "plu-duty-config-v3";
 const ADMIN_SESSION_KEY = "plu-duty-admin-session";
 
 type DutyConfigValue = {
@@ -21,6 +21,8 @@ type DutyConfigValue = {
   setTasks: (tasks: DutyTask[]) => void;
   resetToDefaults: () => void;
   saveToServer: (adminPassword: string) => Promise<void>;
+  addTask: (task: DutyTask) => void;
+  removeTask: (id: string) => void;
   isAdmin: boolean;
   adminLogin: (password: string) => boolean;
   adminLogout: () => void;
@@ -120,6 +122,20 @@ export function DutyConfigProvider({ children }: { children: ReactNode }) {
     [tasks]
   );
 
+  const addTask = useCallback(
+    (task: DutyTask) => {
+      persistLocal([...tasks.filter((t) => t.id !== task.id), task]);
+    },
+    [tasks, persistLocal]
+  );
+
+  const removeTask = useCallback(
+    (id: string) => {
+      persistLocal(tasks.filter((t) => t.id !== id));
+    },
+    [tasks, persistLocal]
+  );
+
   const adminLogin = useCallback((password: string) => {
     const ok = clientAdminPasswordOk(password);
     if (ok) {
@@ -143,6 +159,8 @@ export function DutyConfigProvider({ children }: { children: ReactNode }) {
       setTasks,
       resetToDefaults,
       saveToServer,
+      addTask,
+      removeTask,
       isAdmin,
       adminLogin,
       adminLogout,
@@ -155,6 +173,8 @@ export function DutyConfigProvider({ children }: { children: ReactNode }) {
       setTasks,
       resetToDefaults,
       saveToServer,
+      addTask,
+      removeTask,
       isAdmin,
       adminLogin,
       adminLogout,

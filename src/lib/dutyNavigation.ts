@@ -11,13 +11,12 @@ export function dutyDetailPath(taskId: string) {
 
 export function dutyReturnPath(compact: boolean, tab: DutyTab): string {
   if (compact) return "/programmes";
-  if (tab === "all") return "/programmes/tasks";
   return `/programmes/tasks?tab=${tab}`;
 }
 
 export function parseDutyTab(raw: string | null): DutyTab {
-  if (raw === "field" || raw === "digital" || raw === "advanced") return raw;
-  return "all";
+  if (raw === "field" || raw === "digital" || raw === "advanced" || raw === "classified") return raw;
+  return "digital";
 }
 
 export function openDigitalDuty(
