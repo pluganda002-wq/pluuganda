@@ -1,105 +1,79 @@
-import { Link } from "react-router-dom";
+import { FormEvent, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  ACCOUNTABILITY_ACTIONS,
   ACCOUNTABILITY_DASHBOARD,
-  TRACKER_DASHBOARD,
+  ACCOUNTABILITY_DASHBOARD_METRICS,
 } from "@/data/accountabilityProgramme";
-import { ACCOUNTABILITY_STATS } from "@/data/accountability";
-import { CASE_TRACKER } from "@/data/plu";
 import { AccountabilityTasksPanel } from "@/components/accountability/AccountabilityTasksPanel";
+import { WhistleblowerReportForm } from "@/components/accountability/WhistleblowerReportForm";
 import { useTelegram } from "@/hooks/useTelegram";
-import { ChevronRight, LayoutDashboard } from "lucide-react";
+import { Search } from "lucide-react";
 import "./ProgrammesPage.css";
 
-export function ProgrammesPage() {
-  const { haptic, showAlert } = useTelegram();
+function formatMetric(value: number) {
+  return value.toLocaleString("en-US");
+}
 
-  function onSync() {
-    haptic("medium");
-    showAlert(navigator.onLine ? "Vault synced." : "Offline — queue held until uplink.");
+export function ProgrammesPage() {
+  const { haptic } = useTelegram();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+
+  function onSearch(e: FormEvent) {
+    e.preventDefault();
+    const q = search.trim();
+    haptic("light");
+    if (!q) {
+      navigate("/integrity");
+      return;
+    }
+    navigate(`/integrity?q=${encodeURIComponent(q)}`);
   }
 
   return (
     <main className="institutional-page prog-dash">
       <div className="institutional-page__body prog-dash__body">
-        <header className="prog-dash__head">
-          <p className="prog-dash__tag">{ACCOUNTABILITY_DASHBOARD.tag}</p>
-          <h1 className="prog-dash__title">{ACCOUNTABILITY_DASHBOARD.title}</h1>
-        </header>
-
-        <div className="prog-dash__kpis">
-          <div>
-            <strong>{ACCOUNTABILITY_STATS.redFlags}</strong>
-            <span>Red flags</span>
-          </div>
-          <div>
-            <strong>{CASE_TRACKER.length}</strong>
-            <span>Open cases</span>
-          </div>
-          <div>
-            <strong>{ACCOUNTABILITY_STATS.reportsLogged.toLocaleString()}</strong>
-            <span>Reports</span>
-          </div>
-        </div>
-
-        <Link
-          to={TRACKER_DASHBOARD.path}
-          className="prog-dash__tracker card"
-          onClick={() => haptic("light")}
-        >
-          <span className="prog-dash__tracker-icon">
-            <LayoutDashboard size={22} aria-hidden />
-          </span>
-          <h2>{TRACKER_DASHBOARD.title}</h2>
-          <div className="prog-dash__tracker-stats">
-            <span>
-              <b>{ACCOUNTABILITY_STATS.projectsTracked.toLocaleString()}</b> projects
+        <section className="prog-dash__board" aria-label="Accountability dashboard">
+          <header className="prog-dash__board-top">
+            <span className="prog-dash__live" aria-hidden>
+              <span className="prog-dash__live-dot" />
+              Live
             </span>
-            <span>
-              <b>{ACCOUNTABILITY_STATS.redFlags}</b> flags
-            </span>
-            <span>Search · filter · act</span>
-          </div>
-          <span className="prog-dash__tracker-go">
-            Open dashboard <ChevronRight size={18} />
-          </span>
-        </Link>
+            <h1 className="prog-dash__title">{ACCOUNTABILITY_DASHBOARD.title}</h1>
+          </header>
 
-        <h2 className="prog-dash__section">Actions</h2>
-        <div className="prog-dash__grid">
-          {ACCOUNTABILITY_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            if (action.id === "sync") {
-              return (
-                <button
-                  key={action.id}
-                  type="button"
-                  className={`prog-dash__tile prog-dash__tile--${action.accent ?? "neutral"}`}
-                  onClick={() => {
-                    haptic("light");
-                    onSync();
-                  }}
-                >
-                  <Icon size={20} />
-                  <span className="prog-dash__tile-label">{action.label}</span>
-                  {action.meta ? <em>{action.meta}</em> : null}
-                </button>
-              );
-            }
-            return (
+          <div className="prog-dash__metrics" role="list">
+            {ACCOUNTABILITY_DASHBOARD_METRICS.map((m) => (
               <Link
-                key={action.id}
-                to={action.to}
-                className={`prog-dash__tile prog-dash__tile--${action.accent ?? "neutral"}`}
+                key={m.id}
+                to={m.to}
+                role="listitem"
+                className={`prog-dash__metric prog-dash__metric--${m.tone}`}
                 onClick={() => haptic("light")}
               >
-                <Icon size={20} />
-                <span className="prog-dash__tile-label">{action.label}</span>
-                {action.meta ? <em>{action.meta}</em> : null}
+                <strong>{formatMetric(m.value)}</strong>
+                <span>{m.label}</span>
+                <i className="prog-dash__spark" aria-hidden />
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </section>
+
+        <form className="prog-dash__search" onSubmit={onSearch}>
+          <Search size={18} aria-hidden />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search project, district, contractor…"
+            aria-label="Search projects"
+          />
+          <button type="submit" className="prog-dash__search-go">
+            Go
+          </button>
+        </form>
+
+        <WhistleblowerReportForm embedded />
 
         <AccountabilityTasksPanel compact tasksLink="/programmes/tasks" />
       </div>

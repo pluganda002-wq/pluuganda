@@ -1,56 +1,37 @@
-import type { LucideIcon } from "lucide-react";
-import { BarChart3, Camera, Megaphone, RefreshCw } from "lucide-react";
-
-export type AccountabilityAction = {
-  id: string;
-  label: string;
-  meta?: string;
-  to: string;
-  icon: LucideIcon;
-  accent?: "gold" | "red" | "green" | "neutral";
-};
+import { CASE_TRACKER } from "@/data/plu";
+import { ACCOUNTABILITY_STATS } from "@/data/accountability";
 
 export const ACCOUNTABILITY_DASHBOARD = {
   title: "Accountability",
-  tag: "Anti-corruption programme",
 } as const;
 
-export const TRACKER_DASHBOARD = {
-  title: "National projects & corruption tracker",
-  path: "/integrity",
-} as const;
-
-export const ACCOUNTABILITY_ACTIONS: AccountabilityAction[] = [
+export const ACCOUNTABILITY_DASHBOARD_METRICS = [
   {
-    id: "report",
-    label: "Whistleblower report",
-    meta: "Voice or text",
-    to: "/integrity/report",
-    icon: Megaphone,
-    accent: "red",
-  },
-  {
-    id: "proof",
-    label: "Submit field proof",
-    meta: "+30 pts",
+    id: "projects",
+    value: ACCOUNTABILITY_STATS.projectsTracked,
+    label: "Projects",
     to: "/integrity",
-    icon: Camera,
-    accent: "gold",
+    tone: "gold" as const,
   },
   {
-    id: "cases",
+    id: "red-flags",
+    value: ACCOUNTABILITY_STATS.redFlags,
+    label: "Red flags",
+    to: "/integrity?filter=red-flag",
+    tone: "red" as const,
+  },
+  {
+    id: "open-cases",
+    value: CASE_TRACKER.length,
     label: "Open cases",
-    meta: "Live status",
-    to: "/integrity",
-    icon: BarChart3,
-    accent: "green",
+    to: "/integrity?focus=cases",
+    tone: "amber" as const,
   },
   {
-    id: "sync",
-    label: "Sync vault",
-    meta: "Queue",
-    to: "/programmes",
-    icon: RefreshCw,
-    accent: "neutral",
+    id: "reports",
+    value: ACCOUNTABILITY_STATS.reportsLogged,
+    label: "Reports",
+    to: "/integrity?focus=reports",
+    tone: "green" as const,
   },
-];
+] as const;

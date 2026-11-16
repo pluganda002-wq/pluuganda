@@ -1,58 +1,97 @@
 .report-recording {
   margin-top: 0.25rem;
-  padding: 0.85rem;
-  border-radius: 0.75rem;
-  border: 1px dashed var(--plu-border-strong, rgba(0, 0, 0, 0.15));
-  background: color-mix(in srgb, var(--plu-gold, #c9a227) 6%, #fff);
-}
-
-.report-recording__label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border-strong);
+  background: #fffef9;
+  text-align: center;
 }
 
 .report-recording__hint {
-  margin: 0 0 0.65rem;
-  font-size: 0.78rem;
-  color: var(--plu-muted);
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--plu-text);
   line-height: 1.35;
 }
 
-.report-recording__timer {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #b42318;
-  margin-bottom: 0.5rem;
-}
-
-.report-recording__timer--idle {
-  color: var(--plu-muted);
-  font-weight: 500;
-}
-
-.report-recording__actions {
+.report-recording__mic-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.report-recording__actions .btn {
-  flex: 1 1 8rem;
-  width: auto;
+.report-recording__mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 50%;
+  border: 2px solid rgba(180, 35, 24, 0.35);
+  background: #fff;
+  color: #b42318;
+  cursor: pointer;
+  box-shadow: var(--plu-shadow-sm);
+}
+
+.report-recording__mic:active {
+  transform: scale(0.96);
+}
+
+.report-recording__mic--saved {
+  border-color: rgba(26, 127, 118, 0.4);
+  color: #0d6b4c;
+}
+
+.report-recording__mic--live {
+  background: #b42318;
+  color: #fff;
+  border-color: #b42318;
+  animation: report-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes report-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(180, 35, 24, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(180, 35, 24, 0);
+  }
 }
 
 .report-recording__status {
-  margin: 0.5rem 0 0;
-  font-size: 0.8rem;
+  margin: 0;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #047857;
+  color: var(--plu-muted);
+}
+
+.report-recording__saved {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
 }
 
 .report-recording audio {
   width: 100%;
-  margin-top: 0.5rem;
   height: 2.25rem;
+}
+
+.report-recording__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--plu-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
 }

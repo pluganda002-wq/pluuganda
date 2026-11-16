@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   ACCOUNTABILITY_FILTERS,
   ACCOUNTABILITY_STATS,
@@ -10,6 +10,7 @@ import {
   type ProjectFilter,
   type TrackedProject,
 } from "@/data/accountability";
+import { CASE_TRACKER } from "@/data/plu";
 import { useTelegram } from "@/hooks/useTelegram";
 import "./AccountabilityPage.css";
 import { Camera, Heart, Lock, Megaphone, MessageCircle, Search, ShieldCheck } from "lucide-react";
@@ -108,8 +109,31 @@ function EvidenceTile({ label, meta }: { label: string; meta?: string }) {
 
 export function AccountabilityPage() {
   const { haptic, showAlert } = useTelegram();
+  const [searchParams] = useSearchParams();
+  const casesRef = useRef<HTMLElement | null>(null);
+  const reportsRef = useRef<HTMLElement | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProjectFilter>("red-flag");
+
+  useEffect(() => {
+    const urlFilter = searchParams.get("filter");
+    if (
+      urlFilter === "all" ||
+      urlFilter === "stalled" ||
+      urlFilter === "scrutiny" ||
+      urlFilter === "red-flag"
+    ) {
+      setFilter(urlFilter);
+    }
+    const q = searchParams.get("q");
+    if (q) setQuery(q);
+    if (searchParams.get("focus") === "cases" && casesRef.current) {
+      casesRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (searchParams.get("focus") === "reports" && reportsRef.current) {
+      reportsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [searchParams]);
 
   const visibleProjects = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -146,6 +170,43 @@ export function AccountabilityPage() {
           {ACCOUNTABILITY_STATS.reportsLogged.toLocaleString()} reports · audit desk live
         </p>
       </header>
+
+      <section
+        id="open-cases"
+        ref={casesRef}
+        className="acct-cases card"
+        aria-labelledby="acct-cases-title"
+      >
+        <h2 id="acct-cases-title" className="acct-cases__title">
+          Open cases <span>{CASE_TRACKER.length}</span>
+        </h2>
+        <ul className="acct-cases__list">
+          {CASE_TRACKER.map((c) => (
+            <li key={c.id}>
+              <strong>{c.id}</strong>
+              <span>{c.title}</span>
+              <em>{c.status}</em>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="reports-log"
+        ref={reportsRef}
+        className="acct-reports card"
+        aria-labelledby="acct-reports-title"
+      >
+        <h2 id="acct-reports-title" className="acct-reports__title">
+          Reports
+        </h2>
+        <p className="acct-reports__count">
+          <strong>{ACCOUNTABILITY_STATS.reportsLogged.toLocaleString()}</strong> logged
+        </p>
+        <Link to="/integrity/report" className="btn btn-primary acct-reports__cta">
+          File new report
+        </Link>
+      </section>
 
       <div className="acct-stats">
         <div>

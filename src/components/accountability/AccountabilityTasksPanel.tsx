@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ACCOUNTABILITY_TASKS, type TaskChannel } from "@/data/accountabilityTasks";
 import { useUser } from "@/context/UserContext";
@@ -19,11 +19,17 @@ export function AccountabilityTasksPanel({ compact = false, tasksLink = "/progra
   const [channel, setChannel] = useState<TaskChannel>("physical");
   const { completedTasks, completeTask } = useUser();
   const { haptic, showAlert } = useTelegram();
+  const navigate = useNavigate();
 
   const tasks = ACCOUNTABILITY_TASKS.filter((t) => t.channel === channel);
-  const visible = compact ? tasks.slice(0, 2) : tasks;
+  const visible = compact ? tasks.slice(0, 3) : tasks;
 
-  function onComplete(id: string) {
+  function onTaskAction(id: string, actionTo?: string) {
+    if (actionTo) {
+      haptic("light");
+      navigate(actionTo);
+      return;
+    }
     completeTask(id);
     haptic("medium");
     showAlert("Task logged. Points apply when verified.");
@@ -58,7 +64,7 @@ export function AccountabilityTasksPanel({ compact = false, tasksLink = "/progra
       </div>
       <ul className="acc-tasks__list">
         {visible.map((t) => {
-          const done = completedTasks.includes(t.id);
+          const done = !t.actionTo && completedTasks.includes(t.id);
           return (
             <li key={t.id} className="acc-tasks__row">
               <div className="acc-tasks__copy">
@@ -69,7 +75,7 @@ export function AccountabilityTasksPanel({ compact = false, tasksLink = "/progra
                 type="button"
                 className={`acc-tasks__cta${done ? " acc-tasks__cta--done" : ""}`}
                 disabled={done}
-                onClick={() => onComplete(t.id)}
+                onClick={() => onTaskAction(t.id, t.actionTo)}
               >
                 {done ? "Done" : t.cta}
               </button>
