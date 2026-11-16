@@ -140,6 +140,18 @@
   text-align: center;
 }
 
+.field-duty-sheet--proof {
+  max-height: min(94dvh, 720px);
+}
+
+.field-duty-sheet__mission {
+  margin: 4px 0 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--plu-text);
+}
+
 .field-duty-sheet__submit {
   width: 100%;
   display: inline-flex;
@@ -155,4 +167,18 @@
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(61, 46, 31, 0.18);
+}
+
+.field-duty-sheet__submit--muted {
+  opacity: 0.72;
+}
+
+.field-duty-sheet__task {
+  display: none;
+}
+
+.field-duty-sheet__btn,
+.field-duty-sheet__preview,
+.field-duty-sheet__pin {
+  display: none;
 }

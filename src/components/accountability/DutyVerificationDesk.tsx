@@ -1,6 +1,5 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronRight, Coins, Lock, Shield } from "lucide-react";
-import { FieldMobilizationCard } from "@/components/accountability/FieldMobilizationCard";
+import { Check, ChevronRight, Coins, Lock, MapPin, Shield } from "lucide-react";
 import { dutyReturnPath, openDigitalDuty } from "@/lib/dutyNavigation";
 import {
   isTaskLocked,
@@ -81,15 +80,39 @@ function DigitalRowCard({ task, handlers }: { task: DutyTask; handlers: Handlers
 
 function FieldDetailCard({ task, handlers }: { task: DutyTask; handlers: Handlers }) {
   const done = handlers.completedTasks.includes(task.id);
-  const openSheet = () => handlers.onField(task);
+  const category = task.categoryLabel ?? "Field action";
 
   return (
-    <FieldMobilizationCard
-      task={task}
-      done={done}
-      onSubmitProof={openSheet}
-      onCaptureAction={openSheet}
-    />
+    <li className="duty-brief">
+      <article className={`duty-brief__card duty-brief__card--field${done ? " duty-brief__card--done" : ""}`}>
+        <header className="duty-brief__top">
+          <span className="duty-brief__tag">
+            <span className="duty-brief__dot" aria-hidden />
+            {category}
+          </span>
+          <span className="duty-brief__pts">+{task.points} pts</span>
+        </header>
+        <h3 className="duty-brief__title">{task.title}</h3>
+        {task.location ? (
+          <p className="duty-brief__loc">
+            <MapPin size={13} aria-hidden />
+            {task.location}
+          </p>
+        ) : task.subtitle ? (
+          <p className="duty-brief__loc">{task.subtitle}</p>
+        ) : null}
+        {task.description ? <p className="duty-brief__desc">{task.description}</p> : null}
+        <StatusStrip done={done} />
+        <button
+          type="button"
+          className={`duty-brief__cta${done ? " duty-brief__cta--done" : ""}`}
+          disabled={done}
+          onClick={() => handlers.onField(task)}
+        >
+          {done ? "Verified · points credited" : task.cta}
+        </button>
+      </article>
+    </li>
   );
 }
 
@@ -167,7 +190,7 @@ function TaskList({ tab, tasks, handlers }: { tab: DutyTab; tasks: DutyTask[]; h
   }
   if (tab === "field") {
     return (
-      <ul className="field-evidence__list">
+      <ul className="duty-brief__list">
         {tasks.map((task) => (
           <FieldDetailCard key={task.id} task={task} handlers={handlers} />
         ))}
@@ -328,7 +351,7 @@ export function DutyVerificationDesk({
       ) : null}
 
       <FieldDutySheet
-        taskTitle={fieldTask?.title ?? ""}
+        task={fieldTask}
         open={Boolean(fieldTask)}
         onClose={() => setFieldTask(null)}
         onSubmitted={onFieldSubmitted}
