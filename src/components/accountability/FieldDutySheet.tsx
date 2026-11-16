@@ -37,12 +37,7 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
   }
 
   function submitForApproval() {
-    if (!submitReady) {
-      showAlert(
-        "Upload a group photo (3+ faces detected), lock your GPS pin, then submit for approval."
-      );
-      return;
-    }
+    if (!submitReady) return;
     haptic("medium");
     showAlert("Field duty submitted for approval. Points apply once verified.");
     onSubmitted();
@@ -76,7 +71,9 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
 
         <button
           type="button"
-          className={`field-duty-sheet__submit${submitReady ? "" : " field-duty-sheet__submit--muted"}`}
+          className="field-duty-sheet__submit"
+          disabled={!submitReady}
+          aria-disabled={!submitReady}
           onClick={submitForApproval}
         >
           Submit for approval

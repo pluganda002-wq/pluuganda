@@ -44,11 +44,13 @@ export type DutyTask = {
   evidencePhoto?: string;
 };
 
-/** Default field evidence stills (from user reference mocks). */
+/** Blurred sample backdrop for field proof sheet (single shared asset). */
+export const FIELD_EVIDENCE_SAMPLE = "/branding/field-evidence-default.jpg" as const;
+
 export const FIELD_EVIDENCE_PHOTOS: Record<string, string> = {
-  "field-parish": "/branding/field-evidence-parish.jpg",
-  "field-handbooks": "/branding/field-evidence-handbooks.jpg",
-  "field-cleanup": "/branding/field-evidence-cleanup.jpg",
+  "field-parish": FIELD_EVIDENCE_SAMPLE,
+  "field-handbooks": FIELD_EVIDENCE_SAMPLE,
+  "field-cleanup": FIELD_EVIDENCE_SAMPLE,
 };
 
 export const DUTY_TABS: { id: DutyTab; label: string }[] = [
