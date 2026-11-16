@@ -136,7 +136,7 @@ export const SERVICE_ITEMS: ServiceItem[] = [
   },
   {
     id: "tasks",
-    to: "/tasks",
+    to: "/programmes/tasks",
     title: "Tasks",
     subtitle: "Missions",
     category: "leadership",

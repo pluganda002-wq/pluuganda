@@ -152,7 +152,7 @@ export function HomePage() {
                 icon={<Sparkles size={18} />}
               />
               <HomeMiniLink
-                to="/tasks"
+                to="/programmes/tasks"
                 title="Tasks"
                 subtitle="Missions & rewards"
                 icon={<Sparkles size={18} />}

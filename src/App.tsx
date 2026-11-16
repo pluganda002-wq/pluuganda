@@ -34,6 +34,7 @@ import "@/components/ProfileEditorSheet.css";
 import "@/pages/ProgrammesPage.css";
 import "@/pages/AccountabilityPage.css";
 import "@/pages/ReportPage.css";
+import "@/components/accountability/AccountabilityTasksPanel.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
 import "@/styles/sections.css";
@@ -48,6 +49,7 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/programmes" element={<ProgrammesPage />} />
+            <Route path="/programmes/tasks" element={<TasksPage />} />
             <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/social" element={<SocialPage />} />
@@ -60,7 +62,7 @@ export default function App() {
             <Route path="/charity" element={<CharityPage />} />
             <Route path="/csr" element={<CsrPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/tasks" element={<Navigate to="/programmes/tasks" replace />} />
             <Route path="/leadership" element={<LeadershipPage />} />
             <Route path="/education" element={<EducationPage />} />
             <Route path="/mobility" element={<MobilityPage />} />

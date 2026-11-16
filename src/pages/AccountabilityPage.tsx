@@ -139,15 +139,11 @@ export function AccountabilityPage() {
 
   return (
     <main className="page acct-page">
-      <header className="acct-hero">
-        <p className="acct-kicker">Civic accountability & corruption watch</p>
-        <p className="acct-status">
-          Audit desk active · {ACCOUNTABILITY_STATS.reportsLogged.toLocaleString()} reports logged
-        </p>
+      <header className="acct-hero acct-hero--dash">
+        <p className="acct-kicker">Dashboard</p>
         <h1 className="acct-title">National projects & corruption tracker</h1>
-        <p className="acct-lead">
-          Citizen oversight of public infrastructure, local government tenders, and civic development
-          projects across Uganda&apos;s 146 districts.
+        <p className="acct-status">
+          {ACCOUNTABILITY_STATS.reportsLogged.toLocaleString()} reports · audit desk live
         </p>
       </header>
 
@@ -205,9 +201,6 @@ export function AccountabilityPage() {
           <h2>Field testimonies & audit logs</h2>
           <span>{ACCOUNTABILITY_STATS.testimonies} entries</span>
         </div>
-        <p className="acct-feed__sub">
-          Verified patriot field submissions cross-referenced with voter parish registry.
-        </p>
         <ul className="acct-feed__list">
           {FIELD_TESTIMONIES.map((t) => (
             <li key={t.id} className="acct-post card">
