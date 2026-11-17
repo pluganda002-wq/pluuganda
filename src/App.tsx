@@ -9,6 +9,7 @@ import { CharityPage } from "@/pages/CharityPage";
 import { CsrPage } from "@/pages/CsrPage";
 import { EducationPage } from "@/pages/EducationPage";
 import { EndorsePage } from "@/pages/EndorsePage";
+import { EndorsePassPage } from "@/pages/EndorsePassPage";
 import { HomePage } from "@/pages/HomePage";
 import { IntegrityPage } from "@/pages/IntegrityPage";
 import { LeadershipPage } from "@/pages/LeadershipPage";
@@ -38,6 +39,7 @@ import "@/pages/ProgrammesPage.css";
 import "@/pages/TasksPage.css";
 import "@/pages/AccountabilityPage.css";
 import "@/pages/ReportPage.css";
+import "@/pages/EndorsePage.css";
 import "@/components/accountability/DutyVerificationDesk.css";
 import "@/components/accountability/FieldDutySheet.css";
 import "@/pages/DigitalDutyPage.css";
@@ -66,6 +68,7 @@ export default function App() {
             <Route path="/profile" element={<GuildPage />} />
             <Route path="/membership" element={<MembershipPage />} />
             <Route path="/endorse" element={<EndorsePage />} />
+            <Route path="/endorse/pass" element={<EndorsePassPage />} />
             <Route path="/integrity" element={<IntegrityPage />} />
             <Route path="/integrity/report" element={<ReportPage />} />
             <Route path="/youth" element={<YouthPage />} />

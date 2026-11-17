@@ -6,6 +6,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  type EndorsementReceipt,
+  loadEndorsementReceipt,
+  saveEndorsementReceipt,
+} from "@/lib/endorsementPass";
 
 export type MemberProfile = {
   fullName: string;
@@ -30,6 +35,8 @@ type UserContextValue = {
   verifyMember: () => void;
   endorsed: boolean;
   setEndorsed: (value: boolean) => void;
+  endorsementReceipt: EndorsementReceipt | null;
+  setEndorsementReceipt: (receipt: EndorsementReceipt) => void;
   completedTasks: string[];
   completeTask: (id: string) => void;
   patriotProfile: PatriotProfile;
@@ -86,7 +93,10 @@ function loadOrCreateInviteCode(): string {
 export function UserProvider({ children }: { children: ReactNode }) {
   const [member, setMember] = useState<MemberProfile | null>(() => loadMember());
   const [endorsed, setEndorsedState] = useState(
-    () => localStorage.getItem("plu-bot-endorsed") === "1"
+    () => localStorage.getItem("plu-bot-endorsed") === "1" || Boolean(loadEndorsementReceipt())
+  );
+  const [endorsementReceipt, setEndorsementReceiptState] = useState<EndorsementReceipt | null>(() =>
+    loadEndorsementReceipt()
   );
   const [completedTasks, setCompletedTasks] = useState<string[]>(() => {
     try {
@@ -138,6 +148,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("plu-bot-endorsed", value ? "1" : "0");
   }, []);
 
+  const setEndorsementReceipt = useCallback((receipt: EndorsementReceipt) => {
+    setEndorsementReceiptState(receipt);
+    saveEndorsementReceipt(receipt);
+    setEndorsedState(true);
+    localStorage.setItem("plu-bot-endorsed", "1");
+  }, []);
+
   const completeTask = useCallback((id: string) => {
     setCompletedTasks((prev) => {
       if (prev.includes(id)) return prev;
@@ -154,6 +171,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       verifyMember,
       endorsed,
       setEndorsed,
+      endorsementReceipt,
+      setEndorsementReceipt,
       completedTasks,
       completeTask,
       patriotProfile,
@@ -166,6 +185,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       verifyMember,
       endorsed,
       setEndorsed,
+      endorsementReceipt,
+      setEndorsementReceipt,
       completedTasks,
       completeTask,
       patriotProfile,

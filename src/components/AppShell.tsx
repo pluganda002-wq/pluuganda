@@ -16,6 +16,7 @@ const SUBPAGE_BAR: Record<string, { title: string; backTo?: string }> = {
   "/tv": { title: "PLU TV", backTo: "/services" },
   "/education": { title: "Civic education", backTo: "/services" },
   "/endorse": { title: "Public endorsement", backTo: "/services" },
+  "/endorse/pass": { title: "Endorsement pass", backTo: "/profile" },
 };
 
 const MAIN_TAB_TITLES: Record<string, string> = {

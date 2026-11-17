@@ -8,7 +8,7 @@ import { usePatriotAvatar } from "@/hooks/usePatriotAvatar";
 import "./GuildPage.css";
 
 export function GuildPage() {
-  const { member, endorsed, completedTasks, patriotProfile, inviteCode } = useUser();
+  const { member, endorsed, endorsementReceipt, completedTasks, patriotProfile, inviteCode } = useUser();
   const { user, displayName, webApp, showAlert } = useTelegram();
   const avatarSrc = usePatriotAvatar();
 
@@ -123,8 +123,28 @@ export function GuildPage() {
               )}
             </p>
             <p style={{ margin: "0 0 6px", fontSize: "0.88rem" }}>
-              Endorsement: {endorsed ? <span className="badge badge-green">Recorded</span> : "Not yet"}
+              Endorsement:{" "}
+              {endorsed ? (
+                <>
+                  <span className="badge badge-green">Recorded</span>
+                  {endorsementReceipt ? (
+                    <>
+                      {" "}
+                      · <Link to="/endorse/pass">{endorsementReceipt.reference}</Link>
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                "Not yet"
+              )}
             </p>
+            {endorsementReceipt ? (
+              <p style={{ margin: "0 0 6px", fontSize: "0.88rem" }}>
+                <Link to="/endorse/pass" className="btn btn-secondary" style={{ width: "100%", marginTop: 6 }}>
+                  View endorsement pass & QR
+                </Link>
+              </p>
+            ) : null}
             <p style={{ margin: 0, fontSize: "0.88rem" }}>Tasks completed: {completedTasks.length}</p>
           </div>
         </div>

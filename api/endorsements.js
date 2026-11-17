@@ -1,4 +1,11 @@
+import { randomBytes } from "node:crypto";
 import { getDb, isDbConfigured } from "./lib/mongodb.js";
+
+function createEndorsementReference() {
+  const stamp = Date.now().toString(36).toUpperCase();
+  const salt = randomBytes(3).toString("hex").toUpperCase();
+  return `END-${stamp}-${salt}`;
+}
 
 function normalizeNationalId(value) {
   return String(value ?? "")
@@ -44,7 +51,9 @@ export async function POST(request) {
   }
 
   const message = body.message?.trim() || null;
+  const reference = createEndorsementReference();
   const doc = {
+    reference,
     firstName,
     surname,
     fullName: `${firstName} ${surname}`.trim(),
@@ -67,5 +76,5 @@ export async function POST(request) {
 
   await db.collection("endorsements").insertOne(doc);
 
-  return Response.json({ ok: true, status: doc.status });
+  return Response.json({ ok: true, status: doc.status, reference });
 }

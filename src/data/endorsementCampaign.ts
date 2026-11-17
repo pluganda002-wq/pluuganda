@@ -13,6 +13,12 @@ export const ENDORSEMENT_CAMPAIGN = {
     "I confirm these details are mine and that I support this endorsement. Only combined figures are shown publicly; my individual details stay in the protected endorsement record.",
   publishMessageLabel: "Display my endorsement message publicly if approved by the Secretariat.",
   submitLabel: "Record my endorsement",
+  step1Title: "Your identity",
+  step1Subtitle: "Step 1 of 2 — name, ID and age group.",
+  step2Title: "Where you endorse from",
+  step2Subtitle: "Step 2 of 2 — district, optional area details, and confirmation.",
+  nextLabel: "Next",
+  backLabel: "Back",
 } as const;
 
 export const ENDORSEMENT_AGE_GROUPS = [

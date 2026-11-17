@@ -52,7 +52,7 @@ export type SubmitEndorsementPayload = {
 };
 
 export async function submitEndorsementApi(payload: SubmitEndorsementPayload) {
-  return postJson<{ ok: boolean; status: string }>("/api/endorsements", payload);
+  return postJson<{ ok: boolean; status: string; reference: string }>("/api/endorsements", payload);
 }
 
 export async function submitReportApi(payload: {
