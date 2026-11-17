@@ -30,36 +30,50 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
 
     const root = document.documentElement;
 
-    function syncBottomNavClearance() {
+    function syncFieldDutyLayout() {
       const nav = document.querySelector(".bottom-nav");
+      const viewport = window.visualViewport;
+      const layoutTop = Math.max(0, Math.floor(viewport?.offsetTop ?? 0));
+      const layoutBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+
+      root.style.setProperty("--plu-field-duty-inset-top", `${layoutTop}px`);
+
       if (!nav) {
-        root.style.removeProperty("--plu-bottom-nav-height");
+        const fallbackMax = Math.max(220, Math.floor(layoutBottom - layoutTop - 84));
+        root.style.setProperty("--plu-bottom-nav-height", "76px");
+        root.style.setProperty("--plu-field-duty-max-height", `${fallbackMax}px`);
         return;
       }
-      const top = nav.getBoundingClientRect().top;
-      const clearance = Math.max(0, Math.ceil(window.innerHeight - top));
+
+      const navTop = nav.getBoundingClientRect().top;
+      const clearance = Math.max(0, Math.ceil(layoutBottom - navTop));
+      const maxSheet = Math.max(200, Math.floor(navTop - layoutTop - 8));
+
       root.style.setProperty("--plu-bottom-nav-height", `${clearance}px`);
+      root.style.setProperty("--plu-field-duty-max-height", `${maxSheet}px`);
     }
 
-    syncBottomNavClearance();
-    const raf = requestAnimationFrame(syncBottomNavClearance);
+    syncFieldDutyLayout();
+    const raf = requestAnimationFrame(syncFieldDutyLayout);
 
     const nav = document.querySelector(".bottom-nav");
-    const ro = nav && typeof ResizeObserver !== "undefined" ? new ResizeObserver(syncBottomNavClearance) : null;
+    const ro = nav && typeof ResizeObserver !== "undefined" ? new ResizeObserver(syncFieldDutyLayout) : null;
     ro?.observe(nav as Element);
 
     const viewport = window.visualViewport;
-    window.addEventListener("resize", syncBottomNavClearance);
-    viewport?.addEventListener("resize", syncBottomNavClearance);
-    viewport?.addEventListener("scroll", syncBottomNavClearance);
+    window.addEventListener("resize", syncFieldDutyLayout);
+    viewport?.addEventListener("resize", syncFieldDutyLayout);
+    viewport?.addEventListener("scroll", syncFieldDutyLayout);
 
     return () => {
       cancelAnimationFrame(raf);
       ro?.disconnect();
-      window.removeEventListener("resize", syncBottomNavClearance);
-      viewport?.removeEventListener("resize", syncBottomNavClearance);
-      viewport?.removeEventListener("scroll", syncBottomNavClearance);
+      window.removeEventListener("resize", syncFieldDutyLayout);
+      viewport?.removeEventListener("resize", syncFieldDutyLayout);
+      viewport?.removeEventListener("scroll", syncFieldDutyLayout);
+      root.style.removeProperty("--plu-field-duty-inset-top");
       root.style.removeProperty("--plu-bottom-nav-height");
+      root.style.removeProperty("--plu-field-duty-max-height");
     };
   }, [open]);
 
