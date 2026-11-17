@@ -9,6 +9,17 @@ import "@/pages/ReportPage.css";
 const MAX_RECORD_SEC = 120;
 const MIN_RECORD_SEC = 2;
 const MAX_FILE_BYTES = 5_000_000;
+
+function formatIncidentDateForReport(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  if (!year || !month || !day) return iso;
+  return `${day} / ${month} / ${year}`;
+}
+
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 type SavedRecording = {
   blob: Blob;
   url: string;
@@ -209,15 +220,12 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
     const institutionTrim = institution.trim();
     const locationTrim = incidentLocation.trim();
     const peopleTrim = peopleInvolved.trim();
-    const dateTrim = incidentDate.trim();
-    const dateDigits = incidentDate.replace(/\D/g, "");
-
     if (!institutionTrim || !locationTrim || !peopleTrim) {
       showAlert("Fill in institution, location, people involved, and incident date under What happened?");
       return;
     }
-    if (!dateTrim || dateDigits.length < 4) {
-      showAlert("Enter an approximate incident date.");
+    if (!incidentDate) {
+      showAlert("Select an approximate incident date.");
       return;
     }
 
@@ -250,7 +258,7 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
     detailBody += `\n\nInstitution or agency: ${institutionTrim}`;
     detailBody += `\nLocation: ${locationTrim}`;
     detailBody += `\nPeople involved: ${peopleTrim}`;
-    detailBody += `\nApproximate incident date: ${dateTrim}`;
+    detailBody += `\nApproximate incident date: ${formatIncidentDateForReport(incidentDate)}`;
     if (hasAttachment && attachmentName) {
       detailBody += `\n\n[Attachment: ${attachmentName}]`;
     }
@@ -392,11 +400,10 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
                   </label>
                   <input
                     id={incidentDateId}
-                    className="whistle-details-panel__fill whistle-details-panel__fill--single"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
+                    className="whistle-details-panel__fill whistle-details-panel__fill--single whistle-details-panel__fill--date"
+                    type="date"
                     value={incidentDate}
+                    max={todayIsoDate()}
                     onChange={(e) => setIncidentDate(e.target.value)}
                     required
                   />

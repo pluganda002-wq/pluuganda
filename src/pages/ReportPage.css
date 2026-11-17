@@ -127,6 +127,26 @@
   overflow: hidden;
 }
 
+.field--details .whistle-details-panel input.whistle-details-panel__fill--date {
+  width: 100%;
+  max-width: 100%;
+  appearance: auto;
+  -webkit-appearance: auto;
+  color-scheme: light;
+  cursor: pointer;
+}
+
+.field--details .whistle-details-panel input.whistle-details-panel__fill--date::-webkit-calendar-picker-indicator {
+  margin: 0;
+  padding: 2px;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.field--details .whistle-details-panel input.whistle-details-panel__fill--date:invalid {
+  color: var(--plu-muted);
+}
+
 .field--details .whistle-details-panel .whistle-details-panel__fill::placeholder {
   color: var(--plu-muted);
   opacity: 0.55;
