@@ -9,13 +9,6 @@ import "@/pages/ReportPage.css";
 const MAX_RECORD_SEC = 120;
 const MIN_RECORD_SEC = 2;
 const MAX_FILE_BYTES = 5_000_000;
-function incidentDateSlashTemplate() {
-  const slot = (chars: number) => " ".repeat(chars);
-  return `${slot(3)} / ${slot(3)} / ${slot(4)}`;
-}
-
-const INCIDENT_DATE_SLASH_TEMPLATE = incidentDateSlashTemplate();
-
 type SavedRecording = {
   blob: Blob;
   url: string;
@@ -51,7 +44,7 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
   const [institution, setInstitution] = useState("");
   const [incidentLocation, setIncidentLocation] = useState("");
   const [peopleInvolved, setPeopleInvolved] = useState("");
-  const [incidentDate, setIncidentDate] = useState(INCIDENT_DATE_SLASH_TEMPLATE);
+  const [incidentDate, setIncidentDate] = useState("");
   const [shareIdentity, setShareIdentity] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -223,8 +216,8 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
       showAlert("Fill in institution, location, people involved, and incident date under What happened?");
       return;
     }
-    if (dateDigits.length < 4) {
-      showAlert("Enter an approximate incident date (day, month, year).");
+    if (!dateTrim || dateDigits.length < 4) {
+      showAlert("Enter an approximate incident date.");
       return;
     }
 
@@ -399,7 +392,7 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
                   </label>
                   <input
                     id={incidentDateId}
-                    className="whistle-details-panel__fill whistle-details-panel__fill--single whistle-details-panel__fill--date"
+                    className="whistle-details-panel__fill whistle-details-panel__fill--single"
                     type="text"
                     inputMode="numeric"
                     autoComplete="off"

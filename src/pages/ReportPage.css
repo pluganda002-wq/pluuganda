@@ -127,13 +127,6 @@
   overflow: hidden;
 }
 
-.field--details .whistle-details-panel input.whistle-details-panel__fill--date {
-  width: 100%;
-  max-width: 19ch;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06ch;
-}
-
 .field--details .whistle-details-panel .whistle-details-panel__fill::placeholder {
   color: var(--plu-muted);
   opacity: 0.55;
