@@ -31,6 +31,7 @@
   --radius-sm: 12px;
   --radius-xs: 8px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --plu-bottom-nav-height: calc(76px + env(safe-area-inset-bottom, 0px));
   /* App shell (frame design is shared; colours swap per theme) */
   --plu-app-surface: #f5f5f0;
   --plu-shell-bg: #1a1a10;
