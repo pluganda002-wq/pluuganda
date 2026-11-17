@@ -1,0 +1,124 @@
+.endorse-hero {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  background: linear-gradient(135deg, rgba(201, 162, 39, 0.12), rgba(255, 255, 255, 0.9));
+}
+
+.endorse-hero__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--plu-gold-dark);
+}
+
+.endorse-hero__headline {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--plu-text);
+}
+
+.endorse-hero__lead {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--plu-muted);
+}
+
+.endorse-meta-line {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--plu-muted);
+}
+
+.endorse-form.card {
+  margin-top: 4px;
+}
+
+.endorse-form__title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.endorse-form__subtitle {
+  margin: 0 0 16px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--plu-muted);
+}
+
+.endorse-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+@media (max-width: 420px) {
+  .endorse-form__row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.endorse-form .field--hint label + .field__hint {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--plu-muted);
+}
+
+.endorse-form .field__hint {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--plu-muted);
+}
+
+.endorse-form__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-xs);
+  background: rgba(201, 162, 39, 0.08);
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.endorse-form__consent input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.endorse-form__consent--secondary {
+  margin-top: 8px;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--plu-border);
+}
+
+.endorse-done {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.endorse-done__ref {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+  color: var(--plu-muted);
+}

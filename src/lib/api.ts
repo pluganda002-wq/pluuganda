@@ -34,12 +34,24 @@ export async function registerMemberApi(payload: RegisterMemberPayload) {
   );
 }
 
-export async function submitEndorsementApi(payload: {
-  message: string;
-  district?: string;
+export type SubmitEndorsementPayload = {
+  firstName: string;
+  surname: string;
+  gender?: string;
+  nationalId: string;
+  ageGroup: string;
+  district: string;
+  subCounty?: string;
+  parish?: string;
+  village?: string;
+  message?: string;
+  publishMessagePublic?: boolean;
+  consent: boolean;
   telegramId?: number;
   telegramUsername?: string;
-}) {
+};
+
+export async function submitEndorsementApi(payload: SubmitEndorsementPayload) {
   return postJson<{ ok: boolean; status: string }>("/api/endorsements", payload);
 }
 
