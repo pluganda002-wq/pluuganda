@@ -55,6 +55,12 @@ export async function submitEndorsementApi(payload: SubmitEndorsementPayload) {
   return postJson<{ ok: boolean; status: string; reference: string }>("/api/endorsements", payload);
 }
 
+export async function checkEndorsementNationalIdApi(nationalId: string) {
+  return postJson<{ available: boolean; nationalId: string }>("/api/endorsements/check", {
+    nationalId,
+  });
+}
+
 export async function submitReportApi(payload: {
   category: string;
   details: string;

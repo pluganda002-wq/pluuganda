@@ -19,6 +19,11 @@ export const ENDORSEMENT_CAMPAIGN = {
   step2Subtitle: "Step 2 of 2 — district, optional area details, and confirmation.",
   nextLabel: "Next",
   backLabel: "Back",
+  assistNinTitle: "National ID check",
+  assistNinSubtitle: "Enter the patriot’s NIN. We check it has not been used before you complete their form.",
+  assistContinueLabel: "Continue to form",
+  submitForAnotherLabel: "Submit endorsement for another person",
+  backToMyPassLabel: "Back to my endorsement pass",
 } as const;
 
 export const ENDORSEMENT_AGE_GROUPS = [

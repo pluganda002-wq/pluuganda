@@ -8,8 +8,13 @@ import {
   ENDORSEMENT_GENDERS,
 } from "@/data/endorsementCampaign";
 import { UGANDA_DISTRICTS } from "@/data/ugandaDistricts";
-import { createLocalEndorsementReference } from "@/lib/endorsementPass";
-import { isApiUnavailableError, submitEndorsementApi } from "@/lib/api";
+import {
+  createLocalEndorsementReference,
+  isNationalIdSubmittedLocally,
+  rememberSubmittedNationalId,
+  type EndorsementReceipt,
+} from "@/lib/endorsementPass";
+import { checkEndorsementNationalIdApi, isApiUnavailableError, submitEndorsementApi } from "@/lib/api";
 import "@/pages/EndorsePage.css";
 
 function normalizeNationalId(value: string): string {
@@ -20,14 +25,24 @@ type Props = {
   onRecorded?: () => void;
 };
 
+type Screen = "pass" | "nin-gate" | "form";
+type FormMode = "self" | "assist";
+
 export function PublicEndorsementForm({ onRecorded }: Props) {
   const uid = useId();
   const { user, haptic, showAlert } = useTelegram();
   const { endorsementReceipt, setEndorsementReceipt } = useUser();
+
+  const [screen, setScreen] = useState<Screen>(() => (endorsementReceipt ? "pass" : "form"));
+  const [mode, setMode] = useState<FormMode>("self");
+  const [ninLocked, setNinLocked] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
-  const [receipt, setReceipt] = useState(endorsementReceipt);
+  const [checkingNin, setCheckingNin] = useState(false);
+  const [sessionReceipt, setSessionReceipt] = useState<EndorsementReceipt | null>(null);
+  const [viewingAssistedPass, setViewingAssistedPass] = useState(false);
 
+  const [ninGateInput, setNinGateInput] = useState("");
   const [firstName, setFirstName] = useState("");
   const [surname, setSurname] = useState("");
   const [gender, setGender] = useState("");
@@ -45,6 +60,7 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
   const surnameId = `${uid}-surname`;
   const genderId = `${uid}-gender`;
   const nationalIdId = `${uid}-national-id`;
+  const ninGateId = `${uid}-nin-gate`;
   const ageGroupId = `${uid}-age-group`;
   const districtId = `${uid}-district`;
   const subCountyId = `${uid}-sub-county`;
@@ -54,20 +70,88 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
   const consentId = `${uid}-consent`;
   const publishId = `${uid}-publish`;
 
+  function resetFormFields() {
+    setFirstName("");
+    setSurname("");
+    setGender("");
+    setAgeGroup("");
+    setDistrict("");
+    setSubCounty("");
+    setParish("");
+    setVillage("");
+    setMessage("");
+    setConsent(false);
+    setPublishMessage(false);
+    setStep(1);
+  }
+
+  function startAssistFlow() {
+    resetFormFields();
+    setNationalId("");
+    setNinGateInput("");
+    setNinLocked(false);
+    setMode("assist");
+    setViewingAssistedPass(false);
+    setScreen("nin-gate");
+    haptic("light");
+  }
+
+  async function verifyNinAndContinue() {
+    const nin = normalizeNationalId(ninGateInput);
+    if (nin.length < 8) {
+      showAlert("Enter a valid National Identification Number.");
+      return;
+    }
+    if (isNationalIdSubmittedLocally(nin)) {
+      showAlert("This National ID already has an endorsement on record.");
+      return;
+    }
+
+    setCheckingNin(true);
+    try {
+      const result = await checkEndorsementNationalIdApi(nin);
+      if (!result.available) {
+        showAlert("This National ID already has an endorsement on record.");
+        rememberSubmittedNationalId(nin);
+        return;
+      }
+    } catch (err) {
+      if (!isApiUnavailableError(err)) {
+        showAlert("Could not verify this NIN. Try again.");
+        setCheckingNin(false);
+        return;
+      }
+    } finally {
+      setCheckingNin(false);
+    }
+
+    setNationalId(nin);
+    setNinLocked(true);
+    setScreen("form");
+    setStep(1);
+    haptic("medium");
+  }
+
   function validateStep1(): boolean {
     const first = firstName.trim();
     const last = surname.trim();
     const nin = normalizeNationalId(nationalId);
     if (!first || !last) {
-      showAlert("Enter your first name and surname.");
+      showAlert("Enter first name and surname.");
       return false;
     }
-    if (nin.length < 8) {
-      showAlert("Enter a valid National Identification Number.");
+    if (!ninLocked) {
+      if (nin.length < 8) {
+        showAlert("Enter a valid National Identification Number.");
+        return false;
+      }
+    } else if (nin.length < 8) {
+      showAlert("National ID missing. Start again from the NIN check.");
+      setScreen("nin-gate");
       return false;
     }
     if (!ageGroup) {
-      showAlert("Select your age group.");
+      showAlert("Select an age group.");
       return false;
     }
     return true;
@@ -86,11 +170,11 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
       return;
     }
     if (!district) {
-      showAlert("Select your district.");
+      showAlert("Select a district.");
       return;
     }
     if (!consent) {
-      showAlert("Confirm that these details are yours and that you support this endorsement.");
+      showAlert("Confirm consent before submitting.");
       return;
     }
 
@@ -119,36 +203,51 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
     setSubmitting(true);
     try {
       const result = await submitEndorsementApi(payload);
-      const nextReceipt = {
+      const nextReceipt: EndorsementReceipt = {
         reference: result.reference,
         fullName: `${first} ${last}`,
         district,
         recordedAt,
         status: result.status,
       };
-      setEndorsementReceipt(nextReceipt);
-      setReceipt(nextReceipt);
+      rememberSubmittedNationalId(nin);
+      if (mode === "self") {
+        setEndorsementReceipt(nextReceipt);
+        setSessionReceipt(null);
+        setViewingAssistedPass(false);
+      } else {
+        setSessionReceipt(nextReceipt);
+        setViewingAssistedPass(true);
+      }
+      setScreen("pass");
       haptic("medium");
-      showAlert("Thank you, Patriot. Your endorsement was recorded.");
+      showAlert("Endorsement recorded.");
       onRecorded?.();
     } catch (err) {
       haptic("medium");
       if (isApiUnavailableError(err)) {
         const localRef = createLocalEndorsementReference();
-        const nextReceipt = {
+        const nextReceipt: EndorsementReceipt = {
           reference: localRef,
           fullName: `${first} ${last}`,
           district,
           recordedAt,
           status: "pending_review",
         };
-        setEndorsementReceipt(nextReceipt);
-        setReceipt(nextReceipt);
-        showAlert(
-          "Endorsement saved on this device. Connect MongoDB on Vercel to store endorsements centrally."
-        );
+        rememberSubmittedNationalId(nin);
+        if (mode === "self") {
+          setEndorsementReceipt(nextReceipt);
+          setSessionReceipt(null);
+          setViewingAssistedPass(false);
+        } else {
+          setSessionReceipt(nextReceipt);
+          setViewingAssistedPass(true);
+        }
+        setScreen("pass");
+        showAlert("Endorsement saved on this device.");
         onRecorded?.();
       } else if (err instanceof Error && err.message.includes("duplicate_entry")) {
+        rememberSubmittedNationalId(nin);
         showAlert("This National ID already has an endorsement on record.");
       } else {
         showAlert("Could not record endorsement. Please try again.");
@@ -158,8 +257,69 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
     }
   }
 
-  if (receipt) {
-    return <EndorsementPassCard receipt={receipt} />;
+  const passReceipt =
+    screen === "pass"
+      ? viewingAssistedPass && sessionReceipt
+        ? sessionReceipt
+        : endorsementReceipt
+      : null;
+
+  if (screen === "pass" && passReceipt) {
+    return (
+      <EndorsementPassCard
+        receipt={passReceipt}
+        onSubmitForAnother={endorsementReceipt ? startAssistFlow : undefined}
+        onBackToMyPass={
+          viewingAssistedPass && endorsementReceipt
+            ? () => {
+                setViewingAssistedPass(false);
+                setScreen("pass");
+                haptic("light");
+              }
+            : undefined
+        }
+      />
+    );
+  }
+
+  if (screen === "nin-gate") {
+    return (
+      <div className="card endorse-form">
+        <h2 className="endorse-form__title">{ENDORSEMENT_CAMPAIGN.assistNinTitle}</h2>
+        <p className="endorse-form__subtitle">{ENDORSEMENT_CAMPAIGN.assistNinSubtitle}</p>
+        <div className="field field--hint">
+          <label htmlFor={ninGateId}>National Identification Number</label>
+          <p className="field__hint">{ENDORSEMENT_CAMPAIGN.ninHint}</p>
+          <input
+            id={ninGateId}
+            value={ninGateInput}
+            onChange={(e) => setNinGateInput(e.target.value)}
+            autoComplete="off"
+            inputMode="text"
+          />
+        </div>
+        <div className="endorse-form__nav">
+          <button
+            type="button"
+            className="btn btn-secondary endorse-form__back"
+            onClick={() => {
+              setScreen(endorsementReceipt ? "pass" : "form");
+              setMode("self");
+            }}
+          >
+            {ENDORSEMENT_CAMPAIGN.backLabel}
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary endorse-form__submit"
+            disabled={checkingNin}
+            onClick={() => void verifyNinAndContinue()}
+          >
+            {checkingNin ? "Checking…" : ENDORSEMENT_CAMPAIGN.assistContinueLabel}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -214,18 +374,24 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
             </select>
           </div>
 
-          <div className="field field--hint">
-            <label htmlFor={nationalIdId}>National Identification Number</label>
-            <p className="field__hint">{ENDORSEMENT_CAMPAIGN.ninHint}</p>
-            <input
-              id={nationalIdId}
-              value={nationalId}
-              onChange={(e) => setNationalId(e.target.value)}
-              autoComplete="off"
-              inputMode="text"
-              required
-            />
-          </div>
+          {!ninLocked ? (
+            <div className="field field--hint">
+              <label htmlFor={nationalIdId}>National Identification Number</label>
+              <p className="field__hint">{ENDORSEMENT_CAMPAIGN.ninHint}</p>
+              <input
+                id={nationalIdId}
+                value={nationalId}
+                onChange={(e) => setNationalId(e.target.value)}
+                autoComplete="off"
+                inputMode="text"
+                required
+              />
+            </div>
+          ) : (
+            <p className="endorse-form__nin-locked">
+              National ID verified: <strong>{nationalId}</strong>
+            </p>
+          )}
 
           <div className="field">
             <label htmlFor={ageGroupId}>Age group</label>
@@ -239,7 +405,7 @@ export function PublicEndorsementForm({ onRecorded }: Props) {
             </select>
           </div>
 
-          <button type="button" className="btn btn-primary" style={{ marginTop: 16, width: "100%" }} onClick={goNext}>
+          <button type="button" className="btn btn-primary endorse-form__solo-next" onClick={goNext}>
             {ENDORSEMENT_CAMPAIGN.nextLabel}
           </button>
         </>
