@@ -254,9 +254,10 @@
 
 .field-capture__telemetry-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 8px 10px;
   margin-top: 10px;
   padding: 8px 10px;
   border-radius: 10px;
@@ -266,10 +267,21 @@
   color: #5c4d35;
 }
 
-.field-capture__telemetry-foot > span:first-child {
+.field-capture__telemetry-foot-geofence {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.field-capture__telemetry-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-left: auto;
 }
 
 .field-capture__telemetry-foot svg {
@@ -499,24 +511,24 @@
   cursor: wait;
 }
 
-.field-capture__lock {
-  width: 100%;
-  margin-top: 8px;
+.field-capture__lock--inline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  gap: 4px;
+  margin: 0;
+  padding: 5px 9px;
+  border-radius: 8px;
   border: 1px solid rgba(13, 107, 76, 0.35);
-  background: rgba(52, 211, 153, 0.1);
+  background: rgba(52, 211, 153, 0.12);
   color: #0d6b4c;
-  font-size: 0.74rem;
+  font-size: 0.58rem;
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.field-capture__lock:disabled {
+.field-capture__lock--inline:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

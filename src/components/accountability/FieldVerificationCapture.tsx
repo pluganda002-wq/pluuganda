@@ -183,11 +183,17 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
     fileRef.current?.click();
   }
 
-  function resetToDefaultPhoto() {
+  function resetFieldProof() {
     scanGenRef.current += 1;
     setScanning(false);
     setNoPeople(false);
-    void rejectUserPhoto();
+    rejectUserPhoto();
+    setLocationMode(null);
+    setLocationLocked(false);
+    setLivePin(null);
+    setGeo(defaultGeo);
+    setPinning(false);
+    haptic("light");
   }
 
   function useDefaultLocation() {
@@ -257,7 +263,7 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
       <header className="field-capture__head">
         <span className="field-capture__head-title">
           <Camera size={15} aria-hidden />
-          Field Mobilization Evidence
+          Reconcile Field Action
         </span>
         <span className="field-capture__head-meta">Live Camera Buffer</span>
       </header>
@@ -421,7 +427,7 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
           </div>
         ) : null}
         <div className="field-capture__telemetry-foot">
-          <span>
+          <span className="field-capture__telemetry-foot-geofence">
             <CheckCircle2 size={14} aria-hidden />
             {locationLocked
               ? `Geofence Verified (${geo.wardLabel})`
@@ -429,23 +435,25 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
                 ? `Ready to lock · ${locationMode === "live" ? "Your GPS" : "Default site"}`
                 : "Choose default or your GPS"}
           </span>
-          <span>{locationLocked ? "Status: Locked" : "Status: Open"}</span>
+          <div className="field-capture__telemetry-status">
+            <span>{locationLocked ? "Status: Locked" : "Status: Open"}</span>
+            {!locationLocked ? (
+              <button
+                type="button"
+                className="field-capture__lock field-capture__lock--inline"
+                disabled={!locationMode || pinning}
+                onClick={lockLocation}
+              >
+                <Lock size={13} aria-hidden />
+                Lock GPS
+              </button>
+            ) : null}
+          </div>
         </div>
-        {!locationLocked ? (
-          <button
-            type="button"
-            className="field-capture__lock"
-            disabled={!locationMode || pinning}
-            onClick={lockLocation}
-          >
-            <Lock size={15} aria-hidden />
-            Lock GPS pin
-          </button>
-        ) : null}
       </section>
 
-      <button type="button" className="field-capture__default-link" onClick={resetToDefaultPhoto} disabled={scanning}>
-        Restore sample evidence
+      <button type="button" className="field-capture__default-link" onClick={resetFieldProof} disabled={scanning}>
+        Reset
       </button>
     </div>
   );

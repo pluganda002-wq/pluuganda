@@ -61,23 +61,26 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
           </button>
         </header>
 
-        <FieldVerificationCapture
-          key={task.id}
-          task={task}
-          onSubmitReady={setSubmitReady}
-        />
+        <div className="field-duty-sheet__scroll">
+          <FieldVerificationCapture
+            key={task.id}
+            task={task}
+            onSubmitReady={setSubmitReady}
+          />
+          <p className="field-duty-sheet__mission">{task.title}</p>
+        </div>
 
-        <p className="field-duty-sheet__mission">{task.title}</p>
-
-        <button
-          type="button"
-          className="field-duty-sheet__submit"
-          disabled={!submitReady}
-          aria-disabled={!submitReady}
-          onClick={submitForApproval}
-        >
-          Submit for approval
-        </button>
+        <footer className="field-duty-sheet__foot">
+          <button
+            type="button"
+            className="field-duty-sheet__submit"
+            disabled={!submitReady}
+            aria-disabled={!submitReady}
+            onClick={submitForApproval}
+          >
+            Submit for approval
+          </button>
+        </footer>
       </div>
     </div>
   );
