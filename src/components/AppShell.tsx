@@ -40,6 +40,14 @@ function resolveSubPageBar(
     };
   }
 
+  const fieldMatch = pathname.match(/^\/programmes\/tasks\/field\/([^/]+)$/);
+  if (fieldMatch) {
+    return {
+      title: "Field verification",
+      backTo: returnTo ?? "/programmes/tasks?tab=field",
+    };
+  }
+
   const fixed = SUBPAGE_BAR[pathname];
   if (fixed) {
     return { ...fixed, backTo: returnTo ?? fixed.backTo };

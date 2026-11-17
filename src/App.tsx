@@ -27,6 +27,7 @@ import { ServicesPage } from "@/pages/ServicesPage";
 import { SocialPage } from "@/pages/SocialPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { DigitalDutyPage } from "@/pages/DigitalDutyPage";
+import { FieldDutyPage } from "@/pages/FieldDutyPage";
 import { AdminDutiesPage } from "@/pages/AdminDutiesPage";
 import { TourismPage } from "@/pages/TourismPage";
 import { YouthPage } from "@/pages/YouthPage";
@@ -41,7 +42,7 @@ import "@/pages/AccountabilityPage.css";
 import "@/pages/ReportPage.css";
 import "@/pages/EndorsePage.css";
 import "@/components/accountability/DutyVerificationDesk.css";
-import "@/components/accountability/FieldDutySheet.css";
+import "@/pages/FieldDutyPage.css";
 import "@/pages/DigitalDutyPage.css";
 import "@/pages/AdminDutiesPage.css";
 import "@/styles/global.css";
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/programmes" element={<ProgrammesPage />} />
             <Route path="/programmes/tasks/duty/:dutyId" element={<DigitalDutyPage />} />
+            <Route path="/programmes/tasks/field/:dutyId" element={<FieldDutyPage />} />
             <Route path="/admin/duties" element={<AdminDutiesPage />} />
             <Route path="/programmes/tasks" element={<TasksPage />} />
             <Route path="/programmes/:slug" element={<ProgrammeDetailPage />} />

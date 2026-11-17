@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, ChevronRight, Coins, Lock, MapPin, Shield } from "lucide-react";
-import { dutyReturnPath, openDigitalDuty } from "@/lib/dutyNavigation";
+import { dutyReturnPath, openDigitalDuty, openFieldDuty } from "@/lib/dutyNavigation";
 import {
   isTaskLocked,
   openActionCount,
@@ -16,7 +16,6 @@ import {
 import { useUser } from "@/context/UserContext";
 import { useDutyTasks } from "@/context/DutyConfigContext";
 import { useTelegram } from "@/hooks/useTelegram";
-import { FieldDutySheet } from "@/components/accountability/FieldDutySheet";
 import { DutyPlatformIcon } from "@/components/accountability/DutyPlatformIcon";
 import "./DutyVerificationDesk.css";
 
@@ -220,7 +219,6 @@ export function DutyVerificationDesk({
 }: Props) {
   const [tab, setTab] = useState<DutyTab>(initialTab);
   const [, setSearchParams] = useSearchParams();
-  const [fieldTask, setFieldTask] = useState<DutyTask | null>(null);
   const dutyTasks = useDutyTasks();
   const { completedTasks, completeTask } = useUser();
   const { user, haptic, showAlert } = useTelegram();
@@ -247,7 +245,7 @@ export function DutyVerificationDesk({
       onField: (task: DutyTask) => {
         if (completedTasks.includes(task.id)) return;
         haptic("light");
-        setFieldTask(task);
+        openFieldDuty(navigate, task, returnTo);
       },
       openDigital: (task: DutyTask) => {
         if (completedTasks.includes(task.id)) return;
@@ -276,11 +274,6 @@ export function DutyVerificationDesk({
     }),
     [completedTasks, userId, haptic, navigate, returnTo, compact, tab, completeTask, showAlert]
   );
-
-  function onFieldSubmitted() {
-    if (fieldTask) completeTask(fieldTask.id);
-    setFieldTask(null);
-  }
 
   useEffect(() => {
     setTab(initialTab);
@@ -350,12 +343,6 @@ export function DutyVerificationDesk({
         </footer>
       ) : null}
 
-      <FieldDutySheet
-        task={fieldTask}
-        open={Boolean(fieldTask)}
-        onClose={() => setFieldTask(null)}
-        onSubmitted={onFieldSubmitted}
-      />
     </section>
   );
 }
