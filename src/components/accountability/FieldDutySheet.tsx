@@ -25,6 +25,44 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const root = document.documentElement;
+
+    function syncBottomNavClearance() {
+      const nav = document.querySelector(".bottom-nav");
+      if (!nav) {
+        root.style.removeProperty("--plu-bottom-nav-height");
+        return;
+      }
+      const top = nav.getBoundingClientRect().top;
+      const clearance = Math.max(0, Math.ceil(window.innerHeight - top));
+      root.style.setProperty("--plu-bottom-nav-height", `${clearance}px`);
+    }
+
+    syncBottomNavClearance();
+    const raf = requestAnimationFrame(syncBottomNavClearance);
+
+    const nav = document.querySelector(".bottom-nav");
+    const ro = nav && typeof ResizeObserver !== "undefined" ? new ResizeObserver(syncBottomNavClearance) : null;
+    ro?.observe(nav as Element);
+
+    const viewport = window.visualViewport;
+    window.addEventListener("resize", syncBottomNavClearance);
+    viewport?.addEventListener("resize", syncBottomNavClearance);
+    viewport?.addEventListener("scroll", syncBottomNavClearance);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+      window.removeEventListener("resize", syncBottomNavClearance);
+      viewport?.removeEventListener("resize", syncBottomNavClearance);
+      viewport?.removeEventListener("scroll", syncBottomNavClearance);
+      root.style.removeProperty("--plu-bottom-nav-height");
+    };
+  }, [open]);
+
   if (!open || !task) return null;
 
   function closeSheet() {
