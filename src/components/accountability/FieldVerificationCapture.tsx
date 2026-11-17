@@ -22,10 +22,9 @@ type DisplayMarker = { xPct: number; yPct: number; sizePct: number; ok?: boolean
 
 type Props = {
   task: DutyTask;
-  onSubmitReady?: (ready: boolean) => void;
 };
 
-export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
+export function FieldVerificationCapture({ task }: Props) {
   const { showAlert, haptic } = useTelegram();
   const defaultPhoto = evidencePhotoFor(task);
   const defaultGeo = geoForTask(task);
@@ -70,14 +69,6 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
       ? "GPS standby"
       : geo.accuracy;
   const hudTime = userPhoto ? (scanning ? "Face AI scan in progress…" : "Live capture · just now") : defaultGeo.capturedAt;
-
-  const photoAccepted =
-    userPhoto && !scanning && !noPeople && faceCount >= MIN_GROUP_FACES;
-  const submitReady = photoAccepted && locationLocked && locationMode !== null;
-
-  useEffect(() => {
-    onSubmitReady?.(submitReady);
-  }, [submitReady, onSubmitReady]);
 
   useEffect(() => {
     return () => {
@@ -382,13 +373,6 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
       <section className="field-capture__telemetry" aria-labelledby={`geo-sheet-${task.id}`}>
         <div className="field-capture__telemetry-head">
           <h4 id={`geo-sheet-${task.id}`}>GEOLOCATION TELEMETRY</h4>
-          {!locationLocked ? (
-            <span className="field-capture__geo-pick">Select source, then lock</span>
-          ) : (
-            <span className="field-capture__geo-pick field-capture__geo-pick--locked">
-              {locationMode === "live" ? "Live GPS" : "System default"}
-            </span>
-          )}
         </div>
         <div className="field-capture__telemetry-body">
           <span className="field-capture__radar" aria-hidden>
@@ -404,52 +388,76 @@ export function FieldVerificationCapture({ task, onSubmitReady }: Props) {
             </p>
           </div>
         </div>
-        {!locationLocked ? (
-          <div className="field-capture__geo-actions" role="group" aria-label="Location source">
-            <button
-              type="button"
-              className={`field-capture__geo-btn${locationMode === "default" ? " field-capture__geo-btn--active" : ""}`}
-              disabled={pinning}
-              onClick={useDefaultLocation}
-            >
-              <Crosshair size={14} aria-hidden />
-              Use system default
-            </button>
-            <button
-              type="button"
-              className={`field-capture__geo-btn${locationMode === "live" ? " field-capture__geo-btn--active" : ""}`}
-              disabled={pinning}
-              onClick={pinMyLocation}
-            >
-              <Crosshair size={14} aria-hidden />
-              {pinning ? "Pinning…" : "Pin my location"}
-            </button>
-          </div>
-        ) : null}
-        <div className="field-capture__telemetry-foot">
-          <span className="field-capture__telemetry-foot-geofence">
-            <CheckCircle2 size={14} aria-hidden />
-            {locationLocked
-              ? `Geofence Verified (${geo.wardLabel})`
-              : locationMode
-                ? `Ready to lock · ${locationMode === "live" ? "Your GPS" : "Default site"}`
-                : "Choose default or your GPS"}
-          </span>
-          <div className="field-capture__telemetry-status">
-            <span>{locationLocked ? "Status: Locked" : "Status: Open"}</span>
-            {!locationLocked ? (
+        <div
+          className={`field-capture__source-box${locationLocked ? " field-capture__source-box--locked" : ""}`}
+          role="group"
+          aria-label="Location source"
+        >
+          <p className="field-capture__source-label">Select source</p>
+          {!locationLocked ? (
+            <div className="field-capture__geo-actions">
               <button
                 type="button"
-                className="field-capture__lock field-capture__lock--inline"
-                disabled={!locationMode || pinning}
-                onClick={lockLocation}
+                className={`field-capture__geo-btn${locationMode === "default" ? " field-capture__geo-btn--active" : ""}`}
+                disabled={pinning}
+                onClick={useDefaultLocation}
               >
-                <Lock size={13} aria-hidden />
-                Lock GPS
+                <Crosshair size={14} aria-hidden />
+                Use system default
               </button>
-            ) : null}
-          </div>
+              <button
+                type="button"
+                className={`field-capture__geo-btn${locationMode === "live" ? " field-capture__geo-btn--active" : ""}`}
+                disabled={pinning}
+                onClick={pinMyLocation}
+              >
+                <Crosshair size={14} aria-hidden />
+                {pinning ? "Pinning…" : "Pin my location"}
+              </button>
+            </div>
+          ) : (
+            <h5 className="field-capture__geo-btn field-capture__geo-btn--static field-capture__geo-btn--active field-capture__source-selected">
+              <Crosshair size={14} aria-hidden />
+              {locationMode === "live" ? "Pin my location" : "Use system default"}
+            </h5>
+          )}
         </div>
+
+        <div className="field-capture__geo-actions field-capture__geo-actions--status" role="group" aria-label="GPS lock">
+          <div
+            className={`field-capture__geo-btn field-capture__geo-btn--static field-capture__status-chip${
+              locationLocked ? " field-capture__geo-btn--active" : ""
+            }`}
+          >
+            <CheckCircle2 size={14} aria-hidden />
+            {locationLocked ? "Status: Locked" : "Status: Open"}
+          </div>
+          {!locationLocked ? (
+            <button
+              type="button"
+              className={`field-capture__geo-btn field-capture__lock-btn${locationMode ? " field-capture__geo-btn--armed" : ""}`}
+              disabled={!locationMode || pinning}
+              onClick={lockLocation}
+            >
+              <Lock size={14} aria-hidden />
+              Lock GPS
+            </button>
+          ) : (
+            <h5 className="field-capture__geo-btn field-capture__geo-btn--static field-capture__geo-btn--active field-capture__lock-btn field-capture__lock-btn--done">
+              <Lock size={14} aria-hidden />
+              GPS locked
+            </h5>
+          )}
+        </div>
+
+        <p className="field-capture__geofence-line">
+          <CheckCircle2 size={14} aria-hidden />
+          {locationLocked
+            ? `Geofence verified (${geo.wardLabel})`
+            : locationMode
+              ? `Ready to lock · ${locationMode === "live" ? "Your GPS" : "Default site"}`
+              : "Select a source above, then lock GPS"}
+        </p>
       </section>
 
       <button type="button" className="field-capture__default-link" onClick={resetFieldProof} disabled={scanning}>

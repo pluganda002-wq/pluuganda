@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X } from "lucide-react";
 import type { DutyTask } from "@/data/dutyVerification";
 import { FieldVerificationCapture } from "@/components/accountability/FieldVerificationCapture";
@@ -14,7 +14,6 @@ type Props = {
 
 export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
   const { haptic, showAlert } = useTelegram();
-  const [submitReady, setSubmitReady] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -25,19 +24,13 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) setSubmitReady(false);
-  }, [open, task?.id]);
-
   if (!open || !task) return null;
 
   function closeSheet() {
-    setSubmitReady(false);
     onClose();
   }
 
   function submitForApproval() {
-    if (!submitReady) return;
     haptic("medium");
     showAlert("Field duty submitted for approval. Points apply once verified.");
     onSubmitted();
@@ -62,20 +55,14 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
         </header>
 
         <div className="field-duty-sheet__scroll">
-          <FieldVerificationCapture
-            key={task.id}
-            task={task}
-            onSubmitReady={setSubmitReady}
-          />
+          <FieldVerificationCapture key={task.id} task={task} />
           <p className="field-duty-sheet__mission">{task.title}</p>
         </div>
 
         <footer className="field-duty-sheet__foot">
           <button
             type="button"
-            className="field-duty-sheet__submit"
-            disabled={!submitReady}
-            aria-disabled={!submitReady}
+            className="field-duty-sheet__submit field-duty-sheet__submit--ready"
             onClick={submitForApproval}
           >
             Submit for approval

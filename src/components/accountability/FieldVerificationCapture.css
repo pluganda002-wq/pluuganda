@@ -466,15 +466,36 @@
   text-align: center;
 }
 
-.field-capture__geo-pick {
-  font-size: 0.56rem;
-  font-weight: 700;
+.field-capture__source-box {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  background: #faf8f2;
+}
+
+.field-capture__source-box--locked {
+  background: #f5faf7;
+  border-color: rgba(13, 107, 76, 0.22);
+}
+
+.field-capture__source-label {
+  margin: 0 0 8px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--plu-muted);
 }
 
-.field-capture__geo-pick--locked {
-  color: #0d6b4c;
-  font-weight: 800;
+.field-capture__source-box .field-capture__geo-actions {
+  margin-bottom: 0;
+}
+
+.field-capture__source-selected {
+  margin: 0;
+  width: 100%;
+  font: inherit;
 }
 
 .field-capture__geo-actions {
@@ -482,6 +503,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin: 0 0 10px;
+}
+
+.field-capture__geo-actions--status {
+  margin-top: 0;
 }
 
 .field-capture__geo-btn {
@@ -506,31 +531,45 @@
   color: #0d6b4c;
 }
 
+.field-capture__geo-btn--static {
+  width: 100%;
+  cursor: default;
+}
+
+.field-capture__geo-btn--armed:not(:disabled) {
+  border-color: rgba(13, 107, 76, 0.45);
+  background: rgba(52, 211, 153, 0.08);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2);
+}
+
+.field-capture__lock-btn--done {
+  margin: 0;
+  font: inherit;
+}
+
 .field-capture__geo-btn:disabled {
   opacity: 0.6;
-  cursor: wait;
-}
-
-.field-capture__lock--inline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: 0;
-  padding: 5px 9px;
-  border-radius: 8px;
-  border: 1px solid rgba(13, 107, 76, 0.35);
-  background: rgba(52, 211, 153, 0.12);
-  color: #0d6b4c;
-  font-size: 0.58rem;
-  font-weight: 800;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.field-capture__lock--inline:disabled {
-  opacity: 0.55;
   cursor: not-allowed;
+}
+
+.field-capture__geofence-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8f4eb;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #5c4d35;
+}
+
+.field-capture__geofence-line svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #0d6b4c;
 }
 
 .field-capture__default-link {

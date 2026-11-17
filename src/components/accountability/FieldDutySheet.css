@@ -198,6 +198,11 @@
   box-shadow: none;
 }
 
+.field-duty-sheet__submit--ready:not(:disabled) {
+  opacity: 1;
+  box-shadow: 0 4px 16px rgba(201, 162, 39, 0.42);
+}
+
 .field-duty-sheet__task {
   display: none;
 }
