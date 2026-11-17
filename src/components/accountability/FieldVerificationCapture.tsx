@@ -43,6 +43,7 @@ export function FieldVerificationCapture({ task }: Props) {
   const [locationMode, setLocationMode] = useState<LocationMode>(null);
   const [locationLocked, setLocationLocked] = useState(false);
   const [pinning, setPinning] = useState(false);
+  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -184,6 +185,13 @@ export function FieldVerificationCapture({ task }: Props) {
     setLivePin(null);
     setGeo(defaultGeo);
     setPinning(false);
+    setSourcePickerOpen(false);
+    haptic("light");
+  }
+
+  function toggleSourcePicker() {
+    if (locationLocked) return;
+    setSourcePickerOpen((open) => !open);
     haptic("light");
   }
 
@@ -192,6 +200,7 @@ export function FieldVerificationCapture({ task }: Props) {
     setLocationMode("default");
     setLivePin(null);
     setGeo(defaultGeo);
+    setSourcePickerOpen(false);
     haptic("light");
   }
 
@@ -212,6 +221,7 @@ export function FieldVerificationCapture({ task }: Props) {
         });
         setLocationMode("live");
         setPinning(false);
+        setSourcePickerOpen(false);
         haptic("medium");
       },
       () => {
@@ -230,6 +240,7 @@ export function FieldVerificationCapture({ task }: Props) {
       return;
     }
     setLocationLocked(true);
+    setSourcePickerOpen(false);
     if (locationMode === "default") {
       setGeo(defaultGeo);
       setLivePin(null);
@@ -373,6 +384,21 @@ export function FieldVerificationCapture({ task }: Props) {
       <section className="field-capture__telemetry" aria-labelledby={`geo-sheet-${task.id}`}>
         <div className="field-capture__telemetry-head">
           <h4 id={`geo-sheet-${task.id}`}>GEOLOCATION TELEMETRY</h4>
+          {!locationLocked ? (
+            <button
+              type="button"
+              className={`field-capture__geo-pick${sourcePickerOpen ? " field-capture__geo-pick--open" : ""}`}
+              aria-expanded={sourcePickerOpen}
+              aria-controls={`geo-source-${task.id}`}
+              onClick={toggleSourcePicker}
+            >
+              Select source, then lock
+            </button>
+          ) : (
+            <span className="field-capture__geo-pick field-capture__geo-pick--locked">
+              {locationMode === "live" ? "Live GPS" : "System default"}
+            </span>
+          )}
         </div>
         <div className="field-capture__telemetry-body">
           <span className="field-capture__radar" aria-hidden>
@@ -388,40 +414,33 @@ export function FieldVerificationCapture({ task }: Props) {
             </p>
           </div>
         </div>
-        <div
-          className={`field-capture__source-box${locationLocked ? " field-capture__source-box--locked" : ""}`}
-          role="group"
-          aria-label="Location source"
-        >
-          <p className="field-capture__source-label">Select source</p>
-          {!locationLocked ? (
-            <div className="field-capture__geo-actions">
-              <button
-                type="button"
-                className={`field-capture__geo-btn${locationMode === "default" ? " field-capture__geo-btn--active" : ""}`}
-                disabled={pinning}
-                onClick={useDefaultLocation}
-              >
-                <Crosshair size={14} aria-hidden />
-                Use system default
-              </button>
-              <button
-                type="button"
-                className={`field-capture__geo-btn${locationMode === "live" ? " field-capture__geo-btn--active" : ""}`}
-                disabled={pinning}
-                onClick={pinMyLocation}
-              >
-                <Crosshair size={14} aria-hidden />
-                {pinning ? "Pinning…" : "Pin my location"}
-              </button>
-            </div>
-          ) : (
-            <h5 className="field-capture__geo-btn field-capture__geo-btn--static field-capture__geo-btn--active field-capture__source-selected">
+        {!locationLocked && sourcePickerOpen ? (
+          <div
+            id={`geo-source-${task.id}`}
+            className="field-capture__geo-actions"
+            role="group"
+            aria-label="Location source"
+          >
+            <button
+              type="button"
+              className={`field-capture__geo-btn${locationMode === "default" ? " field-capture__geo-btn--active" : ""}`}
+              disabled={pinning}
+              onClick={useDefaultLocation}
+            >
               <Crosshair size={14} aria-hidden />
-              {locationMode === "live" ? "Pin my location" : "Use system default"}
-            </h5>
-          )}
-        </div>
+              Use system default
+            </button>
+            <button
+              type="button"
+              className={`field-capture__geo-btn${locationMode === "live" ? " field-capture__geo-btn--active" : ""}`}
+              disabled={pinning}
+              onClick={pinMyLocation}
+            >
+              <Crosshair size={14} aria-hidden />
+              {pinning ? "Pinning…" : "Pin my location"}
+            </button>
+          </div>
+        ) : null}
 
         <div className="field-capture__geo-actions field-capture__geo-actions--status" role="group" aria-label="GPS lock">
           <div
@@ -456,7 +475,7 @@ export function FieldVerificationCapture({ task }: Props) {
             ? `Geofence verified (${geo.wardLabel})`
             : locationMode
               ? `Ready to lock · ${locationMode === "live" ? "Your GPS" : "Default site"}`
-              : "Select a source above, then lock GPS"}
+              : "Choose default or your GPS"}
         </p>
       </section>
 
