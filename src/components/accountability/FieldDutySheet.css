@@ -3,7 +3,7 @@
   inset: 0;
   z-index: 220;
   margin: 0;
-  padding: 0;
+  padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -27,6 +27,7 @@
   max-width: 480px;
   padding: 8px 16px 0;
   margin: 0;
+  max-height: min(88vh, 520px);
   max-height: min(88dvh, 520px);
   overflow: hidden;
   border-radius: 20px 20px 0 0;
@@ -76,9 +77,13 @@
 
 .field-duty-sheet__foot {
   flex-shrink: 0;
-  padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 10px 0 calc(14px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgba(201, 162, 39, 0.15);
-  background: linear-gradient(180deg, rgba(255, 254, 249, 0.72) 0%, #fffef9 40%);
+  background: linear-gradient(180deg, rgba(255, 254, 249, 0.92) 0%, #fffef9 55%);
+  box-shadow: 0 -6px 16px rgba(30, 22, 12, 0.08);
 }
 
 .field-duty-sheet__head h3 {
@@ -162,7 +167,8 @@
 }
 
 .field-duty-sheet--proof {
-  max-height: min(96dvh, 760px);
+  max-height: min(92vh, 720px);
+  max-height: min(92dvh, 720px);
 }
 
 .field-duty-sheet__mission {

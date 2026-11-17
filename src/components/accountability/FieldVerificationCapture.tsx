@@ -43,7 +43,6 @@ export function FieldVerificationCapture({ task }: Props) {
   const [locationMode, setLocationMode] = useState<LocationMode>(null);
   const [locationLocked, setLocationLocked] = useState(false);
   const [pinning, setPinning] = useState(false);
-  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -185,13 +184,6 @@ export function FieldVerificationCapture({ task }: Props) {
     setLivePin(null);
     setGeo(defaultGeo);
     setPinning(false);
-    setSourcePickerOpen(false);
-    haptic("light");
-  }
-
-  function toggleSourcePicker() {
-    if (locationLocked) return;
-    setSourcePickerOpen((open) => !open);
     haptic("light");
   }
 
@@ -200,7 +192,6 @@ export function FieldVerificationCapture({ task }: Props) {
     setLocationMode("default");
     setLivePin(null);
     setGeo(defaultGeo);
-    setSourcePickerOpen(false);
     haptic("light");
   }
 
@@ -221,7 +212,6 @@ export function FieldVerificationCapture({ task }: Props) {
         });
         setLocationMode("live");
         setPinning(false);
-        setSourcePickerOpen(false);
         haptic("medium");
       },
       () => {
@@ -240,7 +230,6 @@ export function FieldVerificationCapture({ task }: Props) {
       return;
     }
     setLocationLocked(true);
-    setSourcePickerOpen(false);
     if (locationMode === "default") {
       setGeo(defaultGeo);
       setLivePin(null);
@@ -385,15 +374,7 @@ export function FieldVerificationCapture({ task }: Props) {
         <div className="field-capture__telemetry-head">
           <h4 id={`geo-sheet-${task.id}`}>GEOLOCATION TELEMETRY</h4>
           {!locationLocked ? (
-            <button
-              type="button"
-              className={`field-capture__geo-pick${sourcePickerOpen ? " field-capture__geo-pick--open" : ""}`}
-              aria-expanded={sourcePickerOpen}
-              aria-controls={`geo-source-${task.id}`}
-              onClick={toggleSourcePicker}
-            >
-              Select source, then lock
-            </button>
+            <span className="field-capture__geo-pick">Select source, then lock</span>
           ) : (
             <span className="field-capture__geo-pick field-capture__geo-pick--locked">
               {locationMode === "live" ? "Live GPS" : "System default"}
@@ -414,13 +395,8 @@ export function FieldVerificationCapture({ task }: Props) {
             </p>
           </div>
         </div>
-        {!locationLocked && sourcePickerOpen ? (
-          <div
-            id={`geo-source-${task.id}`}
-            className="field-capture__geo-actions"
-            role="group"
-            aria-label="Location source"
-          >
+        {!locationLocked ? (
+          <div className="field-capture__geo-actions" role="group" aria-label="Location source">
             <button
               type="button"
               className={`field-capture__geo-btn${locationMode === "default" ? " field-capture__geo-btn--active" : ""}`}
@@ -442,41 +418,28 @@ export function FieldVerificationCapture({ task }: Props) {
           </div>
         ) : null}
 
-        <div className="field-capture__geo-actions field-capture__geo-actions--status" role="group" aria-label="GPS lock">
+        {locationLocked ? (
           <div
-            className={`field-capture__geo-btn field-capture__geo-btn--static field-capture__status-chip${
-              locationLocked ? " field-capture__geo-btn--active" : ""
-            }`}
+            className="field-capture__geo-btn field-capture__geo-btn--static field-capture__lock-toggle field-capture__geo-btn--active"
+            aria-live="polite"
           >
             <CheckCircle2 size={14} aria-hidden />
-            {locationLocked ? "Status: Locked" : "Status: Open"}
+            Status: Locked
           </div>
-          {!locationLocked ? (
-            <button
-              type="button"
-              className={`field-capture__geo-btn field-capture__lock-btn${locationMode ? " field-capture__geo-btn--armed" : ""}`}
-              disabled={!locationMode || pinning}
-              onClick={lockLocation}
-            >
-              <Lock size={14} aria-hidden />
-              Lock GPS
-            </button>
-          ) : (
-            <h5 className="field-capture__geo-btn field-capture__geo-btn--static field-capture__geo-btn--active field-capture__lock-btn field-capture__lock-btn--done">
-              <Lock size={14} aria-hidden />
-              GPS locked
-            </h5>
-          )}
-        </div>
-
-        <p className="field-capture__geofence-line">
-          <CheckCircle2 size={14} aria-hidden />
-          {locationLocked
-            ? `Geofence verified (${geo.wardLabel})`
-            : locationMode
-              ? `Ready to lock · ${locationMode === "live" ? "Your GPS" : "Default site"}`
-              : "Choose default or your GPS"}
-        </p>
+        ) : (
+          <button
+            type="button"
+            className={`field-capture__geo-btn field-capture__lock-toggle${
+              locationMode ? " field-capture__geo-btn--armed" : ""
+            }`}
+            disabled={!locationMode || pinning}
+            aria-pressed={false}
+            onClick={lockLocation}
+          >
+            <Lock size={14} aria-hidden />
+            Status: Open · Lock GPS
+          </button>
+        )}
       </section>
 
       <button type="button" className="field-capture__default-link" onClick={resetFieldProof} disabled={scanning}>

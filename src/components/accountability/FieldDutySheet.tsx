@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { DutyTask } from "@/data/dutyVerification";
 import { FieldVerificationCapture } from "@/components/accountability/FieldVerificationCapture";
@@ -37,7 +38,7 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
     closeSheet();
   }
 
-  return (
+  return createPortal(
     <div className="field-duty-backdrop" role="presentation" onClick={closeSheet}>
       <div
         className="field-duty-sheet field-duty-sheet--proof"
@@ -56,7 +57,6 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
 
         <div className="field-duty-sheet__scroll">
           <FieldVerificationCapture key={task.id} task={task} />
-          <p className="field-duty-sheet__mission">{task.title}</p>
         </div>
 
         <footer className="field-duty-sheet__foot">
@@ -69,6 +69,7 @@ export function FieldDutySheet({ task, open, onClose, onSubmitted }: Props) {
           </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
