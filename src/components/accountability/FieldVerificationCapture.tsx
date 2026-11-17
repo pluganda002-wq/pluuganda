@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { Camera, Check, CheckCircle2, Crosshair, Images, Lock, RotateCcw, ScanFace, X } from "lucide-react";
+import { Camera, Check, Crosshair, Images, RotateCcw, ScanFace, X } from "lucide-react";
 import {
   coordsLine,
   evidencePhotoFor,
@@ -22,9 +22,10 @@ type DisplayMarker = { xPct: number; yPct: number; sizePct: number; ok?: boolean
 
 type Props = {
   task: DutyTask;
+  onSubmit?: () => void;
 };
 
-export function FieldVerificationCapture({ task }: Props) {
+export function FieldVerificationCapture({ task, onSubmit }: Props) {
   const { showAlert, haptic } = useTelegram();
   const defaultPhoto = evidencePhotoFor(task);
   const defaultGeo = geoForTask(task);
@@ -222,15 +223,20 @@ export function FieldVerificationCapture({ task }: Props) {
     );
   }
 
-  function lockLocation() {
-    if (locationLocked || !locationMode) {
-      if (!locationMode) {
-        showAlert("Choose system default coordinates or pin your location, then lock.");
-      }
+  function handleGpsSwitch(nextLocked: boolean) {
+    if (pinning) return;
+    if (!nextLocked) {
+      setLocationLocked(false);
+      haptic("light");
       return;
     }
+    const mode = locationMode ?? "default";
+    if (!locationMode) {
+      setLocationMode("default");
+      setLivePin(null);
+    }
     setLocationLocked(true);
-    if (locationMode === "default") {
+    if (mode === "default") {
       setGeo(defaultGeo);
       setLivePin(null);
     }
@@ -373,13 +379,31 @@ export function FieldVerificationCapture({ task }: Props) {
       <section className="field-capture__telemetry" aria-labelledby={`geo-sheet-${task.id}`}>
         <div className="field-capture__telemetry-head">
           <h4 id={`geo-sheet-${task.id}`}>GEOLOCATION TELEMETRY</h4>
-          {!locationLocked ? (
-            <span className="field-capture__geo-pick">Select source, then lock</span>
-          ) : (
-            <span className="field-capture__geo-pick field-capture__geo-pick--locked">
-              {locationMode === "live" ? "Live GPS" : "System default"}
+          <div className="field-capture__gps-switch-row">
+            <span
+              className={`field-capture__gps-switch-label${
+                locationLocked ? " field-capture__gps-switch-label--locked" : ""
+              }`}
+            >
+              Status: {locationLocked ? "GPS Locked" : "Open"}
             </span>
-          )}
+            <label
+              className={`field-capture__gps-toggle${locationLocked ? " field-capture__gps-toggle--on" : ""}${
+                pinning ? " field-capture__gps-toggle--disabled" : ""
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="field-capture__gps-toggle-input"
+                checked={locationLocked}
+                disabled={pinning}
+                aria-label={locationLocked ? "GPS locked, tap to unlock" : "GPS open, tap to lock"}
+                onChange={(e) => handleGpsSwitch(e.target.checked)}
+              />
+              <span className="field-capture__gps-toggle-track" aria-hidden />
+              <span className="field-capture__gps-toggle-thumb" aria-hidden />
+            </label>
+          </div>
         </div>
         <div className="field-capture__telemetry-body">
           <span className="field-capture__radar" aria-hidden>
@@ -417,34 +441,25 @@ export function FieldVerificationCapture({ task }: Props) {
             </button>
           </div>
         ) : null}
-
-        {locationLocked ? (
-          <div
-            className="field-capture__geo-btn field-capture__geo-btn--static field-capture__lock-toggle field-capture__geo-btn--active"
-            aria-live="polite"
-          >
-            <CheckCircle2 size={14} aria-hidden />
-            Status: Locked
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={`field-capture__geo-btn field-capture__lock-toggle${
-              locationMode ? " field-capture__geo-btn--armed" : ""
-            }`}
-            disabled={!locationMode || pinning}
-            aria-pressed={false}
-            onClick={lockLocation}
-          >
-            <Lock size={14} aria-hidden />
-            Status: Open · Lock GPS
-          </button>
-        )}
       </section>
 
-      <button type="button" className="field-capture__default-link" onClick={resetFieldProof} disabled={scanning}>
-        Reset
-      </button>
+      <div className="field-capture__sheet-actions">
+        <button
+          type="button"
+          className="field-capture__sheet-btn field-capture__sheet-btn--reset"
+          disabled={scanning}
+          onClick={resetFieldProof}
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          className="field-capture__sheet-btn field-capture__sheet-btn--submit"
+          onClick={() => onSubmit?.()}
+        >
+          Submit for approval
+        </button>
+      </div>
     </div>
   );
 }

@@ -75,6 +75,10 @@
   padding-bottom: 8px;
 }
 
+.field-duty-sheet__scroll--proof {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
 .field-duty-sheet__foot {
   flex-shrink: 0;
   position: sticky;
