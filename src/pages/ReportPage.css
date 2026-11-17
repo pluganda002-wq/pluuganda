@@ -1,10 +1,154 @@
-.whistle-form .field--details textarea {
-  min-height: 128px;
-  resize: vertical;
+.whistle-details-panel {
+  border: 1px solid var(--plu-border-strong, var(--plu-border));
+  border-radius: var(--radius-sm, 10px);
+  background: var(--plu-surface, #fff);
+  min-height: 200px;
+  cursor: text;
 }
 
-.whistle-form--embed .field--details textarea {
+.whistle-form--embed .whistle-details-panel {
+  min-height: 188px;
+}
+
+.whistle-details-panel:focus-within {
+  border-color: rgba(201, 162, 39, 0.65);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.22);
+}
+
+.whistle-details-panel__scroll {
+  padding: 12px 14px 14px;
+  box-sizing: border-box;
+}
+
+.field--details .whistle-details-panel__write,
+.whistle-details-panel__write {
+  display: block;
+  width: 100%;
+  min-height: 128px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  resize: vertical;
+  overflow: hidden;
+  font: inherit;
+  line-height: 1.45;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  box-sizing: border-box;
+  field-sizing: content;
+}
+
+.field--details .whistle-details-panel__write:focus,
+.whistle-details-panel__write:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.whistle-form--embed .whistle-details-panel__write {
   min-height: 148px;
+}
+
+.whistle-details-panel__meta {
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.whistle-details-panel__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 18px;
+  margin: 0 0 12px;
+}
+
+.whistle-details-panel__row:last-child {
+  margin-bottom: 0;
+}
+
+.whistle-details-panel__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  min-width: 0;
+}
+
+.field--details .whistle-details-panel label.whistle-details-panel__prompt {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--plu-muted);
+  cursor: default;
+}
+
+.field--details .whistle-details-panel .whistle-details-panel__fill {
+  width: 100%;
+  min-height: 1.65em;
+  margin: 0;
+  padding: 4px 0 6px;
+  border: none;
+  border-radius: 0;
+  font: inherit;
+  line-height: 1.4;
+  color: inherit;
+  background-color: transparent;
+  background-image: radial-gradient(circle, rgba(80, 72, 56, 0.45) 0.85px, transparent 1px);
+  background-size: 7px 3px;
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  box-shadow: none;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.field--details .whistle-details-panel textarea.whistle-details-panel__fill {
+  resize: none;
+  overflow: hidden;
+  vertical-align: top;
+  field-sizing: content;
+}
+
+.field--details .whistle-details-panel .whistle-details-panel__fill:focus {
+  outline: none;
+  box-shadow: none;
+  background-image: linear-gradient(rgba(201, 162, 39, 0.95), rgba(201, 162, 39, 0.95));
+  background-size: 100% 2px;
+  background-position: left bottom;
+}
+
+.field--details .whistle-details-panel .whistle-details-panel__fill--single {
+  resize: none;
+  overflow: hidden;
+}
+
+.field--details .whistle-details-panel input.whistle-details-panel__fill--date {
+  width: 100%;
+  max-width: 19ch;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06ch;
+}
+
+.field--details .whistle-details-panel .whistle-details-panel__fill::placeholder {
+  color: var(--plu-muted);
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.whistle-form .field--details > label:first-of-type {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 420px) {
+  .whistle-details-panel__row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 .report-media {

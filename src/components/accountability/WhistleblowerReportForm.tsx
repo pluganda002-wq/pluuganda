@@ -9,6 +9,12 @@ import "@/pages/ReportPage.css";
 const MAX_RECORD_SEC = 120;
 const MIN_RECORD_SEC = 2;
 const MAX_FILE_BYTES = 5_000_000;
+function incidentDateSlashTemplate() {
+  const slot = (chars: number) => " ".repeat(chars);
+  return `${slot(3)} / ${slot(3)} / ${slot(4)}`;
+}
+
+const INCIDENT_DATE_SLASH_TEMPLATE = incidentDateSlashTemplate();
 
 type SavedRecording = {
   blob: Blob;
@@ -42,6 +48,10 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
   const [reference, setReference] = useState("");
   const [category, setCategory] = useState("procurement");
   const [details, setDetails] = useState("");
+  const [institution, setInstitution] = useState("");
+  const [incidentLocation, setIncidentLocation] = useState("");
+  const [peopleInvolved, setPeopleInvolved] = useState("");
+  const [incidentDate, setIncidentDate] = useState(INCIDENT_DATE_SLASH_TEMPLATE);
   const [shareIdentity, setShareIdentity] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -56,9 +66,48 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
   const recordStartRef = useRef(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const detailsTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const detailsWriteMinPx = embedded ? 148 : 128;
+
+  const institutionRef = useRef<HTMLTextAreaElement>(null);
+  const incidentLocationRef = useRef<HTMLTextAreaElement>(null);
+  const peopleInvolvedRef = useRef<HTMLTextAreaElement>(null);
+  const metaFillMinPx = 28;
+
+  function syncDetailsTextareaHeight() {
+    const el = detailsTextareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const next = Math.max(detailsWriteMinPx, el.scrollHeight);
+    el.style.height = `${next}px`;
+  }
+
+  function syncMetaFillHeight(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.max(metaFillMinPx, el.scrollHeight)}px`;
+  }
+
+  function syncAllMetaFillHeights() {
+    syncMetaFillHeight(institutionRef.current);
+    syncMetaFillHeight(incidentLocationRef.current);
+    syncMetaFillHeight(peopleInvolvedRef.current);
+  }
+
+  useEffect(() => {
+    syncDetailsTextareaHeight();
+  }, [details, embedded, detailsWriteMinPx]);
+
+  useEffect(() => {
+    syncAllMetaFillHeights();
+  }, [institution, incidentLocation, peopleInvolved]);
 
   const categoryId = `${uid}-category`;
   const detailsId = `${uid}-details`;
+  const institutionId = `${uid}-institution`;
+  const incidentLocationId = `${uid}-incident-location`;
+  const peopleInvolvedId = `${uid}-people-involved`;
+  const incidentDateId = `${uid}-incident-date`;
   const nameId = `${uid}-name`;
   const phoneId = `${uid}-phone`;
   const identityToggleId = `${uid}-identity`;
@@ -164,6 +213,20 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
     const hasAttachment = Boolean(attachmentName);
     const trimmed = details.trim();
     const longEnough = trimmed.length >= 20;
+    const institutionTrim = institution.trim();
+    const locationTrim = incidentLocation.trim();
+    const peopleTrim = peopleInvolved.trim();
+    const dateTrim = incidentDate.trim();
+    const dateDigits = incidentDate.replace(/\D/g, "");
+
+    if (!institutionTrim || !locationTrim || !peopleTrim) {
+      showAlert("Fill in institution, location, people involved, and incident date under What happened?");
+      return;
+    }
+    if (dateDigits.length < 4) {
+      showAlert("Enter an approximate incident date (day, month, year).");
+      return;
+    }
 
     if (!longEnough && !hasRecording && !hasAttachment) {
       showAlert("Add a short note, record voice, or attach a file.");
@@ -191,6 +254,10 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
     let detailBody =
       trimmed ||
       (hasRecording ? "(Voice report — see attached recording.)" : "(Report with attachment.)");
+    detailBody += `\n\nInstitution or agency: ${institutionTrim}`;
+    detailBody += `\nLocation: ${locationTrim}`;
+    detailBody += `\nPeople involved: ${peopleTrim}`;
+    detailBody += `\nApproximate incident date: ${dateTrim}`;
     if (hasAttachment && attachmentName) {
       detailBody += `\n\n[Attachment: ${attachmentName}]`;
     }
@@ -250,13 +317,101 @@ export function WhistleblowerReportForm({ embedded = false, onSubmitted }: Props
       </div>
       <div className="field field--details">
         <label htmlFor={detailsId}>What happened?</label>
-        <textarea
-          id={detailsId}
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          placeholder="Where, when, and what you saw."
-          rows={embedded ? 7 : 6}
-        />
+        <div
+          className="whistle-details-panel"
+          onClick={(e) => {
+            const t = e.target as HTMLElement;
+            if (t.closest("input, textarea, select, button, label")) return;
+            detailsTextareaRef.current?.focus();
+          }}
+        >
+          <div className="whistle-details-panel__scroll">
+            <textarea
+              id={detailsId}
+              ref={detailsTextareaRef}
+              className="whistle-details-panel__write"
+              value={details}
+              onChange={(e) => {
+                setDetails(e.target.value);
+                syncDetailsTextareaHeight();
+              }}
+              placeholder="Include what happened, who was involved, when, where and how you know."
+              rows={1}
+            />
+            <div className="whistle-details-panel__meta" aria-label="Incident details">
+              <div className="whistle-details-panel__row">
+                <div className="whistle-details-panel__slot">
+                  <label className="whistle-details-panel__prompt" htmlFor={institutionId}>
+                    Institution or agency
+                  </label>
+                  <textarea
+                    id={institutionId}
+                    ref={institutionRef}
+                    className="whistle-details-panel__fill"
+                    rows={1}
+                    value={institution}
+                    onChange={(e) => {
+                      setInstitution(e.target.value);
+                      syncMetaFillHeight(e.target);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="whistle-details-panel__slot">
+                  <label className="whistle-details-panel__prompt" htmlFor={incidentLocationId}>
+                    Location
+                  </label>
+                  <textarea
+                    id={incidentLocationId}
+                    ref={incidentLocationRef}
+                    className="whistle-details-panel__fill"
+                    rows={1}
+                    value={incidentLocation}
+                    onChange={(e) => {
+                      setIncidentLocation(e.target.value);
+                      syncMetaFillHeight(e.target);
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="whistle-details-panel__row">
+                <div className="whistle-details-panel__slot">
+                  <label className="whistle-details-panel__prompt" htmlFor={peopleInvolvedId}>
+                    People involved
+                  </label>
+                  <textarea
+                    id={peopleInvolvedId}
+                    ref={peopleInvolvedRef}
+                    className="whistle-details-panel__fill"
+                    rows={1}
+                    value={peopleInvolved}
+                    onChange={(e) => {
+                      setPeopleInvolved(e.target.value);
+                      syncMetaFillHeight(e.target);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="whistle-details-panel__slot">
+                  <label className="whistle-details-panel__prompt" htmlFor={incidentDateId}>
+                    Approximate incident date
+                  </label>
+                  <input
+                    id={incidentDateId}
+                    className="whistle-details-panel__fill whistle-details-panel__fill--single whistle-details-panel__fill--date"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={incidentDate}
+                    onChange={(e) => setIncidentDate(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <ReportMediaControls
