@@ -72,6 +72,29 @@ export async function checkEndorsementNationalIdApi(nationalId: string) {
   });
 }
 
+export type SubmitYouthRegistrationPayload = {
+  kind: "league" | "forum";
+  reference?: string;
+  fullName: string;
+  phone: string;
+  district: string;
+  chapterId?: string;
+  chapterTitle?: string;
+  ageGroup?: string;
+  institution?: string;
+  eventId?: string;
+  eventTitle?: string;
+  eventDate?: string;
+  role?: string;
+  notes?: string;
+  telegramId?: number;
+  telegramUsername?: string;
+};
+
+export async function submitYouthRegistrationApi(payload: SubmitYouthRegistrationPayload) {
+  return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/youth", payload);
+}
+
 export async function submitReportApi(payload: {
   category: string;
   details: string;
