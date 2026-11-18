@@ -19,6 +19,9 @@ import { useTelegram } from "@/hooks/useTelegram";
 import { DutyPlatformIcon } from "@/components/accountability/DutyPlatformIcon";
 import "./DutyVerificationDesk.css";
 
+/** Preview count on programmes home — matches full Digital tab size (9 tasks). */
+const COMPACT_TASK_PREVIEW = 9;
+
 type Props = {
   compact?: boolean;
   fullPage?: boolean;
@@ -228,7 +231,7 @@ export function DutyVerificationDesk({
   const tabs = useMemo(() => visibleTabs(dutyTasks, userId), [dutyTasks, userId]);
   const list = useMemo(() => {
     const items = visibleTasksForTab(tab, dutyTasks, userId);
-    return compact ? items.slice(0, 3) : items;
+    return compact ? items.slice(0, COMPACT_TASK_PREVIEW) : items;
   }, [tab, dutyTasks, userId, compact]);
 
   const openCount = useMemo(
