@@ -20,5 +20,20 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("lucide-react")) return "vendor-lucide";
+          if (
+            id.includes("react-dom") ||
+            id.includes("react-router") ||
+            id.includes("/react/")
+          ) {
+            return "vendor-react";
+          }
+        },
+      },
+    },
   },
 });

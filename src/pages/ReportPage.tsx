@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { WhistleblowerReportForm } from "@/components/accountability/WhistleblowerReportForm";
 import { CIVIC_WATCH_FORM_TITLE, ACCOUNTABILITY_DASHBOARD } from "@/data/accountabilityProgramme";
+import "./ReportPage.css";
 
 export function ReportPage() {
   return (

@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import "./AssistantPage.css";
 import { ASSISTANT_PROMPTS } from "@/data/plu";
 
 type Message = { role: "user" | "assistant"; text: string };

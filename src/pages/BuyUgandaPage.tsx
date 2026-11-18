@@ -1,16 +1,14 @@
 import { FormEvent, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import {
-  BUBU_CATEGORIES,
-  BUBU_FEATURED,
-  BUBU_PILLARS,
-  BUBU_TAGLINE,
-} from "@/data/plu";
+import { BUBU_CATEGORIES, BUBU_TAGLINE } from "@/data/plu";
+import { useBuyUgandaContent } from "@/context/ServiceContentContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import { ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
+import "./BuyUgandaPage.css";
 
 export function BuyUgandaPage() {
+  const { pillars, featured } = useBuyUgandaContent();
   const { showAlert } = useTelegram();
   const [business, setBusiness] = useState("");
   const [product, setProduct] = useState("");
@@ -34,10 +32,10 @@ export function BuyUgandaPage() {
       </div>
 
       <h2 className="section-title">Campaign pillars</h2>
-      {BUBU_PILLARS.map((p) => (
-        <div key={p.title} className="card">
+      {pillars.map((p) => (
+        <div key={p.id} className="card">
           <strong>{p.title}</strong>
-          <p style={{ margin: "6px 0 0", fontSize: "0.85rem", color: "var(--plu-muted)" }}>{p.text}</p>
+          <p style={{ margin: "6px 0 0", fontSize: "0.85rem", color: "var(--plu-muted)" }}>{p.body}</p>
         </div>
       ))}
 
@@ -56,8 +54,15 @@ export function BuyUgandaPage() {
       </div>
 
       <h2 className="section-title">Featured local suppliers</h2>
-      {BUBU_FEATURED.map((v) => (
-        <div key={v.name} className="card">
+      {featured.map((v) => (
+        <div key={v.id} className="card">
+          {v.coverImage ? (
+            <img
+              src={v.coverImage}
+              alt=""
+              style={{ width: "100%", borderRadius: 8, marginBottom: 8, aspectRatio: "16/9", objectFit: "cover" }}
+            />
+          ) : null}
           <span className="badge badge-gold">{v.tag}</span>
           <p style={{ margin: "8px 0 2px", fontWeight: 600 }}>{v.name}</p>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--plu-muted)" }}>{v.district}</p>

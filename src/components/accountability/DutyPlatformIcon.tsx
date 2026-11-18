@@ -129,15 +129,16 @@ function WhatsAppIcon({ size }: { size: number }) {
   );
 }
 
+/** Official X mark (same geometry as x.com). */
+const X_LOGO_PATH =
+  "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z";
+
 function XIcon({ size }: { size: number }) {
   return (
     <BrandBox size={size}>
       <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
         <rect width="24" height="24" rx="6" fill="#000" />
-        <path
-          d="M6.5 6.5h2.3l3.4 4.6 3.9-4.6h2.1l-4.8 5.6 5.2 6.3h-2.3l-3.7-4.4-4.2 4.4H6.5l5.1-5.9-5.1-6.1zm3.5 12.8h1.2l7.6-9.1h-1.2l-7.6 9.1z"
-          fill="#fff"
-        />
+        <path d={X_LOGO_PATH} fill="#fff" />
       </svg>
     </BrandBox>
   );

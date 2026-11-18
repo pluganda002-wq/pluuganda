@@ -153,6 +153,15 @@ export const SERVICE_ITEMS: ServiceItem[] = [
     iconKey: "clipboard",
   },
   {
+    id: "service-admin",
+    to: "/admin/services",
+    title: "Services admin",
+    subtitle: "Content & photos",
+    category: "leadership",
+    accent: "gold",
+    iconKey: "clipboard",
+  },
+  {
     id: "leadership",
     to: "/leadership",
     title: "Rankings",

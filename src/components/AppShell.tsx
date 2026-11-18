@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDutyTasks } from "@/context/DutyConfigContext";
 import { readReturnTo } from "@/lib/dutyNavigation";
@@ -16,6 +17,8 @@ const SUBPAGE_BAR: Record<string, { title: string; backTo?: string }> = {
   "/tv": { title: "PLU TV", backTo: "/services" },
   "/education": { title: "Civic education", backTo: "/services" },
   "/youth": { title: "Youth leagues & forums", backTo: "/services" },
+  "/tourism": { title: "Tourism", backTo: "/services" },
+  "/admin/services": { title: "Services content", backTo: "/services" },
   "/endorse": { title: "Public endorsement", backTo: "/services" },
   "/endorse/pass": { title: "Endorsement pass", backTo: "/profile" },
 };
@@ -47,6 +50,14 @@ function resolveSubPageBar(
       title: "Field verification",
       backTo: returnTo ?? "/programmes/tasks?tab=field",
     };
+  }
+
+  if (pathname.match(/^\/tourism\/region\/[^/]+$/)) {
+    return { title: "Explore theme", backTo: "/tourism" };
+  }
+
+  if (pathname.match(/^\/charity\/[^/]+$/)) {
+    return { title: "Charity drive", backTo: "/charity" };
   }
 
   const fixed = SUBPAGE_BAR[pathname];
@@ -81,7 +92,15 @@ export function AppShell() {
           {!useInstitutional ? (
             <SubPageBar title={subpageBar?.title} backTo={subpageBar?.backTo} />
           ) : null}
-          <Outlet />
+          <Suspense
+            fallback={
+              <main className="page route-loading" aria-busy="true" aria-live="polite">
+                <p className="route-loading__text">Loading…</p>
+              </main>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </div>
         <BottomNav />
       </div>

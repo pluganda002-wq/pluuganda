@@ -1,71 +1,153 @@
-import { PageHeader } from "@/components/PageHeader";
-import { TOURISM_PACKAGES, TOURISM_REGIONS } from "@/data/plu";
-import { useTelegram } from "@/hooks/useTelegram";
-import { MapPin } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
+import { TourismEnquiryForm } from "@/components/tourism/TourismEnquiryForm";
+import { TourismPackageForm } from "@/components/tourism/TourismPackageForm";
+import { TourismRegionCard } from "@/components/tourism/TourismRegionCard";
+import { useTourismContent } from "@/context/ServiceContentContext";
+import { countPackageBookings, loadTourismBookings } from "@/lib/tourismBookings";
+import "./TourismPage.css";
+
+type Panel = "explore" | "packages" | "register" | "enquiry" | "mine";
+
+function packageBadgeClass(status: ReturnType<typeof useTourismContent>["packages"][number]["status"]): string {
+  if (status === "open") return "badge badge-blue";
+  if (status === "waitlist") return "badge badge-gold";
+  return "badge";
+}
 
 export function TourismPage() {
-  const { showAlert } = useTelegram();
+  const { pillars, packages, regions } = useTourismContent();
+  const [panel, setPanel] = useState<Panel>("explore");
+  const [packageId, setPackageId] = useState<string | undefined>();
+  const [bookings, setBookings] = useState(() => loadTourismBookings());
+
+  const refreshBookings = useCallback(() => setBookings(loadTourismBookings()), []);
 
   return (
-    <main className="page">
+    <main className="page tourism-page">
       <PageHeader
         title="Tourism"
         subtitle="Discover Uganda — the Pearl of Africa. Patriotic travel that supports local communities."
       />
 
-      <div className="card">
-        <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--plu-muted)" }}>
-          PLU tourism connects members and visitors to safe, organised experiences across Uganda — aligned
-          with national unity and responsible citizenship.
-        </p>
+      <div className="tourism-page__pillars">
+        {pillars.map((p) => (
+          <article key={p.id} className="tourism-pillar">
+            <strong>{p.title}</strong>
+            <p>{p.body}</p>
+          </article>
+        ))}
       </div>
 
-      <h2 className="section-title" style={{ marginTop: 20 }}>
-        Explore by theme
-      </h2>
-      {TOURISM_REGIONS.map((r) => (
-        <div key={r.id} className="card">
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <MapPin size={20} color="var(--plu-green)" style={{ flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <strong>{r.name}</strong>
-              <p style={{ margin: "6px 0", fontSize: "0.88rem", color: "var(--plu-text)" }}>
-                {r.highlights}
-              </p>
-              <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--plu-muted)" }}>{r.tip}</p>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      <h2 className="section-title" style={{ marginTop: 20 }}>
-        PLU travel packages
-      </h2>
-      {TOURISM_PACKAGES.map((pkg) => (
-        <div key={pkg.title} className="card">
-          <span className="badge badge-blue">{pkg.status}</span>
-          <p style={{ margin: "10px 0 4px", fontWeight: 600 }}>{pkg.title}</p>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--plu-muted)" }}>
-            {pkg.region} · {pkg.duration}
-          </p>
+      <div className="tourism-page__tabs" role="tablist" aria-label="Tourism">
+        {(
+          [
+            ["explore", "Explore"],
+            ["packages", "Packages"],
+            ["register", "Register"],
+            ["enquiry", "Custom trip"],
+            ["mine", `My bookings (${bookings.length})`],
+          ] as const
+        ).map(([id, label]) => (
           <button
+            key={id}
             type="button"
-            className="btn btn-primary"
-            style={{ marginTop: 12 }}
-            onClick={() => showAlert("Tour booking will connect to PLU Secretariat partners in the next release.")}
+            role="tab"
+            aria-selected={panel === id}
+            className={`tourism-page__tab${panel === id ? " tourism-page__tab--active" : ""}`}
+            onClick={() => setPanel(id)}
           >
-            Register interest
+            {label}
           </button>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <Link to="/buy-uganda" className="btn btn-secondary" style={{ marginTop: 16 }}>
-        Buy Uganda, Build Uganda →
-      </Link>
-      <Link to="/mobility" className="btn btn-ghost" style={{ marginTop: 8 }}>
-        Mobility for your trip
-      </Link>
+      {panel === "explore" ? (
+        <>
+          {regions.map((r) => (
+            <TourismRegionCard key={r.id} region={r} />
+          ))}
+          <button type="button" className="btn btn-primary" style={{ marginTop: 4 }} onClick={() => setPanel("enquiry")}>
+            Plan a custom itinerary
+          </button>
+          <Link to="/mobility" className="btn btn-ghost" style={{ marginTop: 8 }}>
+            Mobility for your trip
+          </Link>
+        </>
+      ) : null}
+
+      {panel === "packages" ? (
+        <>
+          {packages.map((pkg) => {
+            const taken = countPackageBookings(pkg.id);
+            const left =
+              pkg.status === "open" ? Math.max(0, pkg.spots - taken) : null;
+            return (
+              <div key={pkg.id} className="card tourism-package">
+                <span className={packageBadgeClass(pkg.status)}>{pkg.statusLabel}</span>
+                <p style={{ margin: "10px 0 4px", fontWeight: 600 }}>{pkg.title}</p>
+                <p className="tourism-package__meta">
+                  {pkg.region} · {pkg.duration}
+                  {pkg.departLabel ? ` · ${pkg.departLabel}` : ""}
+                  {left !== null ? ` · ${left} spots left` : ""}
+                </p>
+                <p className="tourism-package__summary">{pkg.summary}</p>
+                <div className="tourism-package__actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setPackageId(pkg.id);
+                      setPanel("register");
+                    }}
+                  >
+                    {pkg.status === "open" ? "Register interest" : "Join waitlist"}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setPanel("enquiry")}>
+                    Custom trip
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <Link to="/buy-uganda" className="btn btn-secondary" style={{ marginTop: 8 }}>
+            Buy Uganda, Build Uganda →
+          </Link>
+        </>
+      ) : null}
+
+      {panel === "register" ? (
+        <TourismPackageForm
+          key={packageId ?? "default-package"}
+          initialPackageId={packageId}
+          onSaved={refreshBookings}
+        />
+      ) : null}
+
+      {panel === "enquiry" ? <TourismEnquiryForm onSaved={refreshBookings} /> : null}
+
+      {panel === "mine" ? (
+        <div className="card">
+          {bookings.length === 0 ? (
+            <p style={{ margin: 0, color: "var(--plu-muted)", fontSize: "0.84rem" }}>
+              No bookings yet. Register for a package or send a custom enquiry.
+            </p>
+          ) : (
+            bookings.map((b) => (
+              <div key={b.id} className="tourism-mine__item">
+                <span className="tourism-mine__ref">{b.reference}</span>
+                <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: "0.88rem" }}>{b.fullName}</p>
+                <p style={{ margin: "4px 0 0", fontSize: "0.78rem", color: "var(--plu-muted)" }}>
+                  {b.kind === "package"
+                    ? `Package · ${b.packageTitle} · ${b.travellers} traveller${b.travellers > 1 ? "s" : ""}`
+                    : `Enquiry · ${b.theme} · ${b.preferredDates}`}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      ) : null}
     </main>
   );
 }

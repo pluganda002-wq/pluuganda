@@ -3,60 +3,53 @@ import { AppShell } from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { UserProvider } from "@/context/UserContext";
 import { DutyConfigProvider } from "@/context/DutyConfigContext";
-import { AssistantPage } from "@/pages/AssistantPage";
-import { BuyUgandaPage } from "@/pages/BuyUgandaPage";
-import { CharityPage } from "@/pages/CharityPage";
-import { CsrPage } from "@/pages/CsrPage";
-import { EducationPage } from "@/pages/EducationPage";
-import { EndorsePage } from "@/pages/EndorsePage";
-import { EndorsePassPage } from "@/pages/EndorsePassPage";
-import { HomePage } from "@/pages/HomePage";
-import { IntegrityPage } from "@/pages/IntegrityPage";
-import { LeadershipPage } from "@/pages/LeadershipPage";
-import { MembershipPage } from "@/pages/MembershipPage";
-import { MobilityPage } from "@/pages/MobilityPage";
-import { TugendePage } from "@/pages/TugendePage";
-import { UgoPage } from "@/pages/UgoPage";
-import { PluTvPage } from "@/pages/PluTvPage";
-import { ProgrammeDetailPage } from "@/pages/ProgrammeDetailPage";
-import { ProgrammesPage } from "@/pages/ProgrammesPage";
-import { GuildPage } from "@/pages/GuildPage";
-import { ProjectsPage } from "@/pages/ProjectsPage";
-import { ReportPage } from "@/pages/ReportPage";
-import { ServicesPage } from "@/pages/ServicesPage";
-import { SocialPage } from "@/pages/SocialPage";
-import { TasksPage } from "@/pages/TasksPage";
-import { DigitalDutyPage } from "@/pages/DigitalDutyPage";
-import { FieldDutyPage } from "@/pages/FieldDutyPage";
-import { AdminDutiesPage } from "@/pages/AdminDutiesPage";
-import { TourismPage } from "@/pages/TourismPage";
-import { YouthPage } from "@/pages/YouthPage";
-import "@/pages/AssistantPage.css";
-import "@/pages/BuyUgandaPage.css";
-import "@/pages/GuildPage.css";
-import "@/pages/HomePage.css";
+import { ServiceContentProvider } from "@/context/ServiceContentContext";
+import {
+  AdminDutiesPage,
+  AssistantPage,
+  BuyUgandaPage,
+  CharityPage,
+  CsrPage,
+  DigitalDutyPage,
+  EducationPage,
+  EndorsePage,
+  EndorsePassPage,
+  FieldDutyPage,
+  GuildPage,
+  HomePage,
+  IntegrityPage,
+  LeadershipPage,
+  MembershipPage,
+  MobilityPage,
+  PluTvPage,
+  ProgrammeDetailPage,
+  ProgrammesPage,
+  ProjectsPage,
+  ReportPage,
+  ServicesPage,
+  SocialPage,
+  TasksPage,
+  TourismPage,
+  TourismRegionPage,
+  CharityDrivePage,
+  AdminServicesPage,
+  TugendePage,
+  UgoPage,
+  YouthPage,
+} from "@/lazyPages";
 import "@/components/ProfileEditorSheet.css";
-import "@/pages/ProgrammesPage.css";
-import "@/pages/TasksPage.css";
-import "@/pages/AccountabilityPage.css";
-import "@/pages/ReportPage.css";
-import "@/pages/EndorsePage.css";
 import "@/components/accountability/DutyVerificationDesk.css";
-import "@/pages/FieldDutyPage.css";
-import "@/pages/DigitalDutyPage.css";
-import "@/pages/MembershipPage.css";
-import "@/pages/YouthPage.css";
-import "@/pages/AdminDutiesPage.css";
+import "@/components/ServiceTile.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
 import "@/styles/sections.css";
-import "@/components/ServiceTile.css";
 
 export default function App() {
   return (
     <ThemeProvider>
       <UserProvider>
       <DutyConfigProvider>
+      <ServiceContentProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
@@ -86,6 +79,9 @@ export default function App() {
             <Route path="/ugo" element={<UgoPage />} />
             <Route path="/tugende" element={<TugendePage />} />
             <Route path="/tourism" element={<TourismPage />} />
+            <Route path="/tourism/region/:regionId" element={<TourismRegionPage />} />
+            <Route path="/charity/:driveId" element={<CharityDrivePage />} />
+            <Route path="/admin/services" element={<AdminServicesPage />} />
             <Route path="/buy-uganda" element={<BuyUgandaPage />} />
             <Route path="/tv" element={<PluTvPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
@@ -97,6 +93,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </ServiceContentProvider>
       </DutyConfigProvider>
       </UserProvider>
     </ThemeProvider>

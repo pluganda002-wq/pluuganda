@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { YouthForumForm } from "@/components/youth/YouthForumForm";
 import { YouthLeagueForm } from "@/components/youth/YouthLeagueForm";
-import { YOUTH_FORUM_EVENTS, YOUTH_PILLARS } from "@/data/youthProgramme";
+import { useYouthContent } from "@/context/ServiceContentContext";
 import { countForumRegistrations, loadYouthRegistrations } from "@/lib/youthRegistrations";
 import "./YouthPage.css";
 
 type Panel = "overview" | "league" | "forums" | "mine";
 
 export function YouthPage() {
+  const { pillars: YOUTH_PILLARS, forums: YOUTH_FORUM_EVENTS } = useYouthContent();
   const [panel, setPanel] = useState<Panel>("overview");
   const [forumEventId, setForumEventId] = useState<string | undefined>();
   const [registrations, setRegistrations] = useState(() => loadYouthRegistrations());

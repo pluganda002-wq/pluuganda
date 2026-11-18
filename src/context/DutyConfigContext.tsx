@@ -8,10 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import { DEFAULT_DUTY_TASKS, type DutyTask } from "@/data/dutyVerification";
+import {
+  clientAdminPasswordOk,
+  readAdminSession,
+  writeAdminSession,
+} from "@/lib/adminAuth";
 import { fetchDutyTasksFromApi, saveDutyTasksToApi } from "@/lib/dutyApi";
 
 const STORAGE_KEY = "plu-duty-config-v3";
-const ADMIN_SESSION_KEY = "plu-duty-admin-session";
 
 type DutyConfigValue = {
   tasks: DutyTask[];
@@ -45,20 +49,11 @@ function saveLocalTasks(tasks: DutyTask[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
-function clientAdminPasswordOk(password: string): boolean {
-  const expected = import.meta.env.VITE_ADMIN_DUTY_PASSWORD ?? "";
-  if (expected && password === expected) return true;
-  if (import.meta.env.DEV && password === "manage-tasks") return true;
-  return false;
-}
-
 export function DutyConfigProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasksState] = useState<DutyTask[]>(DEFAULT_DUTY_TASKS);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<DutyConfigValue["source"]>("default");
-  const [isAdmin, setIsAdmin] = useState(
-    () => sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"
-  );
+  const [isAdmin, setIsAdmin] = useState(readAdminSession);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,14 +135,14 @@ export function DutyConfigProvider({ children }: { children: ReactNode }) {
     const ok = clientAdminPasswordOk(password);
     if (ok) {
       setIsAdmin(true);
-      sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+      writeAdminSession(true);
     }
     return ok;
   }, []);
 
   const adminLogout = useCallback(() => {
     setIsAdmin(false);
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    writeAdminSession(false);
   }, []);
 
   const value = useMemo(

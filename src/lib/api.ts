@@ -95,6 +95,28 @@ export async function submitYouthRegistrationApi(payload: SubmitYouthRegistratio
   return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/youth", payload);
 }
 
+export type SubmitTourismBookingPayload = {
+  kind: "package" | "enquiry";
+  reference?: string;
+  fullName: string;
+  phone: string;
+  district: string;
+  packageId?: string;
+  packageTitle?: string;
+  departLabel?: string;
+  theme?: string;
+  travellerType?: string;
+  preferredDates?: string;
+  travellers: number;
+  notes?: string;
+  telegramId?: number;
+  telegramUsername?: string;
+};
+
+export async function submitTourismBookingApi(payload: SubmitTourismBookingPayload) {
+  return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/tourism", payload);
+}
+
 export async function submitReportApi(payload: {
   category: string;
   details: string;

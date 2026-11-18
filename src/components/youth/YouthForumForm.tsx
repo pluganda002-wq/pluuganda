@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
-import { YOUTH_FORUM_EVENTS, YOUTH_FORUM_FORM, YOUTH_FORUM_ROLES } from "@/data/youthProgramme";
+import { YOUTH_FORUM_FORM, YOUTH_FORUM_ROLES } from "@/data/youthProgramme";
+import { useYouthContent } from "@/context/ServiceContentContext";
 import { UGANDA_DISTRICTS } from "@/data/ugandaDistricts";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
@@ -26,11 +27,12 @@ function normalizePhone(value: string): string {
 }
 
 export function YouthForumForm({ initialEventId, onSaved }: Props) {
+  const { forums: YOUTH_FORUM_EVENTS } = useYouthContent();
   const { member } = useUser();
   const { user, haptic, showAlert } = useTelegram();
   const [submitting, setSubmitting] = useState(false);
 
-  const [eventId, setEventId] = useState(initialEventId ?? YOUTH_FORUM_EVENTS[0].id);
+  const [eventId, setEventId] = useState(initialEventId ?? YOUTH_FORUM_EVENTS[0]?.id ?? "");
   const [fullName, setFullName] = useState(member?.fullName ?? "");
   const [phone, setPhone] = useState(member?.phone ?? "");
   const [district, setDistrict] = useState(member?.district ?? "");
@@ -39,7 +41,17 @@ export function YouthForumForm({ initialEventId, onSaved }: Props) {
   const [consent, setConsent] = useState(false);
 
   const event = useMemo(
-    () => YOUTH_FORUM_EVENTS.find((ev) => ev.id === eventId) ?? YOUTH_FORUM_EVENTS[0],
+    () =>
+      YOUTH_FORUM_EVENTS.find((ev) => ev.id === eventId) ??
+      YOUTH_FORUM_EVENTS[0] ?? {
+        id: "",
+        title: "Forum",
+        dateLabel: "",
+        dateIso: "",
+        location: "",
+        spots: 0,
+        summary: "",
+      },
     [eventId]
   );
 

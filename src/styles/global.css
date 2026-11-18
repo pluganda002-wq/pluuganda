@@ -595,3 +595,10 @@ select {
 .btn-grid-2 .btn svg {
   flex-shrink: 0;
 }
+
+.route-loading__text {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--plu-muted);
+}

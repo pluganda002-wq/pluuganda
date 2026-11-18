@@ -3,6 +3,7 @@ import { useDutyTasks } from "@/context/DutyConfigContext";
 import { readReturnTo } from "@/lib/dutyNavigation";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
+import "./DigitalDutyPage.css";
 
 export function DigitalDutyPage() {
   const { dutyId } = useParams<{ dutyId: string }>();
