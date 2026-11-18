@@ -117,6 +117,26 @@ export async function submitTourismBookingApi(payload: SubmitTourismBookingPaylo
   return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/tourism", payload);
 }
 
+export type SubmitBuyUgandaRequestPayload = {
+  kind: "introduction" | "listing";
+  reference?: string;
+  fullName: string;
+  phone: string;
+  district: string;
+  message?: string;
+  businessId?: string;
+  businessName?: string;
+  businessDistrict?: string;
+  products?: string;
+  productOrService?: string;
+  telegramId?: number;
+  telegramUsername?: string;
+};
+
+export async function submitBuyUgandaRequestApi(payload: SubmitBuyUgandaRequestPayload) {
+  return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/buy-uganda", payload);
+}
+
 export async function submitReportApi(payload: {
   category: string;
   details: string;

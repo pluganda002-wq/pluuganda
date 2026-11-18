@@ -108,15 +108,6 @@ export const SERVICE_ITEMS: ServiceItem[] = [
     iconKey: "tv",
   },
   {
-    id: "mobility",
-    to: "/mobility",
-    title: "Mobility",
-    subtitle: "UGo & Tugende",
-    category: "media",
-    accent: "blue",
-    iconKey: "car",
-  },
-  {
     id: "education",
     to: "/education",
     title: "Education",
@@ -169,6 +160,15 @@ export const SERVICE_ITEMS: ServiceItem[] = [
     category: "leadership",
     accent: "gold",
     iconKey: "trophy",
+  },
+  {
+    id: "mobility",
+    to: "/mobility",
+    title: "Mobility",
+    subtitle: "UGo & Tugende apps",
+    category: "media",
+    accent: "blue",
+    iconKey: "car",
   },
 ];
 

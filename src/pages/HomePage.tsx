@@ -1,10 +1,12 @@
 import {
+  Award,
   GraduationCap,
   Heart,
   MapPin,
   ShieldAlert,
   ShoppingBag,
   Sparkles,
+  Trophy,
   Tv,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,8 +18,8 @@ import { useUser } from "@/context/UserContext";
 import "./HomePage.css";
 
 const HERO_BANNER = "/branding/plu-hero-banner.png";
-const UGO_RIDE_LOGO = "/branding/ugo-ride.png";
-const TUGENDE_LOGO = "/branding/tugende-safe-boda.png";
+const RANKINGS_ART = "/branding/plu-metallic-gold-ref.png";
+const RECOGNITION_ART = "/branding/plu-service-points-icon.png";
 
 function useServicePointsTotal(): number {
   const { member, endorsed, completedTasks } = useUser();
@@ -47,32 +49,44 @@ export function HomePage() {
       </section>
 
       <div className="institutional-page__body home-page__body">
-        <section className="home-box home-mobility" aria-labelledby="home-mobility-title">
-          <h2 id="home-mobility-title" className="home-static-bar">
-            Mobility
+        <section className="home-box home-rankings" aria-labelledby="home-rankings-title">
+          <h2 id="home-rankings-title" className="home-static-bar">
+            Rankings & recognition
           </h2>
-          <div className="home-mobility__duo">
-            <Link to="/ugo" className="home-mobility__tile" aria-label="Open UGo Ride app">
+          <div className="home-rankings__duo">
+            <Link
+              to="/leadership?tab=rankings"
+              className="home-rankings__tile"
+              aria-label="Open patriot rankings"
+            >
               <img
-                src={UGO_RIDE_LOGO}
+                src={RANKINGS_ART}
                 alt=""
-                className="home-mobility__logo"
+                className="home-rankings__logo"
                 width={88}
                 height={88}
                 loading="lazy"
               />
-              <span className="home-mobility__name">UGo Ride</span>
+              <Trophy size={16} aria-hidden className="home-rankings__icon" />
+              <span className="home-rankings__name">Rankings</span>
+              <span className="home-rankings__hint">National leaderboard</span>
             </Link>
-            <Link to="/tugende" className="home-mobility__tile" aria-label="Open Tugende app">
+            <Link
+              to="/leadership?tab=recognition"
+              className="home-rankings__tile"
+              aria-label="Open recognition awards"
+            >
               <img
-                src={TUGENDE_LOGO}
+                src={RECOGNITION_ART}
                 alt=""
-                className="home-mobility__logo"
+                className="home-rankings__logo"
                 width={88}
                 height={88}
                 loading="lazy"
               />
-              <span className="home-mobility__name">Tugende</span>
+              <Award size={16} aria-hidden className="home-rankings__icon" />
+              <span className="home-rankings__name">Recognition</span>
+              <span className="home-rankings__hint">Official awards</span>
             </Link>
           </div>
         </section>

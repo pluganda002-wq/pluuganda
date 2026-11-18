@@ -162,14 +162,16 @@
 }
 
 /* Mobility — one bar, two tiles */
-.home-mobility__duo {
+.home-mobility__duo,
+.home-rankings__duo {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-bottom: 0;
 }
 
-.home-mobility__tile {
+.home-mobility__tile,
+.home-rankings__tile {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -183,9 +185,12 @@
   text-decoration: none;
   transition: background 0.12s ease;
   overflow: hidden;
+  position: relative;
+  color: inherit;
 }
 
-.home-mobility__logo {
+.home-mobility__logo,
+.home-rankings__logo {
   display: block;
   width: 100%;
   max-width: 100px;
@@ -194,16 +199,34 @@
   border-radius: 10px;
 }
 
-.home-mobility__tile:active {
+.home-mobility__tile:active,
+.home-rankings__tile:active {
   background: var(--plu-surface-hover);
 }
 
-.home-mobility__name {
+.home-mobility__name,
+.home-rankings__name {
   font-size: 0.78rem;
   font-weight: 700;
   color: inherit;
   text-align: center;
   line-height: 1.2;
+}
+
+.home-rankings__hint {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: var(--plu-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.home-rankings__icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--plu-gold-dark);
+  opacity: 0.85;
 }
 
 /* Column bars facing each other */

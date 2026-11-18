@@ -8,7 +8,11 @@ export type AdminSectionId =
   | "featured"
   | "drives"
   | "programs"
-  | "listings";
+  | "listings"
+  | "categories"
+  | "businesses"
+  | "rankings"
+  | "recognitions";
 
 export type AdminModuleConfig = {
   id: ServiceModuleId;
@@ -38,6 +42,8 @@ export const SERVICE_ADMIN_MODULES: AdminModuleConfig[] = [
     id: "buy-uganda",
     label: "Buy Uganda",
     sections: [
+      { id: "categories", label: "Shop categories" },
+      { id: "businesses", label: "Business directory" },
       { id: "featured", label: "Featured suppliers" },
       { id: "pillars", label: "Pillars" },
     ],
@@ -58,6 +64,15 @@ export const SERVICE_ADMIN_MODULES: AdminModuleConfig[] = [
     ],
   },
   { id: "mobility", label: "Mobility", sections: [{ id: "listings", label: "Listings" }] },
-  { id: "leadership", label: "Leadership", sections: [{ id: "listings", label: "Listings" }] },
+  {
+    id: "leadership",
+    label: "Rankings & recognition",
+    sections: [
+      { id: "rankings", label: "Leaderboard" },
+      { id: "recognitions", label: "Awards" },
+      { id: "pillars", label: "How points work" },
+      { id: "listings", label: "Listings (legacy)" },
+    ],
+  },
   { id: "projects", label: "Projects", sections: [{ id: "listings", label: "Listings" }] },
 ];

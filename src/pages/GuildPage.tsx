@@ -1,13 +1,15 @@
 import { Copy, Share2, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
-import { LEADERSHIP_RANKINGS, PLU_STATS, PLU_TAGLINE } from "@/data/plu";
+import { PLU_STATS, PLU_TAGLINE } from "@/data/plu";
+import { useLeadershipContent } from "@/context/ServiceContentContext";
 import { useUser } from "@/context/UserContext";
 import { useTelegram } from "@/hooks/useTelegram";
 import { usePatriotAvatar } from "@/hooks/usePatriotAvatar";
 import "./GuildPage.css";
 
 export function GuildPage() {
+  const { rankings } = useLeadershipContent();
   const { member, endorsed, endorsementReceipt, completedTasks, patriotProfile, inviteCode } = useUser();
   const { user, displayName, webApp, showAlert } = useTelegram();
   const avatarSrc = usePatriotAvatar();
@@ -85,17 +87,20 @@ export function GuildPage() {
             {PLU_STATS.members.toLocaleString()} members
           </p>
           <div className="guild-rank-list">
-            {LEADERSHIP_RANKINGS.slice(0, 5).map((row) => (
-              <div key={row.rank} className="guild-rank-row">
-                <span className="guild-rank-row__num">{row.rank}</span>
-                <div className="guild-rank-row__body">
-                  <strong>{row.name}</strong>
-                  <span>
-                    {row.score.toLocaleString()} pts · {row.badge}
-                  </span>
+            {[...rankings]
+              .sort((a, b) => a.rank - b.rank)
+              .slice(0, 5)
+              .map((row) => (
+                <div key={row.id} className="guild-rank-row">
+                  <span className="guild-rank-row__num">{row.rank}</span>
+                  <div className="guild-rank-row__body">
+                    <strong>{row.name}</strong>
+                    <span>
+                      {row.score.toLocaleString()} pts · {row.badge}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
           <Link to="/leadership" className="btn btn-secondary guild-rank-more">
             <Trophy size={18} />

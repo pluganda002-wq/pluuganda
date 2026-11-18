@@ -1,0 +1,282 @@
+.leadership-page__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.leadership-page__tab {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--plu-muted);
+  cursor: pointer;
+}
+
+.leadership-page__tab--active {
+  border-color: rgba(201, 162, 39, 0.45);
+  background: rgba(255, 193, 7, 0.16);
+  color: var(--plu-gold-dark);
+}
+
+.leadership-page__intro {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--plu-muted);
+}
+
+.leadership-you {
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.12) 0%, var(--plu-surface) 70%);
+  border-color: var(--plu-border-gold);
+}
+
+.leadership-you__kicker {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--plu-gold-dark);
+}
+
+.leadership-you__score {
+  margin: 6px 0 4px;
+  font-size: 0.88rem;
+}
+
+.leadership-you__score strong {
+  font-size: 1.35rem;
+  color: var(--plu-gold-dark);
+}
+
+.leadership-you__tier {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--plu-muted);
+}
+
+.leadership-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 6px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.leadership-podium__slot {
+  padding: 10px 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+  text-align: center;
+}
+
+.leadership-podium__slot--1 {
+  border-color: rgba(201, 162, 39, 0.55);
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.14) 0%, var(--plu-surface) 100%);
+  padding-bottom: 16px;
+}
+
+.leadership-podium__slot img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 6px 0;
+}
+
+.leadership-podium__place {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--plu-gold-dark);
+}
+
+.leadership-podium__name {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.leadership-podium__score {
+  margin: 4px 0 6px;
+  font-size: 0.62rem;
+  color: var(--plu-muted);
+}
+
+.leadership-list {
+  display: grid;
+  gap: 8px;
+}
+
+.leadership-row {
+  display: grid;
+  grid-template-columns: auto 52px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.leadership-row__rank {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--plu-gold);
+  min-width: 28px;
+  text-align: center;
+}
+
+.leadership-row__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.leadership-row__name {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.leadership-row__meta {
+  margin: 2px 0 4px;
+  font-size: 0.72rem;
+  color: var(--plu-muted);
+}
+
+.leadership-row__score {
+  margin: 0;
+  font-size: 0.74rem;
+}
+
+.leadership-row__hint {
+  margin: 6px 0 0;
+  font-size: 0.7rem;
+  color: var(--plu-muted);
+  line-height: 1.35;
+}
+
+.leadership-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.leadership-badge--gold {
+  background: rgba(255, 193, 7, 0.22);
+  color: var(--plu-gold-dark);
+}
+
+.leadership-badge--silver {
+  background: rgba(148, 163, 184, 0.22);
+  color: #475569;
+}
+
+.leadership-badge--bronze {
+  background: rgba(180, 83, 9, 0.15);
+  color: #9a3412;
+}
+
+.leadership-badge--patriot {
+  background: rgba(25, 135, 84, 0.14);
+  color: #166534;
+}
+
+.leadership-awards {
+  display: grid;
+  gap: 12px;
+}
+
+.leadership-award {
+  padding: 0;
+  overflow: hidden;
+}
+
+.leadership-award__media {
+  position: relative;
+}
+
+.leadership-award__media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.leadership-award__tier {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.leadership-award__body {
+  padding: 12px 14px 14px;
+}
+
+.leadership-award__subtitle {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--plu-gold-dark);
+}
+
+.leadership-award__title {
+  margin: 4px 0 6px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.leadership-award__recipient,
+.leadership-award__date {
+  margin: 0 0 4px;
+  font-size: 0.74rem;
+  color: var(--plu-muted);
+}
+
+.leadership-award__text {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.leadership-page__pillars {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.leadership-pillar {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+}
+
+.leadership-pillar strong {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--plu-gold-dark);
+  margin-bottom: 4px;
+}
+
+.leadership-pillar p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--plu-muted);
+}
+
+.leadership-point-cat {
+  margin-bottom: 8px;
+}

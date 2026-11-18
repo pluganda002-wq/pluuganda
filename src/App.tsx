@@ -44,6 +44,7 @@ import "@/styles/global.css";
 import "@/styles/institutional.css";
 import "@/styles/sections.css";
 import "@/pages/PluTvPage.css";
+import "@/pages/LeadershipPage.css";
 
 export default function App() {
   return (

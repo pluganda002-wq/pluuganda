@@ -19,7 +19,7 @@ import {
 } from "@/lib/serviceContentApi";
 import type { ServiceContentData, ServiceModuleId } from "@/types/serviceContent";
 
-const STORAGE_KEY = "plu-service-content-v2";
+const STORAGE_KEY = "plu-service-content-v4";
 
 type ServiceContentValue = {
   content: ServiceContentData;
@@ -61,13 +61,35 @@ function mergeWithDefaults(stored: ServiceContentData): ServiceContentData {
     ...stored,
     tourism: { ...base.tourism, ...stored.tourism },
     youth: { ...base.youth, ...stored.youth },
-    "buy-uganda": { ...base["buy-uganda"], ...stored["buy-uganda"] },
+    "buy-uganda": {
+      ...base["buy-uganda"],
+      ...stored["buy-uganda"],
+      categories:
+        stored["buy-uganda"]?.categories?.length > 0
+          ? stored["buy-uganda"].categories
+          : base["buy-uganda"].categories,
+      businesses:
+        stored["buy-uganda"]?.businesses?.length > 0
+          ? stored["buy-uganda"].businesses
+          : base["buy-uganda"].businesses,
+    },
     charity: { ...base.charity, ...stored.charity },
     csr: { ...base.csr, ...stored.csr },
     education: { ...base.education, ...stored.education },
     tv: { ...base.tv, ...stored.tv },
     mobility: { ...base.mobility, ...stored.mobility },
-    leadership: { ...base.leadership, ...stored.leadership },
+    leadership: {
+      ...base.leadership,
+      ...stored.leadership,
+      pillars:
+        stored.leadership?.pillars?.length > 0 ? stored.leadership.pillars : base.leadership.pillars,
+      rankings:
+        stored.leadership?.rankings?.length > 0 ? stored.leadership.rankings : base.leadership.rankings,
+      recognitions:
+        stored.leadership?.recognitions?.length > 0
+          ? stored.leadership.recognitions
+          : base.leadership.recognitions,
+    },
     projects: { ...base.projects, ...stored.projects },
   };
 }
@@ -209,6 +231,10 @@ export function useBuyUgandaContent() {
 
 export function useCharityContent() {
   return useServiceContent().content.charity;
+}
+
+export function useLeadershipContent() {
+  return useServiceContent().content.leadership;
 }
 
 export function useModuleListings(module: ServiceModuleId) {

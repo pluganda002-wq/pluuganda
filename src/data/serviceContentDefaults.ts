@@ -1,6 +1,12 @@
 import { TOURISM_PACKAGES, TOURISM_PILLARS } from "@/data/tourismProgramme";
 import { YOUTH_FORUM_EVENTS, YOUTH_PILLARS } from "@/data/youthProgramme";
+import { BUY_UGANDA_BUSINESSES, BUY_UGANDA_CATEGORIES } from "@/data/buyUgandaProgramme";
 import { BUBU_FEATURED, BUBU_PILLARS } from "@/data/plu";
+import {
+  DEFAULT_RANKINGS,
+  DEFAULT_RECOGNITIONS,
+  RANKINGS_PILLARS,
+} from "@/data/rankingsProgramme";
 import type { GalleryImage, ServiceContentData } from "@/types/serviceContent";
 
 function img(id: string, src: string, caption?: string): GalleryImage {
@@ -82,14 +88,19 @@ export const DEFAULT_SERVICE_CONTENT: ServiceContentData = {
   },
   "buy-uganda": {
     pillars: pillarsFrom(BUBU_PILLARS.map((p) => ({ title: p.title, body: p.text }))),
-    featured: BUBU_FEATURED.map((f, i) => ({
-      id: `supplier-${i}`,
-      name: f.name,
-      district: f.district,
-      tag: f.tag,
-      coverImage: "/branding/plu-services-hero.png",
-      gallery: [],
-    })),
+    categories: BUY_UGANDA_CATEGORIES.map((c) => ({ ...c })),
+    businesses: BUY_UGANDA_BUSINESSES.map((b) => ({ ...b, gallery: [] })),
+    featured: BUBU_FEATURED.map((f, i) => {
+      const match = BUY_UGANDA_BUSINESSES[i];
+      return {
+        id: match?.id ?? `supplier-${i}`,
+        name: f.name,
+        district: f.district,
+        tag: f.tag,
+        coverImage: match?.coverImage ?? "/buy-uganda/hero-cover.jpg",
+        gallery: [],
+      };
+    }),
   },
   charity: {
     drives: [
@@ -182,9 +193,12 @@ export const DEFAULT_SERVICE_CONTENT: ServiceContentData = {
     ],
   },
   leadership: {
+    pillars: pillarsFrom(RANKINGS_PILLARS),
+    rankings: DEFAULT_RANKINGS.map((r) => ({ ...r })),
+    recognitions: DEFAULT_RECOGNITIONS.map((r) => ({ ...r })),
     listings: [
       {
-        id: "rankings",
+        id: "rankings-hub",
         title: "Patriot rankings",
         subtitle: "Recognition",
         body: "District and national leaderboards from verified duties.",

@@ -4,7 +4,11 @@ import { SERVICE_ADMIN_MODULES } from "@/data/adminServiceModules";
 import { useServiceContent } from "@/context/ServiceContentContext";
 import { readAdminSession } from "@/lib/adminAuth";
 import type {
+  BuyUgandaBusinessEntry,
+  BuyUgandaCategoryEntry,
   CharityDriveEntry,
+  RankingEntry,
+  RecognitionEntry,
   FeaturedSupplierEntry,
   GalleryImage,
   PillarEntry,
@@ -164,6 +168,7 @@ export function AdminServicesPage() {
     if (module === "tourism") updateModule("tourism", { pillars });
     if (module === "youth") updateModule("youth", { pillars });
     if (module === "buy-uganda") updateModule("buy-uganda", { pillars });
+    if (module === "leadership") updateModule("leadership", { pillars });
   }
 
   return (
@@ -401,12 +406,15 @@ export function AdminServicesPage() {
         </button>
       ) : null}
 
-      {section === "pillars" && (moduleId === "tourism" || moduleId === "youth" || moduleId === "buy-uganda")
+      {section === "pillars" &&
+      (moduleId === "tourism" || moduleId === "youth" || moduleId === "buy-uganda" || moduleId === "leadership")
         ? (moduleId === "tourism"
             ? content.tourism.pillars
             : moduleId === "youth"
               ? content.youth.pillars
-              : content["buy-uganda"].pillars
+              : moduleId === "leadership"
+                ? content.leadership.pillars
+                : content["buy-uganda"].pillars
           ).map((pillar, index, arr) => (
             <article key={pillar.id} className="admin-duty__card">
               <label className="admin-duty__field">
@@ -503,6 +511,323 @@ export function AdminServicesPage() {
           }
         >
           Add forum event
+        </button>
+      ) : null}
+
+      {moduleId === "leadership" && section === "rankings"
+        ? content.leadership.rankings.map((row, index) => (
+            <article key={row.id} className="admin-duty__card">
+              <div className="admin-duty__card-head">
+                <h3 className="admin-duty__card-title">
+                  #{row.rank} {row.name}
+                </h3>
+                <button
+                  type="button"
+                  className="admin-duty__remove"
+                  onClick={() =>
+                    updateModule("leadership", {
+                      rankings: content.leadership.rankings.filter((x) => x.id !== row.id),
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+              {(
+                [
+                  ["rank", "number"],
+                  ["name", "text"],
+                  ["district", "text"],
+                  ["role", "text"],
+                  ["score", "number"],
+                  ["badge", "text"],
+                  ["coverImage", "text"],
+                  ["highlight", "text"],
+                ] as const
+              ).map(([field, kind]) => (
+                <label key={field} className="admin-duty__field">
+                  <span>{field}</span>
+                  <input
+                    type={kind === "number" ? "number" : "text"}
+                    value={row[field] ?? ""}
+                    onChange={(e) => {
+                      const next = [...content.leadership.rankings];
+                      const value =
+                        kind === "number" ? Number(e.target.value) || 0 : e.target.value;
+                      next[index] = { ...row, [field]: value };
+                      updateModule("leadership", { rankings: next });
+                    }}
+                  />
+                </label>
+              ))}
+            </article>
+          ))
+        : null}
+
+      {moduleId === "leadership" && section === "rankings" ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ marginBottom: 16 }}
+          onClick={() =>
+            updateModule("leadership", {
+              rankings: [
+                ...content.leadership.rankings,
+                {
+                  id: newItemId("rank"),
+                  rank: content.leadership.rankings.length + 1,
+                  name: "New patriot",
+                  district: "",
+                  role: "",
+                  score: 0,
+                  badge: "Patriot",
+                  coverImage: "/branding/plu-service-points-icon.png",
+                  highlight: "",
+                } satisfies RankingEntry,
+              ],
+            })
+          }
+        >
+          Add ranking row
+        </button>
+      ) : null}
+
+      {moduleId === "leadership" && section === "recognitions"
+        ? content.leadership.recognitions.map((award, index) => (
+            <article key={award.id} className="admin-duty__card">
+              <div className="admin-duty__card-head">
+                <h3 className="admin-duty__card-title">{award.title}</h3>
+                <button
+                  type="button"
+                  className="admin-duty__remove"
+                  onClick={() =>
+                    updateModule("leadership", {
+                      recognitions: content.leadership.recognitions.filter((x) => x.id !== award.id),
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+              {(
+                [
+                  "title",
+                  "subtitle",
+                  "recipient",
+                  "district",
+                  "dateLabel",
+                  "body",
+                  "coverImage",
+                  "tier",
+                ] as const
+              ).map((field) => (
+                <label key={field} className="admin-duty__field">
+                  <span>{field}</span>
+                  {field === "body" ? (
+                    <textarea
+                      rows={3}
+                      value={award[field]}
+                      onChange={(e) => {
+                        const next = [...content.leadership.recognitions];
+                        next[index] = { ...award, [field]: e.target.value };
+                        updateModule("leadership", { recognitions: next });
+                      }}
+                    />
+                  ) : (
+                    <input
+                      value={award[field]}
+                      onChange={(e) => {
+                        const next = [...content.leadership.recognitions];
+                        next[index] = { ...award, [field]: e.target.value };
+                        updateModule("leadership", { recognitions: next });
+                      }}
+                    />
+                  )}
+                </label>
+              ))}
+            </article>
+          ))
+        : null}
+
+      {moduleId === "leadership" && section === "recognitions" ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ marginBottom: 16 }}
+          onClick={() =>
+            updateModule("leadership", {
+              recognitions: [
+                ...content.leadership.recognitions,
+                {
+                  id: newItemId("award"),
+                  title: "New award",
+                  subtitle: "",
+                  recipient: "",
+                  district: "",
+                  dateLabel: "",
+                  body: "",
+                  coverImage: "/branding/plu-metallic-gold-ref.png",
+                  tier: "Gold",
+                } satisfies RecognitionEntry,
+              ],
+            })
+          }
+        >
+          Add award
+        </button>
+      ) : null}
+
+      {moduleId === "buy-uganda" && section === "categories"
+        ? content["buy-uganda"].categories.map((cat, index) => (
+            <article key={cat.id} className="admin-duty__card">
+              <div className="admin-duty__card-head">
+                <h3 className="admin-duty__card-title">{cat.name}</h3>
+                <button
+                  type="button"
+                  className="admin-duty__remove"
+                  onClick={() =>
+                    updateModule("buy-uganda", {
+                      categories: content["buy-uganda"].categories.filter((x) => x.id !== cat.id),
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+              <label className="admin-duty__field">
+                <span>Name</span>
+                <input
+                  value={cat.name}
+                  onChange={(e) => {
+                    const next = [...content["buy-uganda"].categories];
+                    next[index] = { ...cat, name: e.target.value };
+                    updateModule("buy-uganda", { categories: next });
+                  }}
+                />
+              </label>
+              <label className="admin-duty__field">
+                <span>Tagline</span>
+                <input
+                  value={cat.tagline}
+                  onChange={(e) => {
+                    const next = [...content["buy-uganda"].categories];
+                    next[index] = { ...cat, tagline: e.target.value };
+                    updateModule("buy-uganda", { categories: next });
+                  }}
+                />
+              </label>
+              <label className="admin-duty__field">
+                <span>Examples</span>
+                <textarea
+                  rows={2}
+                  value={cat.examples}
+                  onChange={(e) => {
+                    const next = [...content["buy-uganda"].categories];
+                    next[index] = { ...cat, examples: e.target.value };
+                    updateModule("buy-uganda", { categories: next });
+                  }}
+                />
+              </label>
+              <label className="admin-duty__field">
+                <span>Cover image URL</span>
+                <input
+                  value={cat.coverImage}
+                  onChange={(e) => {
+                    const next = [...content["buy-uganda"].categories];
+                    next[index] = { ...cat, coverImage: e.target.value };
+                    updateModule("buy-uganda", { categories: next });
+                  }}
+                />
+              </label>
+            </article>
+          ))
+        : null}
+
+      {moduleId === "buy-uganda" && section === "categories" ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ marginBottom: 16 }}
+          onClick={() =>
+            updateModule("buy-uganda", {
+              categories: [
+                ...content["buy-uganda"].categories,
+                {
+                  id: newItemId("bubu-cat"),
+                  name: "New category",
+                  tagline: "",
+                  examples: "",
+                  coverImage: "/buy-uganda/agro-cover.jpg",
+                } satisfies BuyUgandaCategoryEntry,
+              ],
+            })
+          }
+        >
+          Add category
+        </button>
+      ) : null}
+
+      {moduleId === "buy-uganda" && section === "businesses"
+        ? content["buy-uganda"].businesses.map((biz, index) => (
+            <article key={biz.id} className="admin-duty__card">
+              <div className="admin-duty__card-head">
+                <h3 className="admin-duty__card-title">{biz.name}</h3>
+                <button
+                  type="button"
+                  className="admin-duty__remove"
+                  onClick={() =>
+                    updateModule("buy-uganda", {
+                      businesses: content["buy-uganda"].businesses.filter((x) => x.id !== biz.id),
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+              {(["name", "district", "tag", "summary", "products", "coverImage", "categoryId"] as const).map(
+                (field) => (
+                  <label key={field} className="admin-duty__field">
+                    <span>{field}</span>
+                    <input
+                      value={biz[field]}
+                      onChange={(e) => {
+                        const next = [...content["buy-uganda"].businesses];
+                        next[index] = { ...biz, [field]: e.target.value };
+                        updateModule("buy-uganda", { businesses: next });
+                      }}
+                    />
+                  </label>
+                )
+              )}
+            </article>
+          ))
+        : null}
+
+      {moduleId === "buy-uganda" && section === "businesses" ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ marginBottom: 16 }}
+          onClick={() =>
+            updateModule("buy-uganda", {
+              businesses: [
+                ...content["buy-uganda"].businesses,
+                {
+                  id: newItemId("bubu-biz"),
+                  name: "New business",
+                  categoryId: "agro",
+                  district: "",
+                  tag: "Made in Uganda",
+                  summary: "",
+                  products: "",
+                  coverImage: "/buy-uganda/hero-cover.jpg",
+                  gallery: [],
+                } satisfies BuyUgandaBusinessEntry,
+              ],
+            })
+          }
+        >
+          Add business
         </button>
       ) : null}
 

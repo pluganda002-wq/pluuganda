@@ -12,7 +12,7 @@ export function MobilityPage() {
     <main className="page">
       <PageHeader
         title="Mobility"
-        subtitle="Each app opens on its own — choose UGo Ride or Tugende."
+        subtitle="Transport apps — UGo Ride and Tugende (patriot rankings are on Home → Rankings)."
       />
       <div className="mobility-launcher" aria-label="Mobility apps">
         <Link to="/ugo" className="mobility-launcher__tile">

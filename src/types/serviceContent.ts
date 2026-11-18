@@ -25,6 +25,26 @@ export type YouthForumEventEntry = {
   gallery?: GalleryImage[];
 };
 
+export type BuyUgandaCategoryEntry = {
+  id: string;
+  name: string;
+  tagline: string;
+  examples: string;
+  coverImage: string;
+};
+
+export type BuyUgandaBusinessEntry = {
+  id: string;
+  name: string;
+  categoryId: string;
+  district: string;
+  tag: string;
+  summary: string;
+  products: string;
+  coverImage: string;
+  gallery?: GalleryImage[];
+};
+
 export type FeaturedSupplierEntry = {
   id: string;
   name: string;
@@ -54,6 +74,30 @@ export type ServiceListingEntry = {
   link?: string;
 };
 
+export type RankingEntry = {
+  id: string;
+  rank: number;
+  name: string;
+  district: string;
+  role: string;
+  score: number;
+  badge: string;
+  coverImage: string;
+  highlight?: string;
+};
+
+export type RecognitionEntry = {
+  id: string;
+  title: string;
+  subtitle: string;
+  recipient: string;
+  district: string;
+  dateLabel: string;
+  body: string;
+  coverImage: string;
+  tier: string;
+};
+
 export type ServiceModuleId =
   | "tourism"
   | "youth"
@@ -78,6 +122,8 @@ export type ServiceContentData = {
   };
   "buy-uganda": {
     pillars: PillarEntry[];
+    categories: BuyUgandaCategoryEntry[];
+    businesses: BuyUgandaBusinessEntry[];
     featured: FeaturedSupplierEntry[];
   };
   charity: { drives: CharityDriveEntry[] };
@@ -85,7 +131,12 @@ export type ServiceContentData = {
   education: { listings: ServiceListingEntry[] };
   tv: { listings: ServiceListingEntry[] };
   mobility: { listings: ServiceListingEntry[] };
-  leadership: { listings: ServiceListingEntry[] };
+  leadership: {
+    pillars: PillarEntry[];
+    rankings: RankingEntry[];
+    recognitions: RecognitionEntry[];
+    listings: ServiceListingEntry[];
+  };
   projects: { listings: ServiceListingEntry[] };
 };
 
@@ -96,4 +147,8 @@ export type ServiceContentSection =
   | "forums"
   | "featured"
   | "drives"
-  | "listings";
+  | "listings"
+  | "categories"
+  | "businesses"
+  | "rankings"
+  | "recognitions";
