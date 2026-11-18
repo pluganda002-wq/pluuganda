@@ -12,7 +12,24 @@ export async function POST(request) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { fullName, phone, district, telegramId, telegramUsername } = body;
+  const {
+    fullName,
+    phone,
+    district,
+    telegramId,
+    telegramUsername,
+    firstName,
+    surname,
+    gender,
+    nationalId,
+    ageGroup,
+    subCounty,
+    parish,
+    village,
+    membershipRole,
+    interests,
+    consent,
+  } = body;
   if (!fullName?.trim() || !phone?.trim() || !district?.trim()) {
     return Response.json({ error: "fullName, phone and district are required" }, { status: 400 });
   }
@@ -23,6 +40,17 @@ export async function POST(request) {
     fullName: fullName.trim(),
     phone: phone.trim(),
     district: district.trim(),
+    firstName: firstName?.trim() || null,
+    surname: surname?.trim() || null,
+    gender: gender?.trim() || null,
+    nationalId: nationalId?.trim() || null,
+    ageGroup: ageGroup?.trim() || null,
+    subCounty: subCounty?.trim() || null,
+    parish: parish?.trim() || null,
+    village: village?.trim() || null,
+    membershipRole: membershipRole?.trim() || null,
+    interests: Array.isArray(interests) ? interests.filter((x) => typeof x === "string") : [],
+    consent: Boolean(consent),
     telegramId: telegramId ?? null,
     telegramUsername: telegramUsername ?? null,
     verified: false,

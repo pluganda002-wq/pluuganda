@@ -1,0 +1,70 @@
+.membership-form__interests {
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+
+.membership-form__interests legend {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--plu-text);
+  margin-bottom: 4px;
+}
+
+.membership-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.membership-form__chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--plu-border);
+  background: var(--plu-surface);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--plu-muted);
+  cursor: pointer;
+}
+
+.membership-form__chip--active {
+  border-color: rgba(201, 162, 39, 0.45);
+  background: rgba(255, 193, 7, 0.18);
+  color: var(--plu-gold-dark);
+}
+
+.membership-card__meta {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--plu-muted);
+}
+
+.membership-card__meta dt {
+  font-weight: 800;
+  color: var(--plu-text);
+  margin-top: 8px;
+}
+
+.membership-card__meta dd {
+  margin: 2px 0 0;
+}
+
+.membership-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.membership-card__chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 193, 7, 0.16);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--plu-gold-dark);
+}

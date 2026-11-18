@@ -19,6 +19,16 @@ export type MemberProfile = {
   memberId: string;
   verified: boolean;
   registeredAt: string;
+  firstName?: string;
+  surname?: string;
+  gender?: string;
+  nationalId?: string;
+  ageGroup?: string;
+  subCounty?: string;
+  parish?: string;
+  village?: string;
+  membershipRole?: string;
+  interests?: string[];
 };
 
 export type PatriotProfile = {

@@ -23,6 +23,17 @@ export type RegisterMemberPayload = {
   fullName: string;
   phone: string;
   district: string;
+  firstName?: string;
+  surname?: string;
+  gender?: string;
+  nationalId?: string;
+  ageGroup?: string;
+  subCounty?: string;
+  parish?: string;
+  village?: string;
+  membershipRole?: string;
+  interests?: string[];
+  consent?: boolean;
   telegramId?: number;
   telegramUsername?: string;
 };

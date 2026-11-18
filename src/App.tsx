@@ -44,6 +44,7 @@ import "@/pages/EndorsePage.css";
 import "@/components/accountability/DutyVerificationDesk.css";
 import "@/pages/FieldDutyPage.css";
 import "@/pages/DigitalDutyPage.css";
+import "@/pages/MembershipPage.css";
 import "@/pages/AdminDutiesPage.css";
 import "@/styles/global.css";
 import "@/styles/institutional.css";
