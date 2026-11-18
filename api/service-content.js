@@ -1,4 +1,4 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { getDb, isDbConfigured } from "../server/lib/mongodb.js";
 
 const CONFIG_ID = "main";
 

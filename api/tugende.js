@@ -1,12 +1,12 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
-import { isMomoConfigured, requestToPay } from "./lib/momo.js";
+import { getDb, isDbConfigured } from "../server/lib/mongodb.js";
+import { isMomoConfigured, requestToPay } from "../server/lib/momo.js";
 import {
   fareFromKm,
   haversineKm,
   pathDistanceKm,
   TUGENDE_RATE_UGX_PER_KM,
   vehiclePlateFromId,
-} from "./lib/tugendeMath.js";
+} from "../server/lib/tugendeMath.js";
 
 const DEMO_DRIVER_ID = 900001;
 

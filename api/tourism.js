@@ -1,5 +1,5 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
-import { saveBubuRequest } from "./lib/bubuRequests.js";
+import { getDb, isDbConfigured } from "../server/lib/mongodb.js";
+import { saveBubuRequest } from "../server/lib/bubuRequests.js";
 
 export async function POST(request) {
   if (!isDbConfigured()) {

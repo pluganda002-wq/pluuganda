@@ -1,5 +1,5 @@
-import { getTvProgramsResponse } from "./lib/tvPrograms.js";
-import { getTvCommentsResponse, postTvCommentResponse } from "./lib/tvComments.js";
+import { getTvProgramsResponse } from "../server/lib/tvPrograms.js";
+import { getTvCommentsResponse, postTvCommentResponse } from "../server/lib/tvComments.js";
 
 /** Combined PLU TV API (programs + comments) — single serverless function. */
 export async function GET(request) {

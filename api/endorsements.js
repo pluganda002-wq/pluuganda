@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { getDb, isDbConfigured } from "../server/lib/mongodb.js";
 
 function createEndorsementReference() {
   const stamp = Date.now().toString(36).toUpperCase();
