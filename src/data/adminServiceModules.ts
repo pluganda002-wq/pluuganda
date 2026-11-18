@@ -7,6 +7,7 @@ export type AdminSectionId =
   | "forums"
   | "featured"
   | "drives"
+  | "programs"
   | "listings";
 
 export type AdminModuleConfig = {
@@ -48,7 +49,14 @@ export const SERVICE_ADMIN_MODULES: AdminModuleConfig[] = [
   },
   { id: "csr", label: "CSR", sections: [{ id: "listings", label: "Listings" }] },
   { id: "education", label: "Education", sections: [{ id: "listings", label: "Listings" }] },
-  { id: "tv", label: "PLU TV", sections: [{ id: "listings", label: "Listings" }] },
+  {
+    id: "tv",
+    label: "PLU TV",
+    sections: [
+      { id: "programs", label: "Video programs (use API / Mongo)" },
+      { id: "listings", label: "Listings" },
+    ],
+  },
   { id: "mobility", label: "Mobility", sections: [{ id: "listings", label: "Listings" }] },
   { id: "leadership", label: "Leadership", sections: [{ id: "listings", label: "Listings" }] },
   { id: "projects", label: "Projects", sections: [{ id: "listings", label: "Listings" }] },

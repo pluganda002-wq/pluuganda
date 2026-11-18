@@ -215,6 +215,16 @@ export function AdminServicesPage() {
         </label>
       </div>
 
+      {moduleId === "tv" && section === "programs" ? (
+        <div className="card admin-duty__hint">
+          <p style={{ margin: 0, fontSize: "0.84rem", lineHeight: 1.45 }}>
+            PLU TV episodes live in MongoDB collection <strong>tv_programs</strong>. The API seeds official
+            YouTube replays on first load. Add rows with <code>youtubeUrl</code>, title, and{" "}
+            <code>scheduledAt</code> (future = Upcoming tab).
+          </p>
+        </div>
+      ) : null}
+
       {moduleId === "tourism" && section === "regions"
         ? content.tourism.regions.map((region, index) => (
             <article key={region.id} className="admin-duty__card admin-duty__card--field">
