@@ -1,4 +1,4 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { getDb, isDbConfigured } from "./mongodb.js";
 
 /** Keep in sync with src/data/pluTvCatalog.ts */
 const DEFAULT_PROGRAMS = [
@@ -203,7 +203,7 @@ function splitPrograms(serialized) {
   return { upcoming, past };
 }
 
-export async function GET() {
+export async function getTvProgramsResponse() {
   if (!isDbConfigured()) {
     const now = Date.now();
     const mapped = DEFAULT_PROGRAMS.map(serializeProgram);
@@ -228,7 +228,7 @@ export async function GET() {
     }
     return Response.json({ upcoming, past, source: "database" });
   } catch (e) {
-    console.error("[tv-programs GET]", e);
+    console.error("[tv programs GET]", e);
     const mapped = DEFAULT_PROGRAMS.map(serializeProgram);
     const { upcoming, past } = splitPrograms(mapped);
     return Response.json({ upcoming, past, source: "default-error" });

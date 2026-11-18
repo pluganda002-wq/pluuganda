@@ -26,6 +26,19 @@ export async function POST(request) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  if (body.action === "check") {
+    const nationalId = normalizeNationalId(body.nationalId);
+    if (nationalId.length < 8) {
+      return Response.json({ error: "Invalid national ID" }, { status: 400 });
+    }
+    const db = await getDb();
+    const existing = await db.collection("endorsements").findOne({ nationalId });
+    return Response.json({
+      available: !existing,
+      nationalId,
+    });
+  }
+
   const firstName = body.firstName?.trim();
   const surname = body.surname?.trim();
   const nationalId = normalizeNationalId(body.nationalId);

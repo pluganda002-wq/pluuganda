@@ -67,7 +67,8 @@ export async function submitEndorsementApi(payload: SubmitEndorsementPayload) {
 }
 
 export async function checkEndorsementNationalIdApi(nationalId: string) {
-  return postJson<{ available: boolean; nationalId: string }>("/api/endorsements/check", {
+  return postJson<{ available: boolean; nationalId: string }>("/api/endorsements", {
+    action: "check",
     nationalId,
   });
 }
@@ -134,7 +135,7 @@ export type SubmitBuyUgandaRequestPayload = {
 };
 
 export async function submitBuyUgandaRequestApi(payload: SubmitBuyUgandaRequestPayload) {
-  return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/buy-uganda", payload);
+  return postJson<{ ok: boolean; reference: string; registeredAt: string }>("/api/tourism", payload);
 }
 
 export async function submitReportApi(payload: {

@@ -1,9 +1,8 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { getDb, isDbConfigured } from "./mongodb.js";
 
 const MAX_BODY = 2000;
 
-export async function GET(request) {
-  const programId = new URL(request.url).searchParams.get("programId")?.trim();
+export async function getTvCommentsResponse(programId) {
   if (!programId) {
     return Response.json({ error: "programId required" }, { status: 400 });
   }
@@ -30,7 +29,7 @@ export async function GET(request) {
   });
 }
 
-export async function POST(request) {
+export async function postTvCommentResponse(request) {
   let body;
   try {
     body = await request.json();

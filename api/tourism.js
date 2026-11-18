@@ -1,4 +1,5 @@
 import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { saveBubuRequest } from "./lib/bubuRequests.js";
 
 export async function POST(request) {
   if (!isDbConfigured()) {
@@ -16,8 +17,13 @@ export async function POST(request) {
   if (!kind || !fullName?.trim() || !phone?.trim() || !district?.trim()) {
     return Response.json({ error: "kind, fullName, phone and district are required" }, { status: 400 });
   }
+
+  if (kind === "introduction" || kind === "listing") {
+    return saveBubuRequest(body);
+  }
+
   if (kind !== "package" && kind !== "enquiry") {
-    return Response.json({ error: "kind must be package or enquiry" }, { status: 400 });
+    return Response.json({ error: "kind must be package, enquiry, introduction, or listing" }, { status: 400 });
   }
 
   const reference = body.reference?.trim() || `TRV-${Math.floor(10000 + Math.random() * 90000)}`;

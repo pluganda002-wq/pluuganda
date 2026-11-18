@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/tv-programs", "destination": "/api/tv" },
+    { "source": "/api/tv-comments", "destination": "/api/tv" },
+    { "source": "/api/buy-uganda", "destination": "/api/tourism" },
+    { "source": "/api/endorsements/check", "destination": "/api/endorsements" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

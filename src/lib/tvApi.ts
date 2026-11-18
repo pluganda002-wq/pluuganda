@@ -59,7 +59,7 @@ export function getDefaultTvPrograms(): {
 export async function fetchTvPrograms(): Promise<{ upcoming: PluTvProgramPublic[]; past: PluTvProgramPublic[] }> {
   const fallback = serializeLocal();
   try {
-    const res = await fetch(`${API_BASE}/api/tv-programs`);
+    const res = await fetch(`${API_BASE}/api/tv`);
     if (!res.ok) return fallback;
     const data = (await res.json()) as { upcoming?: PluTvProgramPublic[]; past?: PluTvProgramPublic[] };
     const upcoming = data.upcoming ?? [];
@@ -73,7 +73,7 @@ export async function fetchTvPrograms(): Promise<{ upcoming: PluTvProgramPublic[
 
 export async function fetchTvComments(programId: string): Promise<PluTvComment[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/tv-comments?programId=${encodeURIComponent(programId)}`);
+    const res = await fetch(`${API_BASE}/api/tv?programId=${encodeURIComponent(programId)}`);
     if (!res.ok) return loadLocalComments(programId);
     const data = (await res.json()) as { comments?: PluTvComment[] };
     return Array.isArray(data.comments) ? data.comments : [];
@@ -90,7 +90,7 @@ export async function postTvComment(payload: {
   telegramUsername?: string;
 }): Promise<PluTvComment> {
   try {
-    const res = await fetch(`${API_BASE}/api/tv-comments`, {
+    const res = await fetch(`${API_BASE}/api/tv`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

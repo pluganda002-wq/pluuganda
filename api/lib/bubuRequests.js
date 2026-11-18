@@ -1,17 +1,6 @@
-import { getDb, isDbConfigured } from "./lib/mongodb.js";
+import { getDb } from "./mongodb.js";
 
-export async function POST(request) {
-  if (!isDbConfigured()) {
-    return Response.json({ error: "Database not configured" }, { status: 503 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
+export async function saveBubuRequest(body) {
   const { kind, fullName, phone, district } = body;
   if (!kind || !fullName?.trim() || !phone?.trim() || !district?.trim()) {
     return Response.json({ error: "kind, fullName, phone and district are required" }, { status: 400 });
